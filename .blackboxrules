@@ -1,0 +1,547 @@
+follow guideline https://electron-vite.org/guide/
+
+TECH STACK RECAP
+	•	Electron – desktop shell (Node + Chromium)
+	•	Vite – frontend dev server (for React)
+	•	Tailwind – UI styling
+	•	Ollama – local LLM inference engine
+	•	ChromaDB – vector memory store
+	•	ICP – decentralized compute / identity
+
+    
+Required Entry Points:
+	•	main/index.ts
+ → Entry for Electron main process (system-level lifecycle, window control)
+	•	preload/index.ts
+ → Single context-bridged API surface exposed to renderer
+	•	renderer/src/main.tsx
+ → Vite/React entry point, only allowed to touch UI logic
+	•	services/*.ts
+ → Each service has exactly one entry file: ollama.ts, chroma.ts, icp.ts
+  No side effects, no state, no direct DOM or process access
+	•	renderer/store/appState.ts
+ → Centralized Zustand store; no UI should manage global state directly
+
+contextBridge
+Secure renderer↔main communication
+✅ Yes
+.env file
+Define all service endpoints
+✅ Yes
+Health Check Module
+Validate Ollama, Chroma status
+✅ Yes
+Error Boundary in UI
+Catch + report UI exceptions
+✅ Yes
+StatusPanel component
+Show live status of all subsystems
+✅ Yes
+preload.test.ts
+Validates no leakage in exposed API
+✅ Yes
+main.test.ts
+    /
+├── main/               # Electron system process logic (only)
+│   └── index.ts
+│
+├── preload/            # Preload bridge; exposes API surface to renderer
+│   └── index.ts
+│
+├── renderer/           # React + Tailwind UI only
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── index.css
+│   │   └── components/     # Reka UI wrappers
+│   │       └── StatusPanel.tsx
+│   └── store/
+│       └── appState.ts
+│
+├── services/           # Isolated service logic (never imported in renderer)
+│   ├── ollama.ts
+│   ├── chroma.ts
+│   └── icp.ts
+│
+├── .env
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+└── electron.vite.config.ts
+
+    f you ever do any of the following, you are violating the build:
+	•	Access Node APIs (fs, path, os, child_process) from the renderer
+	•	Call local service endpoints (e.g. http://localhost:11434) from the UI
+	•	Bypass the preload contextBridge to talk to main
+	•	Catch errors and suppress them without logging or state handling
+	•	Use inline styles or unstructured layout in the UI
+	•	Assume development behavior will match production
+	•	Expose or store secrets in the frontend environment
+	•	Push business logic into UI components
+
+⸻
+
+DO’S:
+	•	Use only the preload script to expose APIs to the renderer
+	•	Wrap all third-party services (Ollama, Chroma, ICP) in isolated modules inside /services
+	•	Access services only through IPC methods exposed via preload
+	•	Style only using TailwindCSS or Reka UI components
+	•	Use Zustand or similar state management for app-level data
+	•	Validate that every external dependency is available before use
+	•	Log all errors, and handle all failure states
+	•	Package the app with security flags enabled (nodeIntegration: false, contextIsolation: true, sandbox: true)
+	•	Audit every change for cross-context leakage before pushing
+
+⸻
+
+DON’TS:
+	•	Never use require() in the renderer
+	•	Never access .env or process.env from React components
+	•	Never call fetch directly to Ollama, Chroma, or ICP from the renderer
+	•	Never open DevTools in production
+	•	Never write logic in main that affects UI state directly
+	•	Never use useState to manage global state
+	•	Never import random component libraries without review
+	•	Never ship untested IPC bridges or services
+
+⸻
+
+WHAT “BREAKING THE BUILD” ACTUALLY MEANS:
+
+“Breaking the build” is not a syntax error. It’s not a failed build step. It’s not a bug.
+
+Breaking the build means:
+You have introduced code that violates the separation of execution layers in a way that:
+	•	Compromises security
+	•	Reduces testability
+	•	Creates side effects across boundaries
+	•	Leaks service internals to the UI
+	•	Disables the ability to package or deploy safely
+	•	Makes the application behave differently in development vs production
+	•	Or silently fails, giving users an unusable app
+
+⸻
+
+WHY IT’S EASY TO BREAK:
+
+Because Electron gives you power you shouldn’t use unless you know exactly what you’re doing.
+Because Vite, React, and Node all blend in development — and trick you into thinking it’s fine.
+Because you can fetch something from a local server and it’ll “just work” — until you build and ship it.
+Because shortcuts work at first, then cause total system failure later.
+
+That’s why this guide exists:
+To protect the architecture from assumptions, improvisation, and entropy.
+
+⸻
+
+This intro and rule set belongs at the top of the internal README, in every onboarding document, and burned into the system-level AI logic handling this repo.
+
+
+PHASE 1 — Exact Alignment With the Official Electron Vite Guide
+
+STEP 1 — Create the Project
+
+In your terminal:
+
+npm create electron-vite@latest
+
+Prompts:
+	•	Project name: type your desired project name (example: ai-shell)
+	•	Select template: choose react-ts
+
+After creation:
+
+cd ai-shell
+npm install
+
+⸻
+
+STEP 2 — Run the Dev Environment
+
+Run:
+
+npm run dev
+
+What you should see:
+	•	A desktop app window opens
+	•	The UI is React-based (shows a simple page)
+	•	DevTools will be open (that’s expected right now)
+
+This confirms Electron + Vite + React is bootstrapped properly.
+
+⸻
+
+STEP 3 — Confirm File Structure Matches the Guide
+
+The root directory should now look like:
+	•	electron.vite.config.ts (main Electron config)
+	•	main/ (Electron main process code)
+	•	preload/ (Preload bridge)
+	•	renderer/ (React frontend)
+	•	vite.config.ts
+	•	package.json
+
+These are exactly what the official Electron Vite guide builds.
+
+⸻
+
+STEP 4 — Validate Preload Injection
+
+Open preload/index.ts — it should already contain code exposing an example API method via contextBridge.
+
+Also, look in renderer/src/App.tsx — it should call something like window.electron.ipcRenderer.invoke(...).
+
+If this is present and working, preload is connected.
+
+You should not modify this yet — just verify that:
+	•	contextIsolation is enabled by default in electron.vite.config.ts
+	•	The preload script path is correctly set
+	•	The renderer can call window.electron.ipcRenderer.invoke
+
+
+    PHASE 2 — UI SYSTEM LAYER
+TailwindCSS + Reka UI + Layout Enforcement
+
+⸻
+
+STEP 1 — Install Tailwind
+
+Run this:
+
+npm install -D tailwindcss postcss autoprefixer
+
+Then:
+
+npx tailwindcss init -p
+
+⸻
+
+STEP 2 — Tailwind Config
+
+In the file: tailwind.config.js
+
+Set this:
+
+content: [”./renderer/**/*.{js,ts,jsx,tsx,html}”]
+
+At the bottom, add the Reka plugin (later):
+
+plugins: [reka()]
+
+⸻
+
+STEP 3 — Create Tailwind CSS File
+
+Create: renderer/src/index.css
+
+Add this:
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+⸻
+
+STEP 4 — Import Tailwind into React
+
+Open: renderer/src/main.tsx
+
+Add this at the top:
+
+import ‘./index.css’;
+
+⸻
+
+STEP 5 — Install Reka UI
+
+Run this:
+
+npm install reka-ui
+
+Then in tailwind.config.js at the top:
+
+const reka = require(“reka-ui/plugin”);
+
+Then in plugins section:
+
+plugins: [reka()]
+
+⸻
+
+STEP 6 — Use Reka Components
+
+Open: renderer/src/App.tsx
+
+Replace all contents with:
+
+import { Button, Input } from ‘reka-ui’;
+
+function App() {
+return (
+
+
+Send
+
+);
+}
+
+export default App;
+
+⸻
+
+STEP 7 — Run It
+
+Run:
+
+npm run dev
+
+You should see a styled input and button rendered cleanly.
+
+⸻
+
+GUARDRAILS
+	•	No inline styles allowed
+	•	No raw HTML buttons/inputs allowed in final product
+	•	No CSS files besides Tailwind and Reka imports
+	•	No UI logic outside of renderer/ — preload and main must not render anything
+
+⸻
+
+CONFIRMATION CHECKLIST
+	•	App runs
+	•	Tailwind works
+	•	Reka components display
+	•	Styling is consistent
+	•	No console errors
+PHASE 3 — SERVICE LAYER + PRELOAD IPC BRIDGE
+Wiring Ollama + Chroma behind secure preload access
+
+⸻
+
+STEP 1 — Create services folder in project root
+
+mkdir services
+
+Inside, create these:
+
+touch services/ollama.ts
+touch services/chroma.ts
+
+⸻
+
+STEP 2 — Ollama API Wrapper
+
+In services/ollama.ts:
+
+export async function queryOllama(prompt: string) {
+ const res = await fetch(“http://localhost:11434/api/generate”, {
+  method: “POST”,
+  headers: { “Content-Type”: “application/json” },
+  body: JSON.stringify({ model: “llama3”, prompt }),
+ });
+ return res.json();
+}
+
+⸻
+
+STEP 3 — Chroma API Stub
+
+In services/chroma.ts:
+Just export placeholder functions for now:
+
+export async function pingChroma() {
+ return fetch(“http://localhost:8000”).then(r => r.ok);
+}
+
+You’ll expand this with collection, add, query, etc.
+
+⸻
+
+STEP 4 — Expose APIs through preload
+
+In preload/index.ts:
+
+import { contextBridge, ipcRenderer } from ‘electron’;
+
+contextBridge.exposeInMainWorld(“api”, {
+ queryOllama: (prompt) => ipcRenderer.invoke(“query-ollama”, prompt),
+ pingChroma: () => ipcRenderer.invoke(“ping-chroma”)
+});
+
+⸻
+
+STEP 5 — Handle IPC in main/index.ts
+
+Import the wrappers:
+
+import { queryOllama } from ‘../services/ollama’;
+import { pingChroma } from ‘../services/chroma’;
+import { ipcMain } from ‘electron’;
+
+ipcMain.handle(“query-ollama”, async (_, prompt) => {
+ return await queryOllama(prompt);
+});
+
+ipcMain.handle(“ping-chroma”, async () => {
+ return await pingChroma();
+});
+
+⸻
+
+STEP 6 — Use it from renderer
+
+In App.tsx:
+
+window.api.queryOllama(“Hello”).then(console.log);
+window.api.pingChroma().then(console.log);
+
+⸻
+
+GUARDRAILS
+	•	No direct fetch to Ollama or Chroma from renderer
+	•	All access to local services goes through preload
+	•	Preload only exposes controlled, typed APIs
+	•	Validate every input — sanitize prompts and paths before sending
+	•	Do not mutate UI from main/ — main handles services only
+
+⸻
+
+PHASE 4 — FAILURE TOLERANCE + STATUS CHECKS
+
+⸻
+
+STEP 1 — Build Health UI
+
+In renderer, create StatusPanel.tsx:
+
+Use simple UI to display:
+	•	Ollama: up/down
+	•	Chroma: up/down
+	•	App version
+	•	Preload bridge functional
+
+⸻
+
+STEP 2 — Add retry logic
+
+Wrap service calls in try/catch:
+
+try {
+ const result = await window.api.queryOllama(prompt);
+} catch (err) {
+ setStatus(“Ollama is offline”);
+}
+
+⸻
+
+STEP 3 — Block interactions if dependencies are down
+
+If Ollama or Chroma is offline:
+	•	Disable Submit button
+	•	Notify user via StatusPanel
+	•	Do not allow empty fetches to hang
+
+⸻
+
+PHASE 5 — STATE MANAGEMENT (RENDERER ONLY)
+
+⸻
+
+Install Zustand:
+
+npm install zustand
+
+Create store in renderer/store/appState.ts:
+
+import create from ‘zustand’;
+
+const useAppState = create((set) => ({
+ status: ‘idle’,
+ setStatus: (status) => set({ status }),
+}));
+
+Use in any component:
+
+const { status, setStatus } = useAppState();
+
+⸻
+
+GUARDRAILS
+	•	Do not use useState for global logic
+	•	No prop drilling for shared state
+	•	Only Zustand or equivalent state store allowed
+	•	Services must update state through atomic actions
+
+⸻
+
+PHASE 6 — ICP INTEGRATION
+
+⸻
+
+Install agent:
+
+npm install @dfinity/agent
+
+Create services/icp.ts:
+
+import { HttpAgent } from ‘@dfinity/agent’;
+
+let agent = new HttpAgent({ host: “https://ic0.app” });
+
+export async function pingCanister(canisterId: string) {
+ return await agent.status(canisterId);
+}
+
+Bridge it via preload and ipcMain the same way you did for Ollama/Chroma.
+
+Never expose agent directly to renderer.
+
+⸻
+
+PHASE 7 — HARDENING + BUILD PACKAGING
+
+⸻
+
+Install electron-builder:
+
+npm install –save-dev electron-builder
+
+In package.json add:
+
+“build”: {
+ “appId”: “your.app.id”,
+ “files”: [“dist/”, “main/”, “preload/”, “renderer/”],
+ “asar”: true
+}
+
+To build:
+
+npm run build
+
+⸻
+
+SECURITY LOCKDOWN
+	•	Set nodeIntegration to false
+	•	Set contextIsolation to true
+	•	Use sandbox: true
+	•	Use asar packaging
+	•	Strip devtools in production
+
+⸻
+
+BUILD COMPLETE CHECKLIST
+	•	All system access goes through preload
+	•	All services are in /services
+	•	No system functions in renderer
+	•	UI only uses Tailwind + Reka
+	•	Global state managed with Zustand
+	•	Chroma/Ollama calls are bridged
+	•	Build command packages cleanly
+	•	Dependencies are ping-checked before usage
+	•	No logs or keys exposed to renderer
+
+⸻
+
+You now have the complete build process, hardened, phase-by-phase, without formatting, 100% copy-pasteable.
+
+Tell me where you want to go deeper, or if you’re ready for testing harnesses or production-level checks.

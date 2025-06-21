@@ -1,76 +1,184 @@
-<h1 align="center">electron-app</h1>
+# 🕊️ PelicanOS AI Assistant
 
-<p align="center">An Electron application with Vue3 and TypeScript</p>
+A powerful, privacy-focused desktop AI assistant built with Electron, Vue.js, Ollama, and ChromaDB. Experience the future of local AI computing with full control over your data.
 
-<p align="center">
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/electron" alt="electron-version">
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/electron-vite" alt="electron-vite-version" />
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/electron-builder" alt="electron-builder-version" />
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/vite" alt="vite-version" />
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/vue" alt="vue-version" />
-<img src="https://img.shields.io/github/package-json/dependency-version/alex8088/electron-vite-boilerplate/dev/typescript" alt="typescript-version" />
-</p>
+![PelicanOS AI Assistant](https://img.shields.io/badge/PelicanOS-AI%20Assistant-blue?style=for-the-badge&logo=electron)
+![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-green?style=for-the-badge)
+![ChromaDB](https://img.shields.io/badge/Memory-ChromaDB-orange?style=for-the-badge)
 
-<p align='center'>
-<img src='./build/electron-vite-vue-ts.png'/>
-</p>
+## ✨ Features
 
-## Features
+### 🤖 **Local AI Processing**
+- **Privacy First**: All AI processing happens locally on your machine
+- **Multiple Models**: Support for various Ollama models (Llama2, CodeLlama, Mistral, etc.)
+- **No Internet Required**: Works offline after initial setup
 
-- 💡 Optimize asset handling
-- 🚀 Fast HMR for renderer processes
-- 🔥 Hot reloading for main process and preload scripts
-- 🔌 Easy to debug
-- 🔒 Compile to v8 bytecode to protect source code
+### 🧠 **Intelligent Memory**
+- **RAG Integration**: Uses ChromaDB for context-aware conversations
+- **Persistent Memory**: Remembers context across sessions
+- **Smart Context**: Automatically retrieves relevant conversation history
 
-## Getting Started
+### 🎨 **Beautiful Interface**
+- **Modern Design**: Glassmorphism UI with smooth animations
+- **Real-time Status**: Live service monitoring and health checks
+- **Responsive Layout**: Adapts to different screen sizes
 
-Read [documentation](https://electron-vite.org/) for more details.
+### ⚡ **Service Management**
+- **Auto-Detection**: Automatically detects and manages Ollama/ChromaDB
+- **One-Click Setup**: Start services directly from the interface
+- **Health Monitoring**: Real-time status indicators
 
-- [Configuring](https://electron-vite.org/config/)
-- [Development](https://electron-vite.org/guide/dev.html)
-- [Asset Handling](https://electron-vite.org/guide/assets.html)
-- [HMR](https://electron-vite.org/guide/hmr.html) & [Hot Reloading](https://electron-vite.org/guide/hot-reloading.html)
-- [Debugging](https://electron-vite.org/guide/debugging.html)
-- [Source code protection](https://electron-vite.org/guide/source-code-protection.html)
-- [Distribution](https://electron-vite.org/guide/distribution.html)
-- [Troubleshooting](https://electron-vite.org/guide/troubleshooting.html)
+## 🚀 Quick Start
 
-You can also use the [create-electron](https://github.com/alex8088/quick-start/tree/master/packages/create-electron) tool to scaffold your project for other frameworks (e.g. `React`, `Svelte` or `Solid`).
+1. **Clone and Install**
+   ```bash
+   git clone <repository-url>
+   cd PelicanOS
+   npm install
+   ```
 
-## Recommended IDE Setup
+2. **Install Prerequisites**
+   ```bash
+   # Install Ollama
+   curl -fsSL https://ollama.com/install.sh | sh
+   
+   # Install ChromaDB
+   pip install chromadb
+   ```
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin)
+3. **Start Development**
+   ```bash
+   npm run dev
+   ```
 
-## Project Setup
+4. **Follow Setup Guide**
+   - See [SETUP.md](./SETUP.md) for detailed instructions
+   - Use in-app service management to start Ollama/ChromaDB
+   - Pull your first AI model (recommended: llama2)
 
-### Install
+## 🏗️ Architecture
 
-```bash
-$ npm install
+### Frontend
+- **Framework**: Vue.js 3 with Composition API
+- **Build Tool**: Vite for fast development
+- **Styling**: CSS with modern gradients and animations
+- **State Management**: Reactive state with Vue 3
+
+### Backend
+- **Runtime**: Electron main process
+- **AI Engine**: Ollama for local LLM inference
+- **Vector Database**: ChromaDB for conversation memory
+- **IPC**: Secure communication between renderer and main
+
+### Data Flow
+```
+User Input → Vue.js Interface → Electron IPC → Ollama API
+                ↓
+ChromaDB Storage ← Context Retrieval ← AI Response
 ```
 
-### Development
+## 📦 Tech Stack
 
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Desktop App** | Electron + Vue.js | Cross-platform desktop interface |
+| **AI Engine** | Ollama | Local language model inference |
+| **Memory** | ChromaDB | Vector database for RAG |
+| **Build System** | electron-vite | Fast development and building |
+| **Language** | TypeScript | Type-safe development |
+
+## 🔧 Development
+
+### Available Scripts
 ```bash
-$ npm run dev
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start built application
+npm run typecheck    # Type checking
+npm run lint         # Code linting
 ```
 
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
+### Project Structure
+```
+PelicanOS/
+├── src/
+│   ├── main/           # Electron main process
+│   │   └── index.ts    # IPC handlers, service management
+│   ├── preload/        # Secure IPC bridge
+│   │   ├── index.ts    # API exposure
+│   │   └── index.d.ts  # Type definitions
+│   └── renderer/       # Vue.js frontend
+│       └── src/
+│           ├── App.vue
+│           └── components/
+│               └── AIAssistant.vue
+├── build/              # Build artifacts
+├── out/                # Distribution files
+└── resources/          # App resources
 ```
 
-## Examples
+## 🎯 Features in Detail
 
-- [electron-vite-bytecode-example](https://github.com/alex8088/electron-vite-bytecode-example), source code protection
-- [electron-vite-decorator-example](https://github.com/alex8088/electron-vite-decorator-example), typescipt decorator
-- [electron-vite-worker-example](https://github.com/alex8088/electron-vite-worker-example), worker and fork
+### Service Management
+- **Automatic Detection**: Checks Ollama and ChromaDB status on startup
+- **Guided Setup**: Step-by-step service initialization
+- **Health Monitoring**: Real-time service status indicators
+- **Error Handling**: Helpful error messages and troubleshooting
+
+### AI Chat Interface
+- **Model Selection**: Switch between different AI models
+- **Conversation History**: Persistent chat history with timestamps
+- **Context Awareness**: Uses ChromaDB for relevant context retrieval
+- **Export Functionality**: Save conversations as JSON files
+
+### Vector Database Integration
+- **Automatic Storage**: All conversations stored in ChromaDB
+- **Semantic Search**: Find relevant past conversations
+- **RAG Enhancement**: Context-aware responses using stored knowledge
+- **Privacy Preserving**: All data stored locally
+
+## 🛡️ Privacy & Security
+
+- **100% Local Processing**: No data sent to external servers
+- **Offline Capable**: Full functionality without internet
+- **Data Ownership**: All conversations and models stored locally
+- **Secure IPC**: Context isolation between processes
+
+## 📋 System Requirements
+
+### Minimum Requirements
+- **OS**: Windows 10+, macOS 10.15+, or Linux
+- **RAM**: 8GB (16GB recommended for larger models)
+- **Storage**: 10GB free space (for models and data)
+- **Network**: Internet for initial model download
+
+### Recommended Setup
+- **CPU**: Multi-core processor (Intel i5/AMD Ryzen 5+)
+- **RAM**: 16GB+ for optimal performance
+- **Storage**: SSD for faster model loading
+- **GPU**: Optional, for GPU-accelerated inference
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Ollama Team** for making local AI accessible
+- **ChromaDB** for excellent vector database technology
+- **Electron** for cross-platform desktop development
+- **Vue.js** for reactive UI framework
+
+---
+
+**Built with ❤️ for the local AI community**
+
+*Experience the power of AI without compromising your privacy.*
