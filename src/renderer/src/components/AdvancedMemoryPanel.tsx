@@ -7,14 +7,14 @@ import { Separator } from './ui/separator'
 import { 
   Brain, 
   Clock, 
-  Trash2, 
-  RefreshCw, 
-  AlertTriangle, 
+  Trash, 
+  ArrowsClockwise, 
+  Warning, 
   CheckCircle,
-  Settings,
+  Gear,
   Eye,
-  EyeOff
-} from 'lucide-react'
+  EyeSlash
+} from 'phosphor-react'
 import type { MemoryStore, MemorySummary } from '../types/chat'
 import type { AppSettings } from '../types/settings'
 
@@ -135,7 +135,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
         <CardContent className="space-y-6">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <RefreshCw className="w-6 h-6 animate-spin" />
+              <ArrowsClockwise className="w-6 h-6 animate-spin" />
               <span className="ml-2">Loading memory data...</span>
             </div>
           ) : (
@@ -176,7 +176,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                         size="sm"
                         onClick={() => setShowDetails(!showDetails)}
                       >
-                        {showDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showDetails ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
                     </div>
                   </Card>
@@ -266,7 +266,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                   <Separator />
                   <Card className="p-4 border-orange-200 bg-orange-50">
                     <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+                      <Warning className="w-5 h-5 text-orange-600 mt-0.5" />
                       <div>
                         <h4 className="font-medium text-orange-800">Memory Status Warning</h4>
                         <p className="text-sm text-orange-700 mt-1">
@@ -287,7 +287,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
               <Separator />
               <div className="flex flex-wrap gap-3">
                 <Button onClick={loadData} variant="outline">
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <ArrowsClockwise className="w-4 h-4 mr-2" />
                   Refresh
                 </Button>
                 
@@ -296,7 +296,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                   variant="destructive"
                   disabled={!memoryStore || memoryStore.summaries.length === 0}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash className="w-4 h-4 mr-2" />
                   Clear All Memory
                 </Button>
               </div>

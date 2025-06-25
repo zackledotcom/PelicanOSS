@@ -1,5 +1,5 @@
 import React from 'react'
-import { Battery, BatteryLow, AlertTriangle, CheckCircle, Clock, Brain } from 'lucide-react'
+import { Battery, BatteryLow, Warning, CheckCircle, Clock, Brain } from 'phosphor-react'
 import { Badge } from './ui/badge'
 import type { MemoryStore } from '../types/chat'
 
@@ -79,7 +79,7 @@ const MemoryHealthIndicator: React.FC<MemoryHealthIndicatorProps> = ({
     } else {
       status = 'critical'
       color = 'red'
-      icon = <AlertTriangle className="w-4 h-4" />
+      icon = <Warning className="w-4 h-4" />
     }
     
     // Generate recommendations
@@ -121,7 +121,7 @@ const MemoryHealthIndicator: React.FC<MemoryHealthIndicatorProps> = ({
     if (level >= 75) return <Battery className="w-4 h-4" />
     if (level >= 50) return <Battery className="w-4 h-4" />
     if (level >= 25) return <BatteryLow className="w-4 h-4" />
-    return <AlertTriangle className="w-4 h-4" />
+    return <Warning className="w-4 h-4" />
   }
   
   const getStatusColor = () => {

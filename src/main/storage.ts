@@ -53,6 +53,12 @@ function getDefaultSettings(): AppSettings {
       retentionDays: DEFAULT_RETENTION_DAYS,
       autoSummarizeThreshold: DEFAULT_AUTO_SUMMARIZE_THRESHOLD,
       showInAdvancedPanel: true
+    },
+    telemetry: {
+      enabled: false, // Disabled by default (opt-in)
+      collectUsageStats: true,
+      collectErrorReports: true,
+      collectFeatureUsage: true
     }
   }
 }
@@ -69,7 +75,7 @@ function getDefaultChatHistory(): { version: string; messages: Message[] } {
 function getDefaultMemoryStore(): MemoryStore {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + (DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000))
-  
+
   return {
     version: STORAGE_VERSION,
     memoryVersion: MEMORY_VERSION,
@@ -94,13 +100,13 @@ function isValidSettings(data: any): data is AppSettings {
     typeof data.chromaEndpoint === 'string' &&
     typeof data.ollamaPromptPreset === 'string'
   )
-  
+
   // Handle legacy settings without memory field
   if (hasBasicFields && !data.memory) {
     return true // Will be upgraded below
   }
-  
-  return hasBasicFields && (
+
+  const hasValidMemory = (
     typeof data.memory === 'object' &&
     data.memory !== null &&
     typeof data.memory.enabled === 'boolean' &&
@@ -108,6 +114,18 @@ function isValidSettings(data: any): data is AppSettings {
     typeof data.memory.autoSummarizeThreshold === 'number' &&
     typeof data.memory.showInAdvancedPanel === 'boolean'
   )
+
+  // Validate telemetry settings if present
+  const hasValidTelemetry = !data.telemetry || (
+    typeof data.telemetry === 'object' &&
+    data.telemetry !== null &&
+    typeof data.telemetry.enabled === 'boolean' &&
+    typeof data.telemetry.collectUsageStats === 'boolean' &&
+    typeof data.telemetry.collectErrorReports === 'boolean' &&
+    typeof data.telemetry.collectFeatureUsage === 'boolean'
+  )
+
+  return hasBasicFields && hasValidMemory && hasValidTelemetry
 }
 
 function isValidMessage(data: any): data is Message {
@@ -121,14 +139,14 @@ function isValidMessage(data: any): data is Message {
     typeof data.timestamp === 'string' &&
     !isNaN(Date.parse(data.timestamp))
   )
-  
+
   // Optional fields validation
   if (hasRequiredFields) {
     if (data.reasoning !== undefined && typeof data.reasoning !== 'string') return false
     if (data.confidence !== undefined && (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)) return false
     if (data.clarifications !== undefined && (!Array.isArray(data.clarifications) || !data.clarifications.every((c: any) => typeof c === 'string'))) return false
   }
-  
+
   return hasRequiredFields
 }
 
@@ -156,13 +174,13 @@ function isValidMemorySummary(data: any): data is MemorySummary {
     !isNaN(Date.parse(data.createdAt)) &&
     typeof data.messageCount === 'number'
   )
-  
+
   // Optional fields validation
   if (hasRequiredFields) {
     if (data.reasoningTrace !== undefined && typeof data.reasoningTrace !== 'string') return false
     if (data.confidence !== undefined && (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)) return false
   }
-  
+
   return hasRequiredFields
 }
 
@@ -188,20 +206,20 @@ export async function loadSettings(): Promise<AppSettings> {
   try {
     await ensureStorageDirectory()
     const settingsPath = getSettingsPath()
-    
+
     if (!existsSync(settingsPath)) {
       console.log('Settings file not found, creating default settings')
       const defaultSettings = getDefaultSettings()
       await saveSettings(defaultSettings)
       return defaultSettings
     }
-    
+
     const fileContent = await readFile(settingsPath, 'utf-8')
     const parsedData = JSON.parse(fileContent)
-    
+
     if (!isValidSettings(parsedData)) {
       console.warn('Invalid or legacy settings format detected, upgrading to current schema')
-      
+
       // Upgrade legacy settings by merging with defaults
       const defaultSettings = getDefaultSettings()
       const upgradedSettings = {
@@ -209,18 +227,25 @@ export async function loadSettings(): Promise<AppSettings> {
         ...parsedData,
         memory: parsedData.memory || defaultSettings.memory
       }
-      
+
       await saveSettings(upgradedSettings)
       return upgradedSettings
     }
-    
+
     // Ensure memory field exists for legacy compatibility
     if (!parsedData.memory) {
       const defaultSettings = getDefaultSettings()
       parsedData.memory = defaultSettings.memory
       await saveSettings(parsedData)
     }
-    
+
+    // Ensure telemetry field exists for legacy compatibility
+    if (!parsedData.telemetry) {
+      const defaultSettings = getDefaultSettings()
+      parsedData.telemetry = defaultSettings.telemetry
+      await saveSettings(parsedData)
+    }
+
     return parsedData
   } catch (error) {
     console.error('Failed to load settings:', error)
@@ -235,15 +260,15 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
     if (!isValidSettings(settings)) {
       throw new Error('Invalid settings schema provided')
     }
-    
+
     await ensureStorageDirectory()
     const settingsPath = getSettingsPath()
-    
+
     const settingsWithVersion = {
       ...settings,
       version: STORAGE_VERSION
     }
-    
+
     await writeFile(settingsPath, JSON.stringify(settingsWithVersion, null, 2), 'utf-8')
     console.log('Settings saved successfully')
   } catch (error) {
@@ -256,24 +281,24 @@ export async function loadChatHistory(): Promise<Message[]> {
   try {
     await ensureStorageDirectory()
     const chatHistoryPath = getChatHistoryPath()
-    
+
     if (!existsSync(chatHistoryPath)) {
       console.log('Chat history file not found, creating empty history')
       const defaultHistory = getDefaultChatHistory()
       await writeFile(chatHistoryPath, JSON.stringify(defaultHistory, null, 2), 'utf-8')
       return []
     }
-    
+
     const fileContent = await readFile(chatHistoryPath, 'utf-8')
     const parsedData = JSON.parse(fileContent)
-    
+
     if (!isValidChatHistory(parsedData)) {
       console.warn('Invalid chat history format detected, resetting to empty')
       const defaultHistory = getDefaultChatHistory()
       await writeFile(chatHistoryPath, JSON.stringify(defaultHistory, null, 2), 'utf-8')
       return []
     }
-    
+
     return parsedData.messages.slice(-100)
   } catch (error) {
     console.error('Failed to load chat history:', error)
@@ -286,20 +311,20 @@ export async function appendChatMessage(message: Message): Promise<void> {
     if (!isValidMessage(message)) {
       throw new Error('Invalid message schema provided')
     }
-    
+
     const currentMessages = await loadChatHistory()
     const updatedMessages = [...currentMessages, message]
     const trimmedMessages = updatedMessages.slice(-1000)
-    
+
     const chatHistory = {
       version: STORAGE_VERSION,
       messages: trimmedMessages
     }
-    
+
     await ensureStorageDirectory()
     const chatHistoryPath = getChatHistoryPath()
     await writeFile(chatHistoryPath, JSON.stringify(chatHistory, null, 2), 'utf-8')
-    
+
     console.log('Chat message appended successfully')
   } catch (error) {
     console.error('Failed to append chat message:', error)
@@ -312,40 +337,40 @@ export async function loadMemoryStore(): Promise<MemoryStore> {
   try {
     await ensureStorageDirectory()
     const memoryPath = getMemoryPath()
-    
+
     if (!existsSync(memoryPath)) {
       console.log('Memory file not found, creating default memory store')
       const defaultMemory = getDefaultMemoryStore()
       await saveMemoryStore(defaultMemory)
       return defaultMemory
     }
-    
+
     const fileContent = await readFile(memoryPath, 'utf-8')
     const parsedData = JSON.parse(fileContent)
-    
+
     if (!isValidMemoryStore(parsedData)) {
       console.warn('Invalid memory format detected, resetting to default')
       const defaultMemory = getDefaultMemoryStore()
       await saveMemoryStore(defaultMemory)
       return defaultMemory
     }
-    
+
     // Check if memory has expired
     const now = new Date()
     const expiresAt = new Date(parsedData.expiresAt)
-    
+
     if (now > expiresAt) {
       console.log('Memory has expired, prompting for reinitialization')
       // Mark as expired but don't auto-clear (let user decide)
       parsedData.expired = true
     }
-    
+
     // Check version compatibility
     if (parsedData.memoryVersion !== MEMORY_VERSION) {
       console.log('Memory version mismatch, may need migration')
       parsedData.needsMigration = true
     }
-    
+
     return parsedData
   } catch (error) {
     console.error('Failed to load memory store:', error)
@@ -360,10 +385,10 @@ export async function saveMemoryStore(memoryStore: MemoryStore): Promise<void> {
     if (!isValidMemoryStore(memoryStore)) {
       throw new Error('Invalid memory store schema provided')
     }
-    
+
     await ensureStorageDirectory()
     const memoryPath = getMemoryPath()
-    
+
     // Ensure current versions and update timestamp
     const memoryWithVersion = {
       ...memoryStore,
@@ -371,12 +396,12 @@ export async function saveMemoryStore(memoryStore: MemoryStore): Promise<void> {
       memoryVersion: MEMORY_VERSION,
       lastUpdated: new Date().toISOString()
     }
-    
+
     // Trim summaries to max limit
     if (memoryWithVersion.summaries.length > memoryWithVersion.maxSummaries) {
       memoryWithVersion.summaries = memoryWithVersion.summaries.slice(-memoryWithVersion.maxSummaries)
     }
-    
+
     await writeFile(memoryPath, JSON.stringify(memoryWithVersion, null, 2), 'utf-8')
     console.log('Memory store saved successfully')
   } catch (error) {
@@ -388,15 +413,15 @@ export async function saveMemoryStore(memoryStore: MemoryStore): Promise<void> {
 export async function addMemorySummary(summary: MemorySummary): Promise<void> {
   try {
     const memoryStore = await loadMemoryStore()
-    
+
     if (!memoryStore.enabled) {
       console.log('Memory is disabled, not adding summary')
       return
     }
-    
+
     memoryStore.summaries.push(summary)
     await saveMemoryStore(memoryStore)
-    
+
     console.log('Memory summary added successfully')
   } catch (error) {
     console.error('Failed to add memory summary:', error)
@@ -419,13 +444,13 @@ export async function updateMemorySettings(enabled: boolean, retentionDays?: num
   try {
     const memoryStore = await loadMemoryStore()
     memoryStore.enabled = enabled
-    
+
     if (retentionDays) {
       const now = new Date()
       const expiresAt = new Date(now.getTime() + (retentionDays * 24 * 60 * 60 * 1000))
       memoryStore.expiresAt = expiresAt.toISOString()
     }
-    
+
     await saveMemoryStore(memoryStore)
     console.log('Memory settings updated successfully')
   } catch (error) {

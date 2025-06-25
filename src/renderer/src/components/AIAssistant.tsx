@@ -3,9 +3,9 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Textarea } from './ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { CheckCircle, Circle, Send, RefreshCw, Trash2, Download, Bot, User, Brain, Settings } from 'lucide-react'
-import AdvancedMemoryPanel from './AdvancedMemoryPanel'
-import MemoryHealthIndicator from './MemoryHealthIndicator'
+import { CheckCircle, Circle, PaperPlaneTilt, ArrowClockwise, Trash, Download, Robot, User, Brain, Gear } from 'phosphor-react'
+// import AdvancedMemoryPanel from './AdvancedMemoryPanel'
+// import MemoryHealthIndicator from './MemoryHealthIndicator'
 import type { MemoryStore } from '../types/chat'
 
 interface Message {
@@ -250,13 +250,14 @@ const AIAssistant: React.FC = () => {
           </div>
         </div>
         
-        {/* Memory Health Indicator */}
+        {/* Memory Health Indicator - Temporarily disabled
         <div className="group relative">
           <MemoryHealthIndicator 
             memoryStore={memoryStore} 
             className="text-white/80"
           />
         </div>
+        */}
       </div>
 
       {/* Service Setup Panel */}
@@ -392,7 +393,7 @@ const AIAssistant: React.FC = () => {
                   disabled={!currentMessage.trim() || isThinking}
                   className="bg-green-600 hover:bg-green-700"
                 >
-                  <Send className="w-4 h-4" />
+                  <PaperPlaneTilt className="w-4 h-4" />
                 </Button>
               </div>
               
@@ -411,7 +412,7 @@ const AIAssistant: React.FC = () => {
         </div>
       )}
       
-      {/* Advanced Memory Panel */}
+      {/* Advanced Memory Panel - Temporarily disabled
       <AdvancedMemoryPanel 
         isOpen={showMemoryPanel} 
         onClose={() => {
@@ -419,6 +420,7 @@ const AIAssistant: React.FC = () => {
           loadMemoryStore() // Refresh memory store when panel closes
         }} 
       />
+      */}
     </div>
   )
 }
