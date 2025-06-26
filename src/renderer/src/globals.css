@@ -4,64 +4,88 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    /* === REFINED LUXE CHATBOT COLOR SYSTEM - Light Theme === */
+    --background: 0 0% 100%;                    /* Pure White #FFFFFF */
+    --foreground: 213 8% 12%;                   /* Rich Neutral #1F1F1F */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 213 8% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 0 0% 0%;
+    --popover-foreground: 213 8% 12%;
+    --primary: 216 100% 84%;                    /* Soft Powder Blue #AFCBFF */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 98%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 97%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --secondary: 0 0% 97%;                      /* Subtle gradient start #FAFAFA */
+    --secondary-foreground: 213 8% 12%;
+    --muted: 210 9% 91%;                        /* Darker platinum gray for better contrast */
+    --muted-foreground: 213 8% 46%;             /* Darker cool gray #666B73 */
+    --accent: 216 100% 84%;                     /* Accent Blue #AFCBFF */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 92%;
-    --input: 0 0% 96%;
-    --ring: 0 0% 0%;
+    --border: 210 9% 85%;                       /* Silvery gradient #E3E6EA */
+    --input: 240 5% 97%;
+    --ring: 216 100% 84%;
     --radius: 0.75rem;
     
-    /* Custom colors */
-    --mint-50: 152 100% 98%;
-    --mint-100: 152 76% 95%;
-    --mint-200: 152 60% 88%;
-    --mint-300: 152 48% 78%;
-    --mint-400: 152 44% 65%;
-    --mint-500: 152 57% 50%;
-    --grey-50: 0 0% 98%;
-    --grey-100: 0 0% 96%;
-    --grey-200: 0 0% 93%;
-    --grey-300: 0 0% 87%;
-    --grey-400: 0 0% 64%;
-    --grey-500: 0 0% 45%;
+    /* Design Guide Specific Colors */
+    --bg-secondary-gradient-from: 0 0% 98%;     /* #FAFAFA */
+    --bg-secondary-gradient-to: 0 0% 95%;       /* #F2F2F2 */
+    --bg-surface-gradient-from: 0 0% 100%;      /* #FFFFFF */
+    --bg-surface-gradient-mid: 0 0% 96%;        /* #F5F5F5 */
+    --bg-surface-gradient-to: 240 4% 95%;       /* #F0F1F3 */
+    --border-hover-from: 210 9% 79%;            /* #C9CCD2 */
+    --border-hover-to: 210 9% 87%;              /* #DDE0E4 */
+    
+    /* Enhanced Grey System for Better Contrast */
+    --grey-medium: 210 7% 85%;                  /* Medium grey #D3D6DA */
+    --grey-dark: 210 8% 65%;                    /* Darker grey #9CA0A6 */
+    --grey-darker: 210 9% 45%;                  /* Much darker grey #6B7075 */
+    
+    /* Glass Morphism Colors */
+    --glass-bg-light: 0 0% 100% / 0.25;         /* rgba(255, 255, 255, 0.25) */
+    --glass-border-light: 0 0% 100% / 0.15;     /* rgba(255, 255, 255, 0.15) */
+    
+    /* Accent Blue System */
+    --accent-blue-hover: 216 100% 70%;          /* Elegant Sky #6BA4FF */
+    --accent-blue-muted: 216 55% 93%;           /* Pale Mist Blue #D4E3F7 */
+    --accent-blue-glass: 216 100% 84% / 0.2;    /* rgba(175, 203, 255, 0.2) */
   }
  
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 8%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 8%;
-    --accent-foreground: 0 0% 98%;
+    /* === REFINED LUXE CHATBOT COLOR SYSTEM - Dark Theme === */
+    --background: 215 18% 7%;                   /* Charcoal Black #0F1115 */
+    --foreground: 0 0% 95%;                     /* Clean White #F1F1F1 */
+    --card: 210 8% 12%;                         /* Gradient from #1A1C20 */
+    --card-foreground: 0 0% 95%;
+    --popover: 210 8% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 216 100% 84%;                    /* Soft Powder Blue #AFCBFF */
+    --primary-foreground: 215 18% 7%;
+    --secondary: 210 9% 12%;                    /* #1E2024 */
+    --secondary-foreground: 0 0% 95%;
+    --muted: 210 9% 12%;                        /* Soft Steel Black #1E2024 */
+    --muted-foreground: 213 6% 64%;             /* Polished Gray #9C9FA3 */
+    --accent: 216 100% 84%;                     /* Soft Powder Blue #AFCBFF */
+    --accent-foreground: 215 18% 7%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 12%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 210 9% 20%;                       /* Gradient from #3A3E47 */
+    --input: 210 9% 12%;
+    --ring: 216 100% 84%;
+    
+    /* Dark Theme Specific Colors */
+    --bg-surface-gradient-from: 210 8% 11%;     /* #1A1C20 */
+    --bg-surface-gradient-to: 210 14% 20%;      /* #2A2D34 */
+    --border-gradient-from: 210 12% 27%;        /* #3A3E47 */
+    --border-gradient-to: 210 9% 19%;           /* #2C2F35 */
+    
+    /* Glass Morphism Dark */
+    --glass-bg-dark: 215 13% 9% / 0.35;         /* rgba(24, 24, 27, 0.35) */
+    --glass-border-dark: 0 0% 100% / 0.08;      /* rgba(255, 255, 255, 0.08) */
+    --accent-glow-dark: 216 100% 84% / 0.2;     /* rgba(175, 203, 255, 0.2) */
+  }
     --input: 0 0% 8%;
     --ring: 0 0% 83.1%;
   }
-}
 
 @layer base {
   * {
@@ -112,28 +136,45 @@
       0 0 0 1px rgba(0, 0, 0, 0.01);
   }
   
-  .gradient-white-mint {
-    background: linear-gradient(135deg, 
-      #ffffff 0%, 
-      hsl(var(--mint-50)) 100%);
+  /* === DESIGN GUIDE GRADIENT SYSTEM === */
+  .bg-secondary-gradient {
+    background: linear-gradient(180deg, 
+      hsl(var(--bg-secondary-gradient-from)) 0%,
+      hsl(var(--bg-secondary-gradient-to)) 100%);
   }
   
-  .gradient-white-grey {
+  .bg-surface-gradient {
     background: linear-gradient(135deg, 
-      #ffffff 0%, 
-      hsl(var(--grey-50)) 100%);
+      hsl(var(--bg-surface-gradient-from)) 0%,
+      hsl(var(--bg-surface-gradient-mid)) 50%,
+      hsl(var(--bg-surface-gradient-to)) 100%);
   }
   
-  .gradient-mint-white {
-    background: linear-gradient(135deg, 
-      hsl(var(--mint-100)) 0%, 
-      #ffffff 100%);
+  .border-silver-gradient {
+    border-image: linear-gradient(135deg, 
+      hsl(var(--border)) 0%,
+      hsl(var(--border-hover-from)) 50%,
+      hsl(var(--border-hover-to)) 100%) 1;
   }
   
-  .gradient-grey-white {
+  /* Accent Blue Gradients */
+  .bg-accent-gradient {
     background: linear-gradient(135deg, 
-      hsl(var(--grey-100)) 0%, 
-      #ffffff 100%);
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent-blue-hover)) 100%);
+  }
+  
+  /* Dark Theme Gradients */
+  .dark .bg-surface-gradient {
+    background: linear-gradient(180deg, 
+      hsl(var(--bg-surface-gradient-from)) 0%,
+      hsl(var(--bg-surface-gradient-to)) 100%);
+  }
+  
+  .dark .border-dark-gradient {
+    border-image: linear-gradient(135deg, 
+      hsl(var(--border-gradient-from)) 0%,
+      hsl(var(--border-gradient-to)) 100%) 1;
   }
   
   .border-subtle {
@@ -162,5 +203,292 @@
   
   .hover-lift {
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft;
+  }
+
+  /* === DESIGN GUIDE GLASS MORPHISM SYSTEM === */
+  
+  /* Light Theme Glass Effects */
+  .glass-panel {
+    background: hsl(var(--glass-bg-light));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--grey-medium));
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.06),
+      0 2px 16px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  
+  .glass-card {
+    background: hsl(var(--glass-bg-light));
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--grey-medium));
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.05),
+      0 1px 8px rgba(0, 0, 0, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  
+  .glass-button {
+    background: hsl(var(--glass-bg-light));
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--grey-medium));
+    box-shadow: 
+      0 2px 12px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.08),
+      0 2px 12px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  
+  /* Accent Blue Glass */
+  .glass-accent {
+    background: hsl(var(--accent-blue-glass));
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: 
+      0 4px 20px hsl(var(--primary) / 0.1),
+      0 1px 8px rgba(0, 0, 0, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Dark Theme Glass Effects */
+  .dark .glass-panel {
+    background: hsl(var(--glass-bg-dark));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--glass-border-dark));
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 2px 16px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .glass-card {
+    background: hsl(var(--glass-bg-dark));
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--glass-border-dark));
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.25),
+      0 1px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  .dark .glass-button {
+    background: hsl(var(--glass-bg-dark));
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border-dark));
+    box-shadow: 
+      0 2px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .glass-button:hover {
+    background: rgba(24, 24, 27, 0.45);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.3),
+      0 2px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .dark .glass-accent {
+    background: hsl(var(--accent-glow-dark));
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: 
+      0 4px 20px hsl(var(--primary) / 0.2),
+      0 1px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  /* Animated Glass Effects */
+  .glass-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glass-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  
+  /* Enhanced Glass Morphism Animations */
+  .glass-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glass-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(175, 203, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  
+  /* Sidebar Transitions */
+  .sidebar-collapse {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Enhanced hover and interaction animations */
+  .hover-lift {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.1),
+      0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Model card entrance animation */
+  @keyframes slideInFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-in {
+    animation: slideInFromBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .slide-in-from-bottom-4 {
+    animation: slideInFromBottom 0.3s ease-out;
+  }
+  
+  /* Performance-Optimized Glass */
+  .glass-optimized {
+    will-change: transform, opacity, backdrop-filter;
+    transform: translateZ(0);
+  }
+  
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .glass-shimmer::before,
+    .glass-float {
+      animation: none;
+    }
+    
+    .glass-button,
+    .hover-lift {
+      transition: none;
+    }
+  }
+  
+  /* === DESIGN GUIDE COLOR UTILITIES === */
+  
+  /* Accent Blue Utilities */
+  .text-accent-blue {
+    color: hsl(var(--primary));
+  }
+  
+  .text-accent-blue-hover {
+    color: hsl(var(--accent-blue-hover));
+  }
+  
+  .bg-accent-blue {
+    background-color: hsl(var(--primary));
+  }
+  
+  .bg-accent-blue-hover {
+    background-color: hsl(var(--accent-blue-hover));
+  }
+  
+  .bg-accent-blue-muted {
+    background-color: hsl(var(--accent-blue-muted));
+  }
+  
+  .border-accent-blue {
+    border-color: hsl(var(--primary));
+  }
+  
+  /* Enhanced Grey Utilities */
+  .text-grey-medium {
+    color: hsl(var(--grey-medium));
+  }
+  
+  .text-grey-dark {
+    color: hsl(var(--grey-dark));
+  }
+  
+  .text-grey-darker {
+    color: hsl(var(--grey-darker));
+  }
+  
+  .bg-grey-medium {
+    background-color: hsl(var(--grey-medium));
+  }
+  
+  .bg-grey-dark {
+    background-color: hsl(var(--grey-dark));
+  }
+  
+  .border-grey-medium {
+    border-color: hsl(var(--grey-medium));
+  }
+  
+  /* Dark Theme Glass Utilities */
+  .dark .bg-glass-dark {
+    background-color: hsl(var(--glass-bg-dark));
+  }
+  
+  .dark .bg-glass-border-dark {
+    background-color: hsl(var(--glass-border-dark));
+  }
+  
+  /* Surface Background Utilities */
+  .bg-surface-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--bg-surface-gradient-from)) 0%,
+      hsl(var(--bg-surface-gradient-mid)) 50%,
+      hsl(var(--bg-surface-gradient-to)) 100%);
+  }
+  
+  .dark .bg-surface-gradient {
+    background: linear-gradient(180deg, 
+      hsl(var(--bg-surface-gradient-from)) 0%,
+      hsl(var(--bg-surface-gradient-to)) 100%);
   }
 }

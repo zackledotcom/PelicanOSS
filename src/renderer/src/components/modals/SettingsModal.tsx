@@ -26,18 +26,41 @@ interface AgentPermissions {
 }
 
 interface SettingsModalProps {
-  modelConfig: ModelConfig
-  agentPermissions: AgentPermissions
-  onModelConfigChange: (config: ModelConfig) => void
-  onPermissionsChange: (permissions: AgentPermissions) => void
+  modelConfig?: ModelConfig
+  agentPermissions?: AgentPermissions
+  onModelConfigChange?: (config: ModelConfig) => void
+  onPermissionsChange?: (permissions: AgentPermissions) => void
+  isOpen?: boolean
+  onClose?: () => void
+  selectedModel?: string
+  onModelChange?: (model: string) => void
+  theme?: 'light' | 'dark' | 'system'
+  onThemeChange?: (theme: 'light' | 'dark' | 'system') => void
 }
 
 export default function SettingsModal({
-  modelConfig,
-  agentPermissions,
-  onModelConfigChange,
-  onPermissionsChange
-}: SettingsModalProps) {
+  modelConfig = {
+    temperature: 0.7,
+    maxTokens: 2048,
+    topP: 0.9,
+    systemPrompt: "",
+    streaming: true
+  },
+  agentPermissions = {
+    fileSystem: false,
+    network: false,
+    systemCommands: false,
+    memoryAccess: true
+  },
+  onModelConfigChange = () => {},
+  onPermissionsChange = () => {},
+  isOpen,
+  onClose,
+  selectedModel,
+  onModelChange,
+  theme,
+  onThemeChange
+}: Partial<SettingsModalProps>) {
   const [tempConfig, setTempConfig] = useState<ModelConfig>(modelConfig)
   const [tempPermissions, setTempPermissions] = useState<AgentPermissions>(agentPermissions)
 
@@ -52,13 +75,15 @@ export default function SettingsModal({
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 glass">
-          <Gear size={16} />
-          Settings
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      {!isOpen && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2 glass">
+            <Gear size={16} />
+            Settings
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="glass-strong max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-shimmer">System Configuration</DialogTitle>
@@ -76,7 +101,7 @@ export default function SettingsModal({
               <Label className="text-sm font-medium">Temperature: {tempConfig.temperature}</Label>
               <Slider
                 value={[tempConfig.temperature]}
-                onValueChange={([value]) => 
+                onValueChange={([value]) =>
                   setTempConfig(prev => ({ ...prev, temperature: value }))
                 }
                 min={0}
@@ -97,7 +122,7 @@ export default function SettingsModal({
               <Input
                 type="number"
                 value={tempConfig.maxTokens}
-                onChange={(e) => 
+                onChange={(e) =>
                   setTempConfig(prev => ({ ...prev, maxTokens: parseInt(e.target.value) || 0 }))
                 }
                 min={1}
@@ -116,7 +141,7 @@ export default function SettingsModal({
               <Label className="text-sm font-medium">Top P: {tempConfig.topP}</Label>
               <Slider
                 value={[tempConfig.topP]}
-                onValueChange={([value]) => 
+                onValueChange={([value]) =>
                   setTempConfig(prev => ({ ...prev, topP: value }))
                 }
                 min={0}
@@ -136,7 +161,7 @@ export default function SettingsModal({
               <Label className="text-sm font-medium">System Prompt</Label>
               <Textarea
                 value={tempConfig.systemPrompt}
-                onChange={(e) => 
+                onChange={(e) =>
                   setTempConfig(prev => ({ ...prev, systemPrompt: e.target.value }))
                 }
                 placeholder="Enter system prompt..."
@@ -236,14 +261,14 @@ export default function SettingsModal({
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleReset}
             className="glass"
           >
             Reset
           </Button>
-          <Button 
+          <Button
             onClick={handleSave}
             className="bg-white text-black hover:bg-gray-100"
           >

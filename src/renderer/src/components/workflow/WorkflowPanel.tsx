@@ -5,12 +5,14 @@ import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { Badge } from '../ui/badge'
 import { ScrollArea } from '../ui/scroll-area'
-import { 
-  Workflow, 
-  Lightning, 
-  Plus, 
-  Play, 
-  Square, 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { useWorkflowService } from '../../hooks/useAdditionalServices'
+import {
+  Workflow,
+  Lightning,
+  Plus,
+  Play,
+  Square,
   ArrowsClockwise,
   Clock,
   CheckCircle,
@@ -22,55 +24,38 @@ import {
 } from 'phosphor-react'
 
 export const WorkflowPanel: React.FC = () => {
-  const [workflows, setWorkflows] = useState<any[]>([])
-  const [executions, setExecutions] = useState<any[]>([])
-  const [stats, setStats] = useState<any>(null)
-  const [templates, setTemplates] = useState<any>({})
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [newWorkflow, setNewWorkflow] = useState({
     name: '',
     description: '',
     template: ''
   })
 
-  const loadData = async () => {
-    try {
-      const [workflowsRes, statsRes, templatesRes, executionsRes] = await Promise.all([
-        window.api.workflowGetAll(),
-        window.api.workflowGetStats(),
-        window.api.workflowGetTemplates(),
-        window.api.workflowGetExecutions(undefined, 20)
-      ])
-
-      if (workflowsRes.success) setWorkflows(workflowsRes.workflows)
-      if (statsRes.success) setStats(statsRes.stats)
-      if (templatesRes.success) setTemplates(templatesRes.templates)
-      if (executionsRes.success) setExecutions(executionsRes.executions)
-    } catch (error) {
-      console.error('Failed to load workflow data:', error)
-    }
-  }
-
-  useEffect(() => {
-    loadData()
-    const interval = setInterval(loadData, 10000)
-    return () => clearInterval(interval)
-  }, [])
+  // Use centralized workflow service
+  const {
+    workflows,
+    executions,
+    stats,
+    templates,
+    loading,
+    loadData,
+    createWorkflow,
+    createFromTemplate,
+    triggerWorkflow,
+    deleteWorkflow
+  } = useWorkflowService()
 
   const handleCreateWorkflow = async () => {
     if (!newWorkflow.name) return
 
-    setLoading(true)
     try {
-      let result
       if (newWorkflow.template) {
-        result = await window.api.workflowCreateFromTemplate(newWorkflow.template, {
+        await createFromTemplate(newWorkflow.template, {
           name: newWorkflow.name,
           description: newWorkflow.description
         })
       } else {
-        result = await window.api.workflowCreate({
+        await createWorkflow({
           name: newWorkflow.name,
           description: newWorkflow.description,
           triggers: [],
@@ -78,34 +63,25 @@ export const WorkflowPanel: React.FC = () => {
         })
       }
 
-      if (result.success) {
-        setShowCreateForm(false)
-        setNewWorkflow({ name: '', description: '', template: '' })
-        await loadData()
-      }
+      setShowCreateForm(false)
+      setNewWorkflow({ name: '', description: '', template: '' })
     } catch (error) {
-      alert(`Failed to create workflow: ${error.message}`)
-    } finally {
-      setLoading(false)
+      alert(`Failed to create workflow: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   const handleTriggerWorkflow = async (workflowId: string) => {
-    setLoading(true)
     try {
-      const result = await window.api.workflowTrigger(workflowId, { 
+      const result = await triggerWorkflow(workflowId, {
         triggeredBy: 'manual',
         timestamp: new Date().toISOString()
       })
-      
+
       if (result.success) {
-        await loadData()
         alert(`Workflow triggered! Execution ID: ${result.executionId}`)
       }
     } catch (error) {
-      alert(`Failed to trigger workflow: ${error.message}`)
-    } finally {
-      setLoading(false)
+      alert(`Failed to trigger workflow: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -129,9 +105,9 @@ export const WorkflowPanel: React.FC = () => {
               Workflow Engine
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowCreateForm(!showCreateForm)}
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -151,25 +127,25 @@ export const WorkflowPanel: React.FC = () => {
                 <div className="text-xs text-muted-foreground">Total</div>
                 <div className="font-semibold">{stats.totalWorkflows}</div>
               </div>
-              
+
               <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded">
                 <Lightning className="h-5 w-5 mx-auto mb-1 text-green-600" />
                 <div className="text-xs text-muted-foreground">Enabled</div>
                 <div className="font-semibold">{stats.enabledWorkflows}</div>
               </div>
-              
+
               <div className="text-center p-3 bg-orange-50 dark:bg-orange-950 rounded">
                 <ArrowsClockwise className="h-5 w-5 mx-auto mb-1 text-orange-600" />
                 <div className="text-xs text-muted-foreground">Running</div>
                 <div className="font-semibold">{stats.runningExecutions}</div>
               </div>
-              
+
               <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded">
                 <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-600" />
                 <div className="text-xs text-muted-foreground">Completed</div>
                 <div className="font-semibold">{stats.completedExecutions}</div>
               </div>
-              
+
               <div className="text-center p-3 bg-red-50 dark:bg-red-950 rounded">
                 <XCircle className="h-5 w-5 mx-auto mb-1 text-red-600" />
                 <div className="text-xs text-muted-foreground">Failed</div>
@@ -186,30 +162,34 @@ export const WorkflowPanel: React.FC = () => {
             <CardTitle>Create New Workflow</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <select 
+            <Select
               value={newWorkflow.template}
-              onChange={(e) => setNewWorkflow({...newWorkflow, template: e.target.value})}
-              className="w-full p-2 border rounded"
+              onValueChange={(value) => setNewWorkflow({...newWorkflow, template: value})}
             >
-              <option value="">Custom Workflow</option>
-              {Object.entries(templates).map(([key, template]: [string, any]) => (
-                <option key={key} value={key}>{template.name}</option>
-              ))}
-            </select>
-            
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Custom Workflow" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Custom Workflow</SelectItem>
+                {Object.entries(templates).map(([key, template]: [string, any]) => (
+                  <SelectItem key={key} value={key}>{template.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Input
               value={newWorkflow.name}
               onChange={(e) => setNewWorkflow({...newWorkflow, name: e.target.value})}
               placeholder="Workflow name"
             />
-            
+
             <Textarea
               value={newWorkflow.description}
               onChange={(e) => setNewWorkflow({...newWorkflow, description: e.target.value})}
               placeholder="Description"
               rows={2}
             />
-            
+
             <div className="flex gap-2">
               <Button onClick={handleCreateWorkflow} disabled={loading || !newWorkflow.name}>
                 Create
@@ -267,7 +247,7 @@ export const WorkflowPanel: React.FC = () => {
             <div className="space-y-2">
               {executions.map((execution) => {
                 const workflow = workflows.find(w => w.id === execution.workflowId)
-                
+
                 return (
                   <div key={execution.id} className="flex items-center justify-between p-2 border rounded">
                     <div className="flex items-center gap-3">

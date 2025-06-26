@@ -51,19 +51,19 @@ export default function AppLayout({ children, className }: AppLayoutProps) {
   }
 
   return (
-    <div className={cn("flex h-screen bg-background", className)}>
-      {/* Sidebar */}
+    <div className={cn("flex h-screen bg-gradient-to-br from-white via-mint-50 to-grey-50", className)}>
+      {/* Sidebar - Enhanced Glass */}
       {sidebarOpen && (
-        <div className="w-80 border-r bg-card/50 overflow-auto">
+        <div className="w-80 glass-panel border-0 overflow-auto">
           <div className="p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Control Panel</h2>
+              <h2 className="font-semibold text-black">Control Panel</h2>
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setSidebarOpen(false)}
-                className="h-6 w-6 p-0"
+                className="glass-button h-6 w-6 p-0 border-0"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -79,7 +79,7 @@ export default function AppLayout({ children, className }: AppLayoutProps) {
                 size="sm"
                 variant={devMode ? "default" : "outline"}
                 onClick={() => setDevMode(!devMode)}
-                className="gap-1"
+                className="glass-button gap-1 border-0"
               >
                 <Code className="w-3 h-3" />
                 Dev
@@ -152,20 +152,20 @@ export default function AppLayout({ children, className }: AppLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {/* Top bar */}
-        <div className="border-b p-2 flex items-center justify-between">
+        {/* Top bar - Enhanced Glass */}
+        <div className="glass-panel border-0 p-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {!sidebarOpen && (
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setSidebarOpen(true)}
-                className="gap-1"
+                className="glass-button gap-1 border-0"
               >
                 <Sidebar className="w-4 h-4" />
               </Button>
             )}
-            <h1 className="font-semibold">PelicanOS</h1>
+            <h1 className="font-semibold text-black">PelicanOS</h1>
           </div>
 
           <div className="flex gap-2">
@@ -223,9 +223,9 @@ export default function AppLayout({ children, className }: AppLayoutProps) {
             />
           </div>
 
-          {/* Dev tools */}
+          {/* Dev tools - Enhanced Glass */}
           {devMode && (
-            <div className="w-96 border-l p-4 space-y-4">
+            <div className="w-96 glass-panel border-0 p-4 space-y-4">
               <FileCanvas
                 files={[]}
                 onOpenFile={() => {}}

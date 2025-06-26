@@ -5,31 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60a81ba0-d770-411c-b3e3-ece9aecda4bf" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/services/agents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/services/agents.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/services/ollama.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/services/ollama.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/storage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/storage.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/preload/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/preload/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/renderer/src/components/math" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/App.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.css" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.vue" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AdvancedMemoryPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AdvancedMemoryPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/MemoryHealthIndicator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/MemoryHealthIndicator.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/TestAssistant.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/Versions.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/badge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/badge.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/select.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/select.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/switch.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/switch.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AppLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ModernAIAssistant.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/SimpleAIAssistant.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/agents/AgentUploader.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatContainer.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatInterface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatInterface.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/MainChat.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/Message.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/components/ChatInput.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/modals/DeveloperModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/modals/DeveloperModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/modals/SettingsModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/modals/SettingsModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/reddit/RedditBotPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/reddit/RedditBotPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/sidebar/OllamaStatus.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/PerformancePanel.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/SearchBar.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/ToastSystem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/ToastSystem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/workflow/WorkflowPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/workflow/WorkflowPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/main.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/settings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/settings.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.web.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.web.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +41,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
     <option name="showPreview" value="true" />
   </component>
   <component name="ProjectColorInfo">{
@@ -52,31 +53,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;JavaScript Debug.127.0.0.1:5173.executor&quot;: &quot;Coverage&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/jibbr/Desktop/Wonder/PelicanOS&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/prettier&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "JavaScript Debug.127.0.0.1:5173.executor": "Coverage",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/jibbr/Desktop",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/prettier",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "junie.project.settings",
+    "ts.external.directory.path": "/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../.." />
       <recent name="$PROJECT_DIR$/.idea" />
     </key>
   </component>
@@ -124,6 +126,12 @@
       <workItem from="1750552203854" duration="18193000" />
       <workItem from="1750610630471" duration="4952000" />
       <workItem from="1750620402973" duration="9701000" />
+      <workItem from="1750841570648" duration="48781000" />
+      <workItem from="1750935033184" duration="574000" />
+      <workItem from="1750938952230" duration="281000" />
+      <workItem from="1750939251961" duration="636000" />
+      <workItem from="1750940369663" duration="4129000" />
+      <workItem from="1750945495372" duration="644000" />
     </task>
     <servers />
   </component>

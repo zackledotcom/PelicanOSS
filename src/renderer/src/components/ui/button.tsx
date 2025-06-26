@@ -9,21 +9,35 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-accent-blue-hover",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-background hover:bg-accent-blue-muted hover:text-accent-blue",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-accent-blue-muted",
+        ghost: "hover:bg-accent-blue-muted hover:text-accent-blue",
+        link: "text-accent-blue underline-offset-4 hover:underline hover:text-accent-blue-hover",
+        
+        // Design Guide Glass Variants
+        glass: "glass-button text-foreground hover:text-accent-blue transition-all duration-200 border-0",
+        "glass-accent": "glass-accent text-accent-blue hover:text-accent-blue-hover transition-all duration-200 border-0",
+        "glass-primary": "bg-accent-gradient text-primary-foreground hover:bg-accent-blue-hover hover-lift transition-all duration-200 border-0",
+        "glass-destructive": "bg-destructive/90 backdrop-blur-lg text-destructive-foreground hover:bg-destructive hover-lift transition-all duration-200 border-0",
+        "glass-floating": "glass-card hover:bg-accent-blue-muted hover-lift text-foreground hover:text-accent-blue transition-all duration-300 border-0",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        
+        // Glass-specific sizes with enhanced styling
+        "glass-sm": "h-8 rounded-xl px-3 text-xs",
+        "glass-default": "h-10 rounded-xl px-4 py-2",
+        "glass-lg": "h-12 rounded-2xl px-6 text-base",
+        "glass-icon": "h-10 w-10 rounded-xl",
+        "glass-icon-sm": "h-8 w-8 rounded-lg",
       },
     },
     defaultVariants: {

@@ -16,18 +16,29 @@ import {
   Activity,
   Warning
 } from 'phosphor-react'
+import { useRedditService } from '../../hooks/useAdditionalServices'
 
 export const RedditBotPanel: React.FC = () => {
-  const [connected, setConnected] = useState(false)
-  const [agentRunning, setAgentRunning] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [credentials, setCredentials] = useState({
     clientId: '',
     clientSecret: '',
     refreshToken: '',
     userAgent: 'PelicanOS:v1.0.0 (by /u/your_username)'
   })
-  const [config, setConfig] = useState<any>(null)
+
+  // Use centralized Reddit service
+  const {
+    status,
+    config,
+    stats,
+    loading,
+    authenticated,
+    authenticate,
+    startAgent,
+    stopAgent,
+    updateConfig,
+    disconnect
+  } = useRedditService()
   const [stats, setStats] = useState<any>(null)
 
   const loadStatus = async () => {

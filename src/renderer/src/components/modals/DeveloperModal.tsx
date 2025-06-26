@@ -1,289 +1,341 @@
-import React, { useState } from 'react'
-import { 
-  X, 
-  Terminal, 
-  Database, 
-  Activity, 
-  Code, 
-  Bug,
-  FileText,
-  ArrowsClockwise
-} from 'phosphor-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Switch } from '@/components/ui/switch'
+import React, { useState, useEffect } from 'react'
+import DeveloperMode from '../chat/DeveloperMode'
+import { useAllServices } from '../../hooks/useServices'
 
 interface DeveloperModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
-  const [ollamaStatus, setOllamaStatus] = useState<'connected' | 'disconnected' | 'loading'>('connected')
-  const [chromaStatus, setChromaStatus] = useState<'connected' | 'disconnected' | 'loading'>('disconnected')
-  const [debugMode, setDebugMode] = useState(false)
-  const [logs, setLogs] = useState([
-    { level: 'info', message: 'Application started', timestamp: new Date() },
-    { level: 'success', message: 'Ollama service connected', timestamp: new Date() },
-    { level: 'warning', message: 'ChromaDB connection failed', timestamp: new Date() },
-  ])
+// Mock message data for demo
+const generateMockMessages = () => {
+  return [
+    {
+      id: 'msg-1',
+      type: 'user' as const,
+      content: 'Create a Python function to calculate fibonacci numbers',
+      timestamp: new Date(Date.now() - 300000),
+      position: { x: 50, y: 50 },
+      tags: ['python', 'algorithms']
+    },
+    {
+      id: 'msg-2', 
+      type: 'ai' as const,
+      content: `Here's a Python function to calculate Fibonacci numbers:
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected': return 'bg-green-500'
-      case 'disconnected': return 'bg-red-500'
-      case 'loading': return 'bg-yellow-500'
-      default: return 'bg-gray-500'
-    }
-  }
+\`\`\`python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
 
-  const getLogColor = (level: string) => {
-    switch (level) {
-      case 'error': return 'text-red-600'
-      case 'warning': return 'text-yellow-600'
-      case 'success': return 'text-green-600'
-      default: return 'text-blue-600'
+# More efficient iterative version
+def fibonacci_iterative(n):
+    if n <= 1:
+        return n
+    
+    a, b = 0, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b
+
+# Example usage
+print(fibonacci_iterative(10))  # Output: 55
+\`\`\`
+
+The recursive version is simple but inefficient for large numbers. The iterative version is much faster.`,
+      timestamp: new Date(Date.now() - 280000),
+      position: { x: 400, y: 50 },
+      tags: ['python', 'code', 'response'],
+      attachments: [{
+        type: 'code' as const,
+        name: 'fibonacci.py',
+        content: `def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+def fibonacci_iterative(n):
+    if n <= 1:
+        return n
+    
+    a, b = 0, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b
+
+print(fibonacci_iterative(10))`,
+        language: 'python',
+        executable: true
+      }],
+      connections: ['msg-1']
+    },
+    {
+      id: 'msg-3',
+      type: 'user' as const,
+      content: 'Now create a React component that uses this',
+      timestamp: new Date(Date.now() - 240000),
+      position: { x: 50, y: 300 },
+      tags: ['react', 'frontend']
+    },
+    {
+      id: 'msg-4',
+      type: 'ai' as const,
+      content: `Here's a React component that uses the Fibonacci function:
+
+\`\`\`jsx
+import React, { useState } from 'react';
+
+const FibonacciCalculator = () => {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState(null);
+  const [sequence, setSequence] = useState([]);
+
+  const fibonacci = (n) => {
+    if (n <= 1) return n;
+    let a = 0, b = 1;
+    for (let i = 2; i <= n; i++) {
+      [a, b] = [b, a + b];
     }
-  }
+    return b;
+  };
+
+  const generateSequence = (n) => {
+    const seq = [];
+    for (let i = 0; i <= n; i++) {
+      seq.push(fibonacci(i));
+    }
+    return seq;
+  };
+
+  const handleCalculate = () => {
+    const num = parseInt(input);
+    if (num >= 0) {
+      setResult(fibonacci(num));
+      setSequence(generateSequence(num));
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Code size={20} />
-            Developer Mode
-          </DialogTitle>
-        </DialogHeader>
+    <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Fibonacci Calculator</h2>
+      
+      <div className="mb-4">
+        <input
+          type="number"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter a number"
+          className="w-full p-2 border rounded"
+        />
+        <button 
+          onClick={handleCalculate}
+          className="mt-2 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Calculate
+        </button>
+      </div>
 
-        <Tabs defaultValue="services" className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-            <TabsTrigger value="memory">Memory</TabsTrigger>
-            <TabsTrigger value="debug">Debug</TabsTrigger>
-          </TabsList>
+      {result !== null && (
+        <div className="mb-4">
+          <p className="font-semibold">
+            Fibonacci({input}) = {result}
+          </p>
+        </div>
+      )}
 
-          <TabsContent value="services" className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="space-y-4">
-                {/* Ollama Service */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Terminal size={20} />
-                        Ollama Service
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${getStatusColor(ollamaStatus)}`} />
-                        <Badge variant={ollamaStatus === 'connected' ? 'default' : 'destructive'}>
-                          {ollamaStatus}
-                        </Badge>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">URL:</span>
-                        <div className="font-mono">http://localhost:11434</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Models:</span>
-                        <div>4 available</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        <ArrowsClockwise size={14} className="mr-1" />
-                        Check Status
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Start Service
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        View Models
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+      {sequence.length > 0 && (
+        <div>
+          <h3 className="font-semibold mb-2">Sequence:</h3>
+          <div className="flex flex-wrap gap-1">
+            {sequence.map((num, index) => (
+              <span key={index} className="bg-gray-200 px-2 py-1 rounded text-sm">
+                {num}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
-                {/* ChromaDB Service */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Database size={20} />
-                        ChromaDB Service
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${getStatusColor(chromaStatus)}`} />
-                        <Badge variant={chromaStatus === 'connected' ? 'default' : 'destructive'}>
-                          {chromaStatus}
-                        </Badge>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">URL:</span>
-                        <div className="font-mono">http://localhost:8000</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Collections:</span>
-                        <div>1 active</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        <ArrowsClockwise size={14} className="mr-1" />
-                        Check Status
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Start Service
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        View Collections
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </ScrollArea>
-          </TabsContent>
+export default FibonacciCalculator;
+\`\`\`
 
-          <TabsContent value="logs" className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="space-y-2">
-                {logs.map((log, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Badge variant="outline" className={getLogColor(log.level)}>
-                      {log.level}
-                    </Badge>
-                    <div className="flex-1">
-                      <div className="text-sm">{log.message}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {log.timestamp.toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
+This component provides an interactive interface to calculate Fibonacci numbers and shows the complete sequence.`,
+      timestamp: new Date(Date.now() - 200000),
+      position: { x: 400, y: 300 },
+      tags: ['react', 'component', 'code'],
+      attachments: [{
+        type: 'code' as const,
+        name: 'FibonacciCalculator.jsx',
+        content: `import React, { useState } from 'react';
 
-          <TabsContent value="memory" className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Activity size={20} />
-                      Memory Usage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-muted-foreground">Conversations</div>
-                        <div className="text-2xl font-semibold">12</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-muted-foreground">Summaries</div>
-                        <div className="text-2xl font-semibold">3</div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Memory Store Size</span>
-                        <span>2.4 MB</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Last Updated</span>
-                        <span>2 minutes ago</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Clear Memory
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Export Data
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </ScrollArea>
-          </TabsContent>
+const FibonacciCalculator = () => {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState(null);
+  const [sequence, setSequence] = useState([]);
 
-          <TabsContent value="debug" className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Bug size={20} />
-                      Debug Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Debug Mode</div>
-                        <div className="text-sm text-muted-foreground">
-                          Show detailed logs and development info
-                        </div>
-                      </div>
-                      <Switch
-                        checked={debugMode}
-                        onCheckedChange={setDebugMode}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Verbose Logging</div>
-                        <div className="text-sm text-muted-foreground">
-                          Include all system messages in logs
-                        </div>
-                      </div>
-                      <Switch />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Performance Metrics</div>
-                        <div className="text-sm text-muted-foreground">
-                          Track response times and resource usage
-                        </div>
-                      </div>
-                      <Switch />
-                    </div>
+  const fibonacci = (n) => {
+    if (n <= 1) return n;
+    let a = 0, b = 1;
+    for (let i = 2; i <= n; i++) {
+      [a, b] = [b, a + b];
+    }
+    return b;
+  };
 
-                    <div className="pt-4 border-t space-y-2">
-                      <Button size="sm" variant="outline" className="w-full">
-                        <FileText size={14} className="mr-1" />
-                        Export Debug Report
-                      </Button>
-                      <Button size="sm" variant="outline" className="w-full">
-                        Open DevTools
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+  const generateSequence = (n) => {
+    const seq = [];
+    for (let i = 0; i <= n; i++) {
+      seq.push(fibonacci(i));
+    }
+    return seq;
+  };
+
+  const handleCalculate = () => {
+    const num = parseInt(input);
+    if (num >= 0) {
+      setResult(fibonacci(num));
+      setSequence(generateSequence(num));
+    }
+  };
+
+  return (
+    <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Fibonacci Calculator</h2>
+      
+      <div className="mb-4">
+        <input
+          type="number"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter a number"
+          className="w-full p-2 border rounded"
+        />
+        <button 
+          onClick={handleCalculate}
+          className="mt-2 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Calculate
+        </button>
+      </div>
+
+      {result !== null && (
+        <div className="mb-4">
+          <p className="font-semibold">
+            Fibonacci({input}) = {result}
+          </p>
+        </div>
+      )}
+
+      {sequence.length > 0 && (
+        <div>
+          <h3 className="font-semibold mb-2">Sequence:</h3>
+          <div className="flex flex-wrap gap-1">
+            {sequence.map((num, index) => (
+              <span key={index} className="bg-gray-200 px-2 py-1 rounded text-sm">
+                {num}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FibonacciCalculator;`,
+        language: 'jsx',
+        executable: true
+      }],
+      connections: ['msg-3', 'msg-2']
+    },
+    {
+      id: 'msg-5',
+      type: 'note' as const,
+      content: 'TODO: Add memoization to optimize recursive calls',
+      timestamp: new Date(Date.now() - 120000),
+      position: { x: 750, y: 150 },
+      tags: ['todo', 'optimization'],
+      isPinned: true
+    }
+  ]
+}
+
+const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
+  const [messages, setMessages] = useState(() => generateMockMessages())
+  const services = useAllServices()
+  const [systemStats, setSystemStats] = useState({
+    cpu: 45.2,
+    memory: 67.8,
+    gpu: 23.1,
+    temperature: 62
+  })
+
+  // Mock system stats updates
+  useEffect(() => {
+    if (!isOpen) return
+    
+    const interval = setInterval(() => {
+      setSystemStats(prev => ({
+        cpu: Math.max(10, Math.min(90, prev.cpu + (Math.random() - 0.5) * 10)),
+        memory: Math.max(20, Math.min(95, prev.memory + (Math.random() - 0.5) * 5)),
+        gpu: Math.max(0, Math.min(100, prev.gpu + (Math.random() - 0.5) * 15)),
+        temperature: Math.max(40, Math.min(80, prev.temperature + (Math.random() - 0.5) * 3))
+      }))
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [isOpen])
+
+  const models = [
+    { id: 'tinydolphin:latest', name: 'TinyDolphin', version: '1.0', size: '1.1B' },
+    { id: 'openchat:latest', name: 'OpenChat', version: '3.5', size: '7B' },
+    { id: 'phi4-mini:latest', name: 'Phi4 Mini', version: '1.0', size: '3.8B' },
+    { id: 'deepseek-coder:1.3b', name: 'DeepSeek Coder', version: '1.3', size: '1.3B' }
+  ]
+
+  const handleUpdateMessage = (id: string, updates: any) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === id ? { ...msg, ...updates } : msg
+    ))
+  }
+
+  const handleDeleteMessage = (id: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== id))
+  }
+
+  const handleCorrectMessage = (id: string, newContent: string) => {
+    setMessages(prev => prev.map(msg =>
+      msg.id === id ? { ...msg, content: newContent } : msg
+    ))
+  }
+
+  const handleAddMessage = (message: any) => {
+    const newMessage = {
+      ...message,
+      id: `msg-${Date.now()}`,
+      timestamp: new Date()
+    }
+    setMessages(prev => [...prev, newMessage])
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <DeveloperMode
+      isOpen={isOpen}
+      onClose={onClose}
+      messages={messages}
+      onUpdateMessage={handleUpdateMessage}
+      onDeleteMessage={handleDeleteMessage}
+      onCorrectMessage={handleCorrectMessage}
+      onAddMessage={handleAddMessage}
+      selectedModel={services.ollama.models[0] || 'tinydolphin:latest'}
+      systemStats={systemStats}
+    />
   )
 }
 

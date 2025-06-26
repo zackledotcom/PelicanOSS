@@ -1,19 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { 
-  List, 
   PaperPlaneTilt, 
   Gear, 
   Code, 
   Paperclip, 
   Microphone,
   Stop,
-  ArrowsClockwise
+  ArrowsClockwise,
+  Cpu,
+  Robot,
+  Brain,
+  GridNine
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useAllServices } from '@/hooks/useServices'
+import MessageComponent from './components/MessageComponent'
+import { useAnalyticsTracking } from '../../services/modelAnalytics'
 
 interface Message {
   id: string
@@ -25,25 +31,49 @@ interface Message {
 
 interface ChatInterfaceProps {
   selectedModel: string
-  onToggleSidebar: () => void
-  showSidebar: boolean
   onOpenSettings: () => void
   onOpenDeveloper: () => void
+  onOpenSystemStatus: () => void
+  onOpenAgentManager: () => void
+  onOpenAdvancedMemory: () => void
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   selectedModel,
-  onToggleSidebar,
-  showSidebar,
   onOpenSettings,
-  onOpenDeveloper
+  onOpenDeveloper,
+  onOpenSystemStatus,
+  onOpenAgentManager,
+  onOpenAdvancedMemory
 }) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentMessage, setCurrentMessage] = useState('')
-  const [isThinking, setIsThinking] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  // Use actual services
+  const services = useAllServices()
+  const { chat, ollama } = services
+  const isThinking = chat.isThinking
+  const analytics = useAnalyticsTracking()
+
+  // Generate session ID for analytics
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
+
+  // Model data mapping
+  const modelData = {
+    'tinydolphin:latest': { name: 'TinyDolphin', avatar: '🐬', subtitle: 'Fast & Efficient' },
+    'openchat:latest': { name: 'OpenChat', avatar: '🤖', subtitle: 'Conversational AI' },
+    'phi4-mini-reasoning:latest': { name: 'Phi4 Mini', avatar: '🧠', subtitle: 'Reasoning Expert' },
+    'deepseek-coder:1.3b': { name: 'DeepSeek Coder', avatar: '💻', subtitle: 'Code Specialist' }
+  }
+
+  const currentModelData = modelData[selectedModel as keyof typeof modelData] || {
+    name: selectedModel.replace(':latest', ''),
+    avatar: '🤖',
+    subtitle: 'AI Assistant'
+  }
 
   // Auto-resize textarea
   useEffect(() => {
@@ -60,6 +90,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   }, [messages])
 
+  // Check service status on mount
+  useEffect(() => {
+    ollama.checkStatus()
+  }, [])
+
   const handleSendMessage = async () => {
     if (!currentMessage.trim() || isThinking) return
 
@@ -71,24 +106,73 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
 
     setMessages(prev => [...prev, userMessage])
+    const messageToSend = currentMessage.trim()
     setCurrentMessage('')
-    setIsThinking(true)
+
+    const startTime = Date.now()
 
     try {
-      // Simulate AI response (replace with actual API call)
-      setTimeout(() => {
+      // Use actual chat service
+      const response = await chat.sendMessage(
+        userMessage.content,
+        selectedModel,
+        messages
+      )
+
+      const responseTime = Date.now() - startTime
+
+      if (response.success) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'ai',
-          content: `This is a simulated response to: "${userMessage.content}". The selected model is ${selectedModel}.`,
+          content: response.message,
           timestamp: new Date()
         }
         setMessages(prev => [...prev, aiMessage])
-        setIsThinking(false)
-      }, 1500)
+
+        // Track analytics
+        await analytics.trackChatMessage({
+          modelId: selectedModel,
+          sessionId,
+          prompt: messageToSend,
+          response: response.message,
+          responseTime,
+          success: true
+        })
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'ai',
+          content: response.message || 'Sorry, I encountered an error processing your request.',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, errorMessage])
+
+        // Track error
+        await analytics.trackError({
+          modelId: selectedModel,
+          sessionId,
+          error: response.message || 'Unknown error',
+          context: { originalMessage: messageToSend }
+        })
+      }
     } catch (error) {
       console.error('Error sending message:', error)
-      setIsThinking(false)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: 'Sorry, I encountered an error processing your request.',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+
+      // Track error
+      await analytics.trackError({
+        modelId: selectedModel,
+        sessionId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        context: { originalMessage: messageToSend }
+      })
     }
   }
 
@@ -104,39 +188,90 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Top Header - Minimal Design */}
-      <header className="flex items-center justify-between p-4 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-minimal">
+    <div className="flex flex-col h-full bg-background">
+      {/* Top Header - Design Guide Colors */}
+      <header className="flex items-center justify-between p-4 bg-surface-gradient border-b border-border">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleSidebar}
-            className="h-9 w-9 p-0 rounded-2xl hover:bg-grey-50 transition-all duration-200 shadow-minimal hover:shadow-soft border border-gray-50"
-          >
-            <List size={20} className="text-gray-600" />
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-black">
-              PelicanOS
-            </h1>
-            <Badge variant="secondary" className="text-xs bg-mint-50 text-mint border-mint shadow-minimal">
-              {selectedModel}
-            </Badge>
+          {/* Model Profile */}
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-blue to-accent-blue-hover flex items-center justify-center text-lg shadow-lg">
+              🐬 {/* This could be dynamic based on selectedModel */}
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground text-lg">{selectedModel.replace(':latest', '').replace('tinydolphin', 'TinyDolphin')}</span>
+                {/* Enhanced Online Indicator */}
+                <div className="flex items-center gap-1">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full shadow-lg border-2 border-white",
+                    ollama.status.connected 
+                      ? "bg-green-500 shadow-green-400/50 animate-pulse" 
+                      : "bg-red-500 shadow-red-400/50"
+                  )} />
+                  <span className={cn(
+                    "text-xs font-medium",
+                    ollama.status.connected ? "text-green-600" : "text-red-600"
+                  )}>
+                    {ollama.status.connected ? "Online" : "Offline"}
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs text-grey-dark">AI Assistant</span>
+            </div>
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenDeveloper}
+            title="Canvas Mode"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-purple-100 transition-all duration-300"
+          >
+            <GridNine size={16} className="text-purple-500" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenSystemStatus}
+            title="System Status & Performance"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
+          >
+            <Cpu size={16} className="text-accent-blue-hover" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenAgentManager}
+            title="Agent Manager"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
+          >
+            <Robot size={16} className="text-accent-blue-hover" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenAdvancedMemory}
+            title="Advanced Memory"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
+          >
+            <Brain size={16} className="text-accent-blue-hover" />
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
             onClick={clearChat}
             disabled={messages.length === 0}
             title="Clear chat"
-            className="h-9 w-9 p-0 rounded-2xl hover:bg-grey-50 transition-all duration-200 shadow-minimal hover:shadow-soft disabled:opacity-30 border border-gray-50"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift disabled:opacity-30 border-0 hover:bg-red-100 transition-all duration-300"
           >
-            <ArrowsClockwise size={16} className="text-gray-600" />
+            <ArrowsClockwise size={16} className="text-red-500" />
           </Button>
           
           <Button
@@ -144,9 +279,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             size="sm"
             onClick={onOpenDeveloper}
             title="Developer mode"
-            className="h-9 w-9 p-0 rounded-2xl hover:bg-grey-50 transition-all duration-200 shadow-minimal hover:shadow-soft border border-gray-50"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
           >
-            <Code size={16} className="text-gray-600" />
+            <Code size={16} className="text-accent-blue-hover" />
           </Button>
           
           <Button
@@ -154,48 +289,74 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             size="sm"
             onClick={onOpenSettings}
             title="Settings"
-            className="h-9 w-9 p-0 rounded-2xl hover:bg-grey-50 transition-all duration-200 shadow-minimal hover:shadow-soft border border-gray-50"
+            className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
           >
-            <Gear size={16} className="text-gray-600" />
+            <Gear size={16} className="text-accent-blue-hover" />
           </Button>
         </div>
       </header>
 
       {/* Chat Messages Area */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 bg-background" ref={scrollAreaRef}>
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 ? (
-            // Welcome State
+            // Enhanced Welcome State  
             <div className="flex flex-col items-center justify-center h-full min-h-[60vh] px-4">
-              <div className="text-center space-y-6">
-                <div className="w-20 h-20 gradient-white-mint rounded-3xl flex items-center justify-center mx-auto shadow-soft hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 border border-white/60">
-                  <div className="text-3xl">🦉</div>
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold mb-3 text-black">
-                    How can I help you today?
-                  </h2>
-                  <p className="text-gray-500 text-lg">
-                    Start a conversation with your local AI assistant. 
-                    Everything runs privately on your machine.
-                  </p>
+              <div className="text-center space-y-8 max-w-2xl">
+                {/* Animated Logo */}
+                <div className="relative">
+                  <div className="glass-card w-24 h-24 rounded-3xl flex items-center justify-center mx-auto glass-float border-0 group hover:scale-110 transition-transform duration-500">
+                    <div className="text-4xl animate-bounce">{currentModelData.avatar}</div>
+                  </div>
+                  <div className="absolute -inset-4 bg-gradient-to-r from-accent-blue/20 to-accent-blue-hover/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
                 
-                {/* Quick Start Examples */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+                {/* Welcome Text */}
+                <div className="space-y-4">
+                  <h2 className="text-4xl font-bold mb-3 text-foreground bg-gradient-to-r from-accent-blue to-accent-blue-hover bg-clip-text text-transparent">
+                    Welcome to {currentModelData.name}
+                  </h2>
+                  <p className="text-grey-dark text-lg leading-relaxed">
+                    Your private AI assistant is ready to help. Start a conversation below or try one of these suggestions.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-grey-dark">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      ollama.status.connected ? "bg-green-500 animate-pulse" : "bg-red-500"
+                    )} />
+                    <span>{ollama.status.connected ? "Connected & Ready" : "Connecting..."}</span>
+                  </div>
+                </div>
+                
+                {/* Enhanced Quick Start Examples */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
                   {[
-                    "Explain quantum computing",
-                    "Write a Python function", 
-                    "Help me plan a project",
-                    "Analyze this data"
+                    { text: "Explain quantum computing", icon: "🔬", category: "Science" },
+                    { text: "Write a Python function", icon: "💻", category: "Code" }, 
+                    { text: "Help me plan a project", icon: "📋", category: "Planning" },
+                    { text: "Analyze this data", icon: "📊", category: "Analysis" }
                   ].map((example, index) => (
-                    <button
+                    <Button
                       key={index}
-                      onClick={() => setCurrentMessage(example)}
-                      className="p-4 text-left gradient-white-grey border border-gray-100 rounded-2xl hover:gradient-white-mint hover:border-mint transition-all duration-300 shadow-minimal hover:shadow-soft hover:-translate-y-0.5"
+                      variant="ghost"
+                      onClick={() => setCurrentMessage(example.text)}
+                      className="group glass-card p-6 text-left rounded-2xl hover:bg-accent-blue-muted hover-lift h-auto border-0 transition-all duration-300 hover:scale-[1.02]"
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <span className="text-sm font-medium text-gray-700">{example}</span>
-                    </button>
+                      <div className="flex items-start gap-3">
+                        <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                          {example.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-700 mb-1">
+                            {example.text}
+                          </div>
+                          <div className="text-xs text-grey-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            {example.category}
+                          </div>
+                        </div>
+                      </div>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -204,61 +365,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             // Messages
             <div className="space-y-6 p-4">
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex gap-4 max-w-4xl",
-                    message.type === 'user' ? "ml-auto flex-row-reverse" : ""
-                  )}
-                >
-                  {/* Avatar */}
-                  <div className={cn(
-                    "w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-soft border",
-                    message.type === 'user' 
-                      ? "bg-black text-white border-gray-200" 
-                      : "gradient-white-mint text-gray-700 border-mint"
-                  )}>
-                    {message.type === 'user' ? (
-                      <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center">
-                        <span className="text-xs font-bold">You</span>
-                      </div>
-                    ) : (
-                      <span className="text-lg">🦉</span>
-                    )}
-                  </div>
-
-                  {/* Message Content */}
-                  <div className={cn(
-                    "flex-1 space-y-2",
-                    message.type === 'user' ? "text-right" : ""
-                  )}>
-                    <div className={cn(
-                      "prose prose-sm max-w-none",
-                      message.type === 'user' 
-                        ? "bg-black text-white rounded-2xl p-4 inline-block shadow-soft border border-gray-800" 
-                        : "gradient-white-grey border border-gray-100 rounded-2xl p-4 shadow-soft hover:shadow-elevated transition-shadow duration-300"
-                    )}>
-                      <p className="m-0 whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {message.timestamp.toLocaleTimeString()}
-                    </div>
-                  </div>
-                </div>
+                <MessageComponent key={message.id} message={message} />
               ))}
 
               {/* Thinking indicator */}
               {isThinking && (
                 <div className="flex gap-4 max-w-4xl">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm">🦉</span>
+                  <div className="w-10 h-10 rounded-2xl glass-accent flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🦉</span>
                   </div>
                   <div className="flex-1">
-                    <div className="bg-background rounded-lg p-3 inline-block">
+                    <div className="glass-card rounded-2xl p-4 inline-block border-0">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></div>
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                        <div className="w-2 h-2 bg-accent-blue-hover rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-accent-blue-hover rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-accent-blue-hover rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                       </div>
                     </div>
                   </div>
@@ -269,41 +390,57 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </ScrollArea>
 
-      {/* Input Area - Minimal Design */}
-      <div className="bg-white/95 backdrop-blur-sm border-t border-gray-100">
+      {/* Enhanced Input Area */}
+      <div className="bg-surface-gradient border-t border-border backdrop-blur-md">
         <div className="max-w-4xl mx-auto p-6">
-          <div className="relative flex items-end gap-3 gradient-white-grey border border-gray-200 rounded-3xl p-4 shadow-soft hover:shadow-elevated transition-all duration-300">
-            {/* Attachment button */}
+          <div className="relative flex items-end gap-3 glass-card rounded-3xl p-4 hover-lift border-0 shadow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-accent-blue/20">
+            {/* Enhanced Attachment button */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 flex-shrink-0 rounded-2xl hover:bg-white transition-all duration-200 shadow-minimal hover:shadow-soft border border-gray-100"
+              className="glass-button h-10 w-10 p-0 flex-shrink-0 rounded-2xl border-0 hover:bg-accent-blue-muted/50 transition-all duration-300"
               disabled={isThinking}
+              title="Attach file"
             >
-              <Paperclip size={18} className="text-gray-500" />
+              <Paperclip size={18} className="text-accent-blue-hover" />
             </Button>
 
-            {/* Text input */}
-            <Textarea
-              ref={textareaRef}
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Message PelicanOS..."
-              className="min-h-[24px] max-h-[200px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-base placeholder:text-gray-400 text-gray-700"
-              disabled={isThinking}
-            />
+            {/* Enhanced Text input */}
+            <div className="flex-1 relative">
+              <Textarea
+                ref={textareaRef}
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={`Message ${currentModelData.name}...`}
+                className="min-h-[28px] max-h-[200px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-base placeholder:text-grey-dark text-foreground transition-all duration-300"
+                disabled={isThinking}
+              />
+              {/* Character count */}
+              {currentMessage.length > 100 && (
+                <div className="absolute bottom-0 right-0 text-xs text-grey-dark bg-white/80 px-2 py-1 rounded-lg">
+                  {currentMessage.length}
+                </div>
+              )}
+            </div>
 
-            {/* Voice/Send buttons */}
+            {/* Enhanced Voice/Send buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               {currentMessage.trim() ? (
                 <Button
                   size="sm"
                   onClick={handleSendMessage}
                   disabled={isThinking}
-                  className="h-9 w-9 p-0 rounded-2xl bg-black hover:bg-gray-800 shadow-soft hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5 border border-gray-800"
+                  className="h-10 w-10 p-0 rounded-2xl bg-accent-gradient hover:bg-accent-blue-hover hover-lift border-0 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:scale-95"
+                  title="Send message"
                 >
-                  <PaperPlaneTilt size={16} weight="fill" className="text-white" />
+                  {isThinking ? (
+                    <div className="animate-spin">
+                      <ArrowsClockwise size={16} className="text-primary-foreground" />
+                    </div>
+                  ) : (
+                    <PaperPlaneTilt size={16} weight="fill" className="text-primary-foreground" />
+                  )}
                 </Button>
               ) : (
                 <Button
@@ -311,12 +448,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   size="sm"
                   onClick={() => setIsRecording(!isRecording)}
                   className={cn(
-                    "h-9 w-9 p-0 rounded-2xl transition-all duration-200 shadow-minimal hover:shadow-soft border",
+                    "glass-button h-10 w-10 p-0 rounded-2xl hover-lift border-0 transition-all duration-300",
                     isRecording 
-                      ? "bg-black text-white border-gray-800" 
-                      : "hover:bg-white border-gray-100 text-gray-500"
+                      ? "bg-accent-gradient text-primary-foreground scale-110 animate-pulse" 
+                      : "text-accent-blue-hover hover:bg-accent-blue-muted/50"
                   )}
                   disabled={isThinking}
+                  title={isRecording ? "Stop recording" : "Start voice input"}
                 >
                   {isRecording ? <Stop size={16} /> : <Microphone size={16} />}
                 </Button>
@@ -324,9 +462,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </div>
           
-          {/* Footer info */}
-          <div className="text-center text-xs text-gray-400 mt-3">
-            AI responses may contain errors. Everything runs locally on your machine.
+          {/* Enhanced Footer info */}
+          <div className="flex items-center justify-between text-xs text-grey-dark mt-3">
+            <div className="flex items-center gap-2">
+              <span>AI responses may contain errors.</span>
+              <span>•</span>
+              <span>Everything runs locally on your machine.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Press Shift+Enter for new line</span>
+            </div>
           </div>
         </div>
       </div>
