@@ -1,5 +1,0 @@
-NAME                          ID              SIZE      MODIFIED    
-openchat:latest               537a4e03b649    4.1 GB    7 days ago     
-tinydolphin:latest            0f9dd11f824c    636 MB    12 days ago    
-phi4-mini-reasoning:latest    3ca8c2865ce9    3.2 GB    6 weeks ago    
-deepseek-coder:1.3b           3ddd2d3fc8d2    776 MB    6 weeks ago    
