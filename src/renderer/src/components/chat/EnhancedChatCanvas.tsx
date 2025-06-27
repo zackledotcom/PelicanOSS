@@ -339,9 +339,57 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         )}
       </div>
     )
-  }
-  
+  }  
+  // Main render
   return (
+    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+      {/* Enhanced Canvas Controls */}
+      <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <div className="relative">
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search messages..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64 h-9 bg-white/80 backdrop-blur-sm border-white/20"
+            />
+          </div>
+
+          {/* Filter by tags */}
+          {allTags.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
+                  <Funnel size={16} className="mr-2" />
+                  Filter ({filterTags.length})
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
+                {allTags.map(tag => (
+                  <DropdownMenuItem
+                    key={tag}
+                    onClick={() => {
+                      setFilterTags(prev => 
+                        prev.includes(tag) 
+                          ? prev.filter(t => t !== tag)
+                          : [...prev, tag]
+                      )
+                    }}
+                  >
+                    {filterTags.includes(tag) ? <Check size={14} className="mr-2" /> : <div className="w-4" />}
+                    {tag}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setFilterTags([])}>
+                  Clear all
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
           {/* Selection info */}
@@ -664,7 +712,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
               dataTransfer: { files },
               clientX: rect.left + rect.width / 2,
               clientY: rect.top + rect.height / 2
-            } as React.DragEvent
+            } as React.DragEvent<HTMLDivElement>
             
             handleCanvasDrop(fakeEvent)
           }
