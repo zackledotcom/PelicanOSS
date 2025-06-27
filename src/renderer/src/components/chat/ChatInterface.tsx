@@ -9,9 +9,9 @@ import {
   ArrowsClockwise,
   Cpu,
   Robot,
-  Brain,
-  GridNine
+  Brain
 } from 'phosphor-react'
+import { GridFour } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -63,15 +63,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // Model data mapping
   const modelData = {
-    'tinydolphin:latest': { name: 'TinyDolphin', avatar: '🐬', subtitle: 'Fast & Efficient' },
-    'openchat:latest': { name: 'OpenChat', avatar: '🤖', subtitle: 'Conversational AI' },
-    'phi4-mini-reasoning:latest': { name: 'Phi4 Mini', avatar: '🧠', subtitle: 'Reasoning Expert' },
-    'deepseek-coder:1.3b': { name: 'DeepSeek Coder', avatar: '💻', subtitle: 'Code Specialist' }
+    'tinydolphin:latest': { name: 'TinyDolphin', subtitle: 'Fast & Efficient' },
+    'openchat:latest': { name: 'OpenChat', subtitle: 'Conversational AI' },
+    'phi4-mini-reasoning:latest': { name: 'Phi4 Mini', subtitle: 'Reasoning Expert' },
+    'deepseek-coder:1.3b': { name: 'DeepSeek Coder', subtitle: 'Code Specialist' }
   }
 
   const currentModelData = modelData[selectedModel as keyof typeof modelData] || {
     name: selectedModel.replace(':latest', ''),
-    avatar: '🤖',
     subtitle: 'AI Assistant'
   }
 
@@ -230,7 +229,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             title="Canvas Mode"
             className="glass-button h-9 w-9 p-0 rounded-xl hover-lift border-0 hover:bg-purple-100 transition-all duration-300"
           >
-            <GridNine size={16} className="text-purple-500" />
+            <GridFour size={16} className="text-purple-500" />
           </Button>
 
           <Button
@@ -372,7 +371,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               {isThinking && (
                 <div className="flex gap-4 max-w-4xl">
                   <div className="w-10 h-10 rounded-2xl glass-accent flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">🦉</span>
+                    <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">AI</span>
+                    </div>
                   </div>
                   <div className="flex-1">
                     <div className="glass-card rounded-2xl p-4 inline-block border-0">

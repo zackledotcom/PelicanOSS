@@ -188,7 +188,7 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
           <div className="px-4 mb-4">
             <div className="bg-white/25 backdrop-blur-lg rounded-xl p-3 border border-white/40 shadow-inner">
               <h3 className="text-blue-800 font-bold mb-1 flex items-center gap-2">
-                <span className="text-sm">🧠</span>
+                <span className="text-sm font-bold">⚡</span>
                 Ability: Quick Response
               </h3>
               <p className="text-sm text-gray-800">All queries are processed with lightning speed for instant results.</p>

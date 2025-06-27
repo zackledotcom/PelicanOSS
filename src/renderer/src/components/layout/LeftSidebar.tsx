@@ -61,7 +61,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     { 
       value: 'tinydolphin:latest', 
       label: 'TinyDolphin (1B)',
-      avatar: '🐬',
       character: 'Dolphin',
       downloadDate: '2024-01-15',
       conversations: 127,
@@ -74,7 +73,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     { 
       value: 'openchat:latest', 
       label: 'OpenChat (7B)',
-      avatar: '🤖',
       character: 'Sage',
       downloadDate: '2024-01-10',
       conversations: 89,
@@ -87,7 +85,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     { 
       value: 'phi4-mini-reasoning:latest', 
       label: 'Phi4 Mini (3.8B)',
-      avatar: '🧠',
       character: 'Scholar',
       downloadDate: '2024-01-20',
       conversations: 45,
@@ -100,7 +97,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     { 
       value: 'deepseek-coder:1.3b', 
       label: 'DeepSeek Coder (1B)',
-      avatar: '💻',
       character: 'Coder',
       downloadDate: '2024-01-25',
       conversations: 32,
@@ -260,7 +256,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         ? "bg-gradient-to-br from-accent-blue to-accent-blue-hover scale-110"
                         : "bg-gradient-to-br from-accent-blue/80 to-accent-blue-hover/80 group-hover:scale-105"
                     )}>
-                      <span className="filter drop-shadow-sm">{model.avatar}</span>
+                      <span className="text-xs font-bold text-white">AI</span>
                     </div>
                     
                     {/* Model Info */}
@@ -307,7 +303,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 <Select value={selectedModel} onValueChange={onModelChange}>
                   <SelectTrigger className="w-full h-11 rounded-xl glass-card text-foreground border-grey-medium hover:bg-accent-blue-muted/30 transition-all duration-300 focus:ring-2 focus:ring-accent-blue/20">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{currentModel.avatar}</span>
+                      <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">AI</span>
+                      </div>
                       <SelectValue placeholder="Select model..." />
                     </div>
                   </SelectTrigger>
@@ -319,7 +317,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         className="rounded-lg hover:bg-accent-blue-muted transition-colors duration-200 text-foreground focus:bg-accent-blue-muted"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-lg">{model.avatar}</span>
+                          <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <span className="text-xs font-bold text-white">AI</span>
+                          </div>
                           <div className="flex flex-col">
                             <span className="font-medium">{model.label}</span>
                             <span className="text-xs text-grey-dark">{model.conversations} conversations</span>

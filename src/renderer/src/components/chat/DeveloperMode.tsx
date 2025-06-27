@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { 
-  Grid, 
+  GridFour, 
   Terminal, 
   Folder, 
   Activity, 
   Bug,
   Cpu,
-  Memory,
+
   Lightning,
   FileText,
-  Refresh,
+  ArrowsClockwise,
   Upload,
-  Save,
+  FloppyDisk,
   Play,
   Stop,
   Clock,
-  Settings,
+  Gear,
   ChartLine
-} from 'lucide-react'
+} from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -282,7 +282,7 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
                     <div className="flex items-center justify-between mb-3">                      <h3 className="font-semibold">Project Files</h3>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <Refresh size={14} />
+                          <ArrowsClockwise size={14} />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                           <Upload size={14} />
@@ -355,7 +355,7 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
                         </div>
                         <div className="flex gap-2">
                           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                            <Save size={14} className="mr-1" />
+                            <FloppyDisk size={14} className="mr-1" />
                             Save
                           </Button>
                           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
@@ -415,7 +415,7 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
                   <Card className="bg-gray-800 border-gray-700">
                     <CardHeader className="pb-3">
                       <CardTitle className="flex items-center gap-2 text-white">
-                        <Memory size={20} className="text-green-400" />
+                        <Cpu size={20} className="text-green-400" />
                         Memory Usage
                       </CardTitle>
                     </CardHeader>
@@ -582,7 +582,7 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-white">
-                      <Settings size={20} className="text-gray-400" />
+                      <Gear size={20} className="text-gray-400" />
                       System Information
                     </CardTitle>
                   </CardHeader>

@@ -11,7 +11,6 @@ import {
   File,
   Image,
   Code,
-  Smiley,
   Upload,
   Share,
   ChartBar,
@@ -26,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Toggle } from '@/components/ui/toggle'
@@ -513,29 +512,6 @@ export default function InputBar({
               )}
 
               {/* Emoji picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Add emoji">
-                    <Smiley className="w-4 h-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-fit p-2">
-                  <div className="grid grid-cols-8 gap-1">
-                    {['😀', '😂', '😍', '🤔', '👍', '👎', '❤️', '🔥', '💯', '🎉', '😭', '😱', '🤯', '🙄', '😴', '🤖'].map((emoji) => (
-                      <Button
-                        key={emoji}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 hover:bg-muted"
-                        onClick={() => onChange(value + emoji)}
-                      >
-                        <span className="text-base">{emoji}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-
               {/* Send button */}
               <Button
                 size="sm"

@@ -3,9 +3,9 @@ import {
   MagnifyingGlass, 
   Funnel, 
   Check, 
-  GridNine, 
+  GridFour, 
   ArrowsOut, 
-  TreeStructure, 
+  Tree, 
   Eye, 
   EyeSlash, 
   Wrench, 
@@ -15,10 +15,10 @@ import {
   Plus, 
   Code, 
   Link, 
-  Palette, 
+  PaintBucket, 
   Export, 
   Trash 
-} from 'lucide-react'
+} from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +32,6 @@ import {
 import { 
   Dialog, 
   DialogContent, 
-  DialogDescription, 
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog'
@@ -401,7 +400,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
-                <GridNine size={16} className={canvasMode !== 'free' ? 'text-blue-500' : ''} />
+                <GridFour size={16} className={canvasMode !== 'free' ? 'text-blue-500' : ''} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
@@ -429,11 +428,11 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
               <DropdownMenuItem onClick={autoArrangeFlow}>
-                <GridNine size={14} className="mr-2" />
+                <GridFour size={14} className="mr-2" />
                 Auto Arrange Grid
               </DropdownMenuItem>
               <DropdownMenuItem onClick={autoArrangeHierarchy}>
-                <TreeStructure size={14} className="mr-2" />
+                <Tree size={14} className="mr-2" />
                 Arrange by Type
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -512,7 +511,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
                     Message Linking
                   </div>
                   <div className="flex items-center gap-1">
-                    <TreeStructure size={16} />
+                    <Tree size={16} />
                     Auto Layout
                   </div>
                 </div>
@@ -614,7 +613,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
                 Connect
               </Button>
               <Button size="sm" variant="outline" className="bg-white/60">
-                <Palette size={14} className="mr-1" />
+                <PaintBucket size={14} className="mr-1" />
                 Color
               </Button>
               <Button size="sm" variant="outline" className="bg-white/60">
@@ -667,9 +666,9 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         <DialogContent className="bg-white/95 backdrop-blur-sm">
           <DialogHeader>
             <DialogTitle>Create Message Group</DialogTitle>
-            <DialogDescription>
+            <div className="text-sm text-gray-500">
               Group {selectedMessages.size} selected messages together
-            </DialogDescription>
+            </div>
           </DialogHeader>
           <div className="space-y-4">
             <div>

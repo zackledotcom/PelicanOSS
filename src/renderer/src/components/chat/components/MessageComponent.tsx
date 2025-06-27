@@ -133,7 +133,9 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
             <span className="text-xs font-bold">You</span>
           </div>
         ) : (
-          <span className="text-lg">🦉</span>
+          <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+            <span className="text-xs font-bold text-white">AI</span>
+          </div>
         )}
       </div>
 
