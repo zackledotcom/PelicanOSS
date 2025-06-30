@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import DeveloperMode from '../chat/DeveloperMode'
 import { useAllServices } from '../../hooks/useServices'
+import { Message } from '@/types/chat'
+import { SystemMetrics } from '@/types/settings'
 
 interface DeveloperModalProps {
   isOpen: boolean
@@ -265,6 +267,11 @@ export default FibonacciCalculator;`,
 }
 
 const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
+  // TODO: Replace mock data with real chat history and system metrics
+  // const [messages, setMessages] = useState<Message[]>([])
+  // const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null)
+  
+  // For now, keep using mock data until backend services are implemented
   const [messages, setMessages] = useState(() => generateMockMessages())
   const services = useAllServices()
   const [systemStats, setSystemStats] = useState({

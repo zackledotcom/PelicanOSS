@@ -6,7 +6,6 @@ import {
   Activity, 
   Bug,
   Cpu,
-
   Lightning,
   FileText,
   ArrowsClockwise,
@@ -16,7 +15,9 @@ import {
   Stop,
   Clock,
   Gear,
-  ChartLine
+  ChartLine,
+  Code,
+  Brain
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,6 +28,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import EnhancedChatCanvas from './EnhancedChatCanvas'
+import CodeGenerator from '../developer/CodeGenerator'
+import TuningPanel from '../tuning/TuningPanel'
 
 interface DeveloperModeProps {
   isOpen: boolean
@@ -123,6 +126,17 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
     }, Math.random() * 2000 + 500)
   }
   
+  // Helper for adding new messages
+  const handleAddMessage = (message: any) => {
+    const newMessage = {
+      ...message,
+      id: `msg-${Date.now()}`,
+      timestamp: new Date()
+    }
+    setCanvasMessages(prev => [...prev, newMessage])
+    onAddMessage(newMessage)
+  }
+  
   const executeTerminalCommand = (command: string) => {
     const output = `Executed: ${command}\nOutput would appear here...`
     const entry = {
@@ -156,21 +170,30 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="canvas" className="h-full flex flex-col">
             <div className="px-4 pt-4 bg-gray-800">
-              <TabsList className="grid w-full max-w-2xl grid-cols-5 bg-gray-700">
+              <TabsList className="grid w-full max-w-2xl grid-cols-7 bg-gray-700">
                 <TabsTrigger value="canvas" className="data-[state=active]:bg-gray-700">
-                  <Grid size={16} className="mr-2" />
+                  <GridFour size={16} className="mr-2" />
                   Canvas
                 </TabsTrigger>
                 <TabsTrigger value="terminal" className="data-[state=active]:bg-gray-700">
                   <Terminal size={16} className="mr-2" />
                   Terminal
-                </TabsTrigger>                <TabsTrigger value="files" className="data-[state=active]:bg-gray-700">
+                </TabsTrigger>
+                <TabsTrigger value="files" className="data-[state=active]:bg-gray-700">
                   <Folder size={16} className="mr-2" />
                   Files
                 </TabsTrigger>
                 <TabsTrigger value="performance" className="data-[state=active]:bg-gray-700">
                   <Activity size={16} className="mr-2" />
                   Performance
+                </TabsTrigger>
+                <TabsTrigger value="code" className="data-[state=active]:bg-gray-700">
+                  <Code size={16} className="mr-2" />
+                  Code
+                </TabsTrigger>
+                <TabsTrigger value="tuning" className="data-[state=active]:bg-gray-700">
+                  <Brain size={16} className="mr-2" />
+                  Tuning
                 </TabsTrigger>
                 <TabsTrigger value="debug" className="data-[state=active]:bg-gray-700">
                   <Bug size={16} className="mr-2" />
@@ -505,6 +528,63 @@ const DeveloperMode: React.FC<DeveloperModeProps> = ({
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* Code Generator Tab */}
+            <TabsContent value="code" className="h-full m-0 p-4 overflow-auto">
+              <div className="h-full space-y-6">
+                <CodeGenerator 
+                  onCodeGenerated={(code, language) => {
+                    // Add the generated code as a new message in the canvas
+                    handleAddMessage({
+                      type: 'ai',
+                      content: `Here's the code you requested:\n\n\`\`\`${language}\n${code}\n\`\`\``,
+                      position: { x: 400, y: Math.random() * 200 + 100 },
+                      attachments: [{
+                        type: 'code',
+                        name: `generated.${language === 'javascript' ? 'js' : language}`,
+                        content: code,
+                        language,
+                        executable: true
+                      }],
+                      connections: []
+                    });
+                  }}
+                />
+                
+                <Card className="bg-gray-800/80 border-gray-700/50 backdrop-blur-md">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Lightning size={20} className="text-yellow-400" />
+                      Code Generation Tips
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-300">
+                        The code generator automatically selects the best model for code generation from your available Ollama models.
+                        For best results:
+                      </p>
+                      
+                      <div className="bg-gray-700/50 p-3 rounded text-sm">
+                        <h4 className="font-medium text-white mb-2">Best Practices</h4>
+                        <ul className="space-y-1 text-gray-300">
+                          <li>• Be specific about what functionality you need</li>
+                          <li>• Include details about error handling requirements</li>
+                          <li>• Specify any libraries or frameworks to use</li>
+                          <li>• For complex code, break into smaller components</li>
+                          <li>• Code-specialized models like Deepseek Coder or CodeLlama will produce better results</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Model Tuning Tab */}
+            <TabsContent value="tuning" className="h-full m-0 p-0 overflow-auto">
+              <TuningPanel className="h-full" />
             </TabsContent>
 
             {/* Debug Tab */}

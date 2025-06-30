@@ -4,6 +4,11 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn, exec, ChildProcess } from 'child_process'
 import axios from 'axios'
+console.log('✅ index.ts is up to date and executing');
+// Import the handlers
+import { registerCodeGenerationHandlers } from './code-generation-handlers'
+import { registerModelTuningHandlers } from './model-tuning-handlers'
+import { registerFileSystemHandlers } from './file-system-handlers';
 import {
   loadSettings,
   saveSettings,
@@ -196,6 +201,13 @@ app.whenReady().then(() => {
 
   createWindow()
 
+  // Register IPC handlers
+  registerCodeGenerationHandlers(ipcMain)
+  registerModelTuningHandlers(ipcMain)
+
+  // Register file system handlers
+  registerFileSystemHandlers(ipcMain)
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -380,7 +392,7 @@ ipcMain.handle('check-chroma-status', async () => {
     const response = await axios.get(`${CHROMA_BASE_URL}/api/v2/heartbeat`, { timeout: 5000 })
     console.log('✅ ChromaDB connected successfully')
     console.log('📊 Response status:', response.status)
-    console.log('📋 Response data:', JSON.stringify(response.data, null, 2))
+    console.log('📋 Response data:', JSON.stringify(response.data, null, 2})
 
     return {
       connected: true,
@@ -816,7 +828,7 @@ ipcMain.handle('chat-with-ai-working', async (event, data: { message: string; mo
 
   } catch (error) {
     console.error('❌ Chat error:', error.message)
-    
+
     let errorMessage = 'Sorry, I encountered an error.'
     if (error.code === 'ECONNABORTED') {
       errorMessage = 'Sorry, the request timed out. The model might be too large or busy.'
@@ -825,7 +837,7 @@ ipcMain.handle('chat-with-ai-working', async (event, data: { message: string; mo
     } else if (error.code === 'ECONNREFUSED') {
       errorMessage = 'Sorry, I cannot connect to the Ollama service.'
     }
-    
+
     return {
       success: false,
       message: errorMessage,

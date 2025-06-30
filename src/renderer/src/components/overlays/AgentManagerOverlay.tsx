@@ -39,22 +39,9 @@ import {
   Code,
   Globe
 } from 'phosphor-react'
+import { useAllServices } from '@/hooks/useServices'
 
-interface Agent {
-  id: string
-  name: string
-  description: string
-  model: 'ollama' | 'claude' | 'hybrid'
-  systemPrompt: string
-  memoryEnabled: boolean
-  tools: string[]
-  isActive: boolean
-  createdAt: string
-  metadata?: {
-    usageCount: number
-    lastUsed?: string
-  }
-}
+
 
 interface AgentManagerOverlayProps {
   isOpen: boolean
@@ -77,10 +64,14 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
   isOpen,
   onClose
 }) => {
+  // Service integration
+  const services = useAllServices()
+  
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -90,47 +81,48 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
     tools: [] as string[]
   })
 
-  // Mock data - replace with actual API calls
+  // Load agents from backend when component opens
   useEffect(() => {
-    setAgents([
-      {
+    if (isOpen) {
+      loadAgents()
+    }
+  }, [isOpen])
+
+  const loadAgents = async () => {
+    setLoading(true)
+    try {
+      // TODO: Implement backend agent loading via IPC
+      // const loadedAgents = await window.api.agentGetAll()
+      // setAgents(loadedAgents)
+      
+      // For now, use minimal mock data as placeholder
+      setAgents([{
         id: '1',
-        name: 'Research Assistant',
-        description: 'Specialized in research and data analysis',
+        name: 'Default Assistant',
+        description: 'General purpose AI assistant',
         model: 'ollama',
-        systemPrompt: 'You are a research assistant specialized in finding and analyzing information. You help users discover insights from data and literature.',
-        memoryEnabled: true,
-        tools: ['chroma.query', 'file.read', 'memory.search', 'network.request'],
-        isActive: true,
-        createdAt: '2024-01-15',
-        metadata: { usageCount: 45, lastUsed: '2024-01-20' }
-      },
-      {
-        id: '2',
-        name: 'Code Helper',
-        description: 'Expert at programming and code review',
-        model: 'ollama',
-        systemPrompt: 'You are a senior software engineer who helps with coding tasks, debugging, and best practices.',
-        memoryEnabled: false,
-        tools: ['file.read', 'file.write', 'ollama.generate'],
-        isActive: false,
-        createdAt: '2024-01-10',
-        metadata: { usageCount: 23, lastUsed: '2024-01-18' }
-      },
-      {
-        id: '3',
-        name: 'Creative Writer',
-        description: 'Assists with creative writing and storytelling',
-        model: 'claude',
-        systemPrompt: 'You are a creative writing assistant who helps craft compelling stories, poems, and creative content.',
-        memoryEnabled: true,
-        tools: ['ollama.generate', 'memory.search', 'file.write'],
-        isActive: false,
-        createdAt: '2024-01-12',
-        metadata: { usageCount: 67, lastUsed: '2024-01-19' }
-      }
-    ])
-  }, [])
+        systemPrompt: 'You are a helpful AI assistant.',
+        temperature: 0.7,
+        maxTokens: 2048,
+        tools: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: {
+          version: '1.0.0',
+          author: 'System',
+          tags: ['default'],
+          category: 'general',
+          isActive: true,
+          memoryEnabled: true,
+          usageCount: 0
+        }
+      }])
+    } catch (error) {
+      console.error('Failed to load agents:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const resetForm = () => {
     setFormData({
@@ -163,44 +155,82 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
     setIsCreating(false)
   }
 
-  const handleSaveAgent = () => {
+  const handleSaveAgent = async () => {
     if (!formData.name.trim()) return
 
-    if (isEditing && selectedAgent) {
-      // Update existing agent
-      setAgents(prev => prev.map(agent =>
-        agent.id === selectedAgent.id
-          ? { ...agent, ...formData }
-          : agent
-      ))
-      setSelectedAgent({ ...selectedAgent, ...formData })
-    } else {
-      // Create new agent
-      const newAgent: Agent = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        model: formData.model,
-        systemPrompt: formData.systemPrompt,
-        memoryEnabled: formData.memoryEnabled,
-        tools: formData.tools,
-        isActive: false,
-        createdAt: new Date().toISOString().split('T')[0],
-        metadata: { usageCount: 0 }
+    setLoading(true)
+    try {
+      if (isEditing && selectedAgent) {
+        // TODO: Implement backend agent updating via IPC
+        // const updatedAgent = await window.api.agentUpdate(selectedAgent.id, formData)
+        // setAgents(prev => prev.map(agent =>
+        //   agent.id === selectedAgent.id ? updatedAgent : agent
+        // ))
+        // setSelectedAgent(updatedAgent)
+        
+        // For now, update local state only
+        const updatedAgent = { ...selectedAgent, ...formData, updatedAt: new Date() }
+        setAgents(prev => prev.map(agent =>
+          agent.id === selectedAgent.id ? updatedAgent : agent
+        ))
+        setSelectedAgent(updatedAgent)
+      } else {
+        // TODO: Implement backend agent creation via IPC
+        // const newAgent = await window.api.agentCreate(formData)
+        // setAgents(prev => [...prev, newAgent])
+        // setSelectedAgent(newAgent)
+        
+        // For now, create local agent only
+        const newAgent: Agent = {
+          id: Date.now().toString(),
+          name: formData.name,
+          description: formData.description,
+          model: formData.model,
+          systemPrompt: formData.systemPrompt,
+          temperature: 0.7,
+          maxTokens: 2048,
+          tools: formData.tools,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {
+            version: '1.0.0',
+            author: 'User',
+            tags: [],
+            category: 'custom',
+            isActive: false,
+            memoryEnabled: formData.memoryEnabled,
+            usageCount: 0
+          }
+        }
+        setAgents(prev => [...prev, newAgent])
+        setSelectedAgent(newAgent)
       }
-      setAgents(prev => [...prev, newAgent])
-      setSelectedAgent(newAgent)
-    }
 
-    setIsCreating(false)
-    setIsEditing(false)
+      setIsCreating(false)
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Failed to save agent:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDeleteAgent = (id: string) => {
+  const handleDeleteAgent = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this agent?')) {
-      setAgents(prev => prev.filter(agent => agent.id !== id))
-      if (selectedAgent?.id === id) {
-        setSelectedAgent(null)
+      setLoading(true)
+      try {
+        // TODO: Implement backend agent deletion via IPC
+        // await window.api.agentDelete(id)
+        
+        // For now, delete from local state only
+        setAgents(prev => prev.filter(agent => agent.id !== id))
+        if (selectedAgent?.id === id) {
+          setSelectedAgent(null)
+        }
+      } catch (error) {
+        console.error('Failed to delete agent:', error)
+      } finally {
+        setLoading(false)
       }
     }
   }

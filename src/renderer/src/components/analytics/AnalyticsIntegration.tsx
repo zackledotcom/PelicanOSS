@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
-import { BarChart } from 'phosphor-react'
+import { ChartBar } from 'phosphor-react'  // Changed from BarChart
 import ModelAnalyticsDashboard from '../analytics/ModelAnalyticsDashboard'
 import { useAnalyticsTracking } from '../../services/modelAnalytics'
 
@@ -55,7 +55,7 @@ const AnalyticsIntegration: React.FC<AnalyticsIntegrationProps> = ({
         onClick={() => setShowDashboard(true)}
         className="flex items-center gap-2"
       >
-        <BarChart size={16} />
+        <ChartBar size={16} />
         Analytics
       </Button>
 

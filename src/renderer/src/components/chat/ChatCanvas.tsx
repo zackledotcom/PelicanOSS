@@ -27,11 +27,11 @@ import {
   FileText,
   Image as ImageIcon,
   Paperclip,
-  Highlight,
+  Highlighter,  // Fixed: Use Highlighter (it should exist)
   Check,
   X,
   Plus,
-  GridNine
+  GridFour  // Changed from GridNine
 } from 'phosphor-react'
 
 interface Message {
@@ -267,7 +267,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
               <PushPin size={16} className="text-yellow-500" />
             )}
             {message.isHighlighted && (
-              <Highlight size={16} className="text-blue-500" />
+              <Highlighter size={16} className="text-blue-500" />
             )}
             
             <DropdownMenu>
@@ -310,7 +310,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
                     onUpdateMessage(message.id, { isHighlighted: !message.isHighlighted })
                   }}
                 >
-                  <Highlight size={14} className="mr-2" />
+                  <Highlighter size={14} className="mr-2" />
                   {message.isHighlighted ? 'Remove Highlight' : 'Highlight'}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -408,7 +408,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
           onClick={() => setCanvasMode(canvasMode === 'free' ? 'grid' : 'free')}
           className="bg-white/80 backdrop-blur-sm"
         >
-          <GridNine size={16} className={canvasMode === 'grid' ? 'text-blue-500' : ''} />
+          <GridFour size={16} className={canvasMode === 'grid' ? 'text-blue-500' : ''} />
         </Button>
         
         <Button

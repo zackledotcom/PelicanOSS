@@ -324,7 +324,141 @@ const api = {
     ipcRenderer.invoke('workflow:get-templates'),
 
   workflowValidate: (workflowId: string, testInput: any): Promise<any> =>
-    ipcRenderer.invoke('workflow:validate', workflowId, testInput)
+    ipcRenderer.invoke('workflow:validate', workflowId, testInput),
+
+  // Model Tuning API
+  getAvailableModelsForTuning: (): Promise<string[]> => {
+    rateLimit('get-available-models-for-tuning');
+    return ipcRenderer.invoke('get-available-models-for-tuning');
+  },
+  getAllTuningDatasets: (): Promise<any[]> => {
+    rateLimit('get-all-tuning-datasets');
+    return ipcRenderer.invoke('get-all-tuning-datasets');
+  },
+  getTuningDataset: (id: string): Promise<any> => {
+    rateLimit('get-tuning-dataset');
+    const safeId = z.string().min(1).max(100).parse(id);
+    return ipcRenderer.invoke('get-tuning-dataset', safeId);
+  },
+  createTuningDataset: (params: { name: string, description: string, examples?: any[] }): Promise<any> => {
+    rateLimit('create-tuning-dataset');
+    const safeName = z.string().min(1).max(200).parse(params.name);
+    const safeDescription = z.string().max(1000).parse(params.description);
+    return ipcRenderer.invoke('create-tuning-dataset', { 
+      name: safeName, 
+      description: safeDescription, 
+      examples: params.examples || [] 
+    });
+  },
+  updateTuningDataset: (params: { id: string, updates: any }): Promise<any> => {
+    rateLimit('update-tuning-dataset');
+    const safeId = z.string().min(1).max(100).parse(params.id);
+    return ipcRenderer.invoke('update-tuning-dataset', { id: safeId, updates: params.updates });
+  },
+  deleteTuningDataset: (id: string): Promise<boolean> => {
+    rateLimit('delete-tuning-dataset');
+    const safeId = z.string().min(1).max(100).parse(id);
+    return ipcRenderer.invoke('delete-tuning-dataset', safeId);
+  },
+  getAllTuningJobs: (): Promise<any[]> => {
+    rateLimit('get-all-tuning-jobs');
+    return ipcRenderer.invoke('get-all-tuning-jobs');
+  },
+  startTuningJob: (params: {
+    baseModel: string,
+    newModelName: string,
+    datasetId: string,
+    epochs: number,
+    learningRate: number,
+    batchSize: number
+  }): Promise<any> => {
+    rateLimit('start-tuning-job');
+    const safeBaseModel = z.string().min(1).max(100).parse(params.baseModel);
+    const safeNewModelName = z.string().min(1).max(100).parse(params.newModelName);
+    const safeDatasetId = z.string().min(1).max(100).parse(params.datasetId);
+    const safeEpochs = z.number().min(1).max(20).parse(params.epochs);
+    const safeLearningRate = z.number().min(0.00001).max(1).parse(params.learningRate);
+    const safeBatchSize = z.number().min(1).max(128).parse(params.batchSize);
+    
+    return ipcRenderer.invoke('start-tuning-job', {
+      baseModel: safeBaseModel,
+      newModelName: safeNewModelName,
+      datasetId: safeDatasetId,
+      epochs: safeEpochs,
+      learningRate: safeLearningRate,
+      batchSize: safeBatchSize
+    });
+  },
+  cancelTuningJob: (id: string): Promise<boolean> => {
+    rateLimit('cancel-tuning-job');
+    const safeId = z.string().min(1).max(100).parse(id);
+    return ipcRenderer.invoke('cancel-tuning-job', safeId);
+  },
+  deleteTuningJob: (id: string): Promise<boolean> => {
+    rateLimit('delete-tuning-job');
+    const safeId = z.string().min(1).max(100).parse(id);
+    return ipcRenderer.invoke('delete-tuning-job', safeId);
+  },
+  exportTuningDataset: (id: string): Promise<string> => {
+    rateLimit('export-tuning-dataset');
+    const safeId = z.string().min(1).max(100).parse(id);
+    return ipcRenderer.invoke('export-tuning-dataset', safeId);
+  },
+  importTuningDataset: (filePath: string): Promise<any> => {
+    rateLimit('import-tuning-dataset');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    return ipcRenderer.invoke('import-tuning-dataset', safeFilePath);
+  },
+
+  // File System API for Developer Mode
+  fsReadFile: (filePath: string): Promise<{ success: boolean; content?: string; error?: string }> => {
+    rateLimit('fs-read-file');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    return ipcRenderer.invoke('fs-read-file', safeFilePath);
+  },
+  fsWriteFile: (filePath: string, content: string): Promise<{ success: boolean; error?: string }> => {
+    rateLimit('fs-write-file');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    const safeContent = z.string().max(1000000).parse(content); // 1MB limit
+    return ipcRenderer.invoke('fs-write-file', safeFilePath, safeContent);
+  },
+  fsListDirectory: (dirPath: string): Promise<{ success: boolean; files?: any[]; error?: string }> => {
+    rateLimit('fs-list-directory');
+    const safeDirPath = z.string().min(1).max(500).parse(dirPath);
+    return ipcRenderer.invoke('fs-list-directory', safeDirPath);
+  },
+  fsCreateFile: (filePath: string, content?: string): Promise<{ success: boolean; error?: string }> => {
+    rateLimit('fs-create-file');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    const safeContent = content ? z.string().max(1000000).parse(content) : '';
+    return ipcRenderer.invoke('fs-create-file', safeFilePath, safeContent);
+  },
+  fsDeleteFile: (filePath: string): Promise<{ success: boolean; error?: string }> => {
+    rateLimit('fs-delete-file');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    return ipcRenderer.invoke('fs-delete-file', safeFilePath);
+  },
+  fsExecuteCommand: (command: string, cwd?: string): Promise<{ success: boolean; stdout?: string; stderr?: string; error?: string }> => {
+    rateLimit('fs-execute-command');
+    const safeCommand = z.string().min(1).max(1000).parse(command);
+    const safeCwd = cwd ? z.string().max(500).parse(cwd) : undefined;
+    return ipcRenderer.invoke('fs-execute-command', safeCommand, safeCwd);
+  },
+  fsOpenFileDialog: (): Promise<{ success: boolean; filePath?: string; error?: string }> => {
+    rateLimit('fs-open-file-dialog');
+    return ipcRenderer.invoke('fs-open-file-dialog');
+  },
+  fsSaveFileDialog: (defaultName?: string, content?: string): Promise<{ success: boolean; filePath?: string; error?: string }> => {
+    rateLimit('fs-save-file-dialog');
+    const safeDefaultName = defaultName ? z.string().max(255).parse(defaultName) : undefined;
+    const safeContent = content ? z.string().max(1000000).parse(content) : undefined;
+    return ipcRenderer.invoke('fs-save-file-dialog', safeDefaultName, safeContent);
+  },
+  fsGetFileInfo: (filePath: string): Promise<{ success: boolean; info?: any; error?: string }> => {
+    rateLimit('fs-get-file-info');
+    const safeFilePath = z.string().min(1).max(500).parse(filePath);
+    return ipcRenderer.invoke('fs-get-file-info', safeFilePath);
+  }
 } as const;
 
 // ===============================

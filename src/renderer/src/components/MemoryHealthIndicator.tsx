@@ -1,5 +1,5 @@
 import React from 'react'
-import { Battery, BatteryLow, Warning, CheckCircle, Clock, Brain } from 'phosphor-react'
+import { BatteryMedium as Battery, BatteryLow, Warning, CheckCircle, Clock, Brain } from 'phosphor-react'
 import { Badge } from './ui/badge'
 import type { MemoryStore } from '../types/chat'
 

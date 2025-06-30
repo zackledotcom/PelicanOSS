@@ -2,21 +2,21 @@ import React, { useState, useEffect } from 'react'
 import { 
   Brain, 
   Plus, 
-  Search, 
-  Filter, 
+  MagnifyingGlass as Search,  // Fixed: Search → MagnifyingGlass
+  Funnel as Filter,  // Fixed: Filter → Funnel
   Trash, 
-  Edit,
+  PencilSimple as Edit,  // Fixed: Edit → PencilSimple
   Eye,
   Clock,
   Hash,
   Tag,
   BookOpen,
   Database,
-  AlertTriangle,
+  Warning as AlertTriangle,  // Fixed: AlertTriangle → Warning
   CheckCircle,
   X,
   Calendar,
-  BarChart
+  ChartBar as BarChart  // Fixed: BarChart → ChartBar
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

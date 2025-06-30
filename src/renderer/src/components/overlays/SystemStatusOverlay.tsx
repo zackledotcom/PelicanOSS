@@ -20,37 +20,12 @@ interface SystemStatusOverlayProps {
   onClose: () => void
 }
 
-interface SystemMetrics {
-  cpu: {
-    usage: number
-    temperature: number
-    cores: number
-    frequency: number
-  }
-  memory: {
-    used: number
-    total: number
-    percentage: number
-  }
-  disk: {
-    used: number
-    total: number
-    percentage: number
-  }
-  gpu: {
-    usage: number
-    memory: number
-    temperature: number
-    available: boolean
-  }
-  network: {
-    rx: number
-    tx: number
-  }
-  uptime: string
-}
+
 
 const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) => {
+  // Service integration - TODO: Implement real system metrics backend
+  const services = useAllServices()
+  
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu: {
       usage: 23,

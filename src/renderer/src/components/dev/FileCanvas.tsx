@@ -4,7 +4,7 @@ import {
   FileText, 
   FolderOpen, 
   MagnifyingGlass, 
-  SplitHorizontal, 
+  SlidersHorizontal as SplitHorizontal,  // Fixed: SplitHorizontal → SlidersHorizontal 
   X,
   FloppyDisk,
   Play,

@@ -6,7 +6,7 @@ import {
   CheckCircle, 
   Trash, 
   ArrowsClockwise,
-  TrendingUp,
+  TrendUp as TrendingUp,  // Fixed: TrendingUp → TrendUp
   Database
 } from 'phosphor-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Gear, X } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,14 +9,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { BlurIn } from '@/components/ui/blur-in'
+import { Ripple } from '@/components/ui/ripple'
+import { useAllServices } from '@/hooks/useServices'
+import { ModelSettings } from '@/types/settings'
 
-interface ModelConfig {
-  temperature: number
-  maxTokens: number
-  topP: number
-  systemPrompt: string
-  streaming: boolean
-}
+
 
 interface AgentPermissions {
   fileSystem: boolean
@@ -61,12 +59,57 @@ export default function SettingsModal({
   theme,
   onThemeChange
 }: Partial<SettingsModalProps>) {
+  // Service integration
+  const services = useAllServices()
+  
   const [tempConfig, setTempConfig] = useState<ModelConfig>(modelConfig)
   const [tempPermissions, setTempPermissions] = useState<AgentPermissions>(agentPermissions)
+  const [loading, setLoading] = useState(false)
 
-  const handleSave = () => {
-    onModelConfigChange(tempConfig)
-    onPermissionsChange(tempPermissions)
+  // Load current settings when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadCurrentSettings()
+    }
+  }, [isOpen])
+
+  const loadCurrentSettings = async () => {
+    setLoading(true)
+    try {
+      // TODO: Load settings from backend via settings service
+      // const currentSettings = await services.settings.loadSettings()
+      // setTempConfig(currentSettings.modelConfig)
+      // setTempPermissions(currentSettings.agentPermissions)
+      
+      // For now, use the passed props as defaults
+      setTempConfig(modelConfig)
+      setTempPermissions(agentPermissions)
+    } catch (error) {
+      console.error('Failed to load settings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      // TODO: Save settings to backend via settings service
+      // await services.settings.saveSettings({
+      //   modelConfig: tempConfig,
+      //   agentPermissions: tempPermissions
+      // })
+      
+      // For now, call the prop callbacks
+      onModelConfigChange(tempConfig)
+      onPermissionsChange(tempPermissions)
+      
+      onClose?.()
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleReset = () => {

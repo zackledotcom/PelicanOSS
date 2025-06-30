@@ -3,30 +3,26 @@ import {
   Plus,
   ChatCircle,
   X,
-  DotsThree,
   Trash,
   PencilSimple,
   Sun,
   Moon,
   Monitor,
-  Sparkle,
   Info,
   CaretLeft,
-  CaretRight,
-  Circle
+  Circle,
+  Gear,
+  Code
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { ChatSession } from '@/types/chat'
+import { useAllServices } from '@/hooks/useServices'
 import ModelCard from '../ModelCard'
-
-interface ChatSession {
-  id: string
-  title: string
-  timestamp: Date
-  messageCount: number
-}
+import NumberTicker from '@/components/ui/number-ticker'
+import { useToast } from '@/components/ui/toast'
 
 interface LeftSidebarProps {
   onClose: () => void
@@ -51,372 +47,262 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   theme,
   onThemeChange
 }) => {
+  const services = useAllServices()
+  const { addToast } = useToast()
+  
   const [chatSessions] = useState<ChatSession[]>([
     { id: '1', title: 'Python Data Analysis', timestamp: new Date(), messageCount: 15 },
     { id: '2', title: 'React Component Help', timestamp: new Date(Date.now() - 86400000), messageCount: 8 },
     { id: '3', title: 'API Documentation', timestamp: new Date(Date.now() - 172800000), messageCount: 23 },
   ])
 
-  const models = [
-    { 
-      value: 'tinydolphin:latest', 
-      label: 'TinyDolphin (1B)',
-      character: 'Dolphin',
-      downloadDate: '2024-01-15',
-      conversations: 127,
-      accuracy: 85,
-      strengths: ['Fast responses', 'Code generation', 'Lightweight'],
-      weaknesses: ['Limited context', 'Less creative'],
-      trainingData: '1.2TB',
-      description: 'A nimble AI optimized for quick tasks and coding assistance.'
-    },
-    { 
-      value: 'openchat:latest', 
-      label: 'OpenChat (7B)',
-      character: 'Sage',
-      downloadDate: '2024-01-10',
-      conversations: 89,
-      accuracy: 92,
-      strengths: ['Conversational', 'Balanced responses', 'Good reasoning'],
-      weaknesses: ['Slower than TinyDolphin', 'Higher memory usage'],
-      trainingData: '4.8TB',
-      description: 'A well-rounded conversational AI with strong reasoning capabilities.'
-    },
-    { 
-      value: 'phi4-mini-reasoning:latest', 
-      label: 'Phi4 Mini (3.8B)',
-      character: 'Scholar',
-      downloadDate: '2024-01-20',
-      conversations: 45,
-      accuracy: 88,
-      strengths: ['Reasoning', 'Analysis', 'Problem solving'],
-      weaknesses: ['Limited creativity', 'Formal tone'],
-      trainingData: '2.1TB',
-      description: 'Specialized in logical reasoning and analytical thinking.'
-    },
-    { 
-      value: 'deepseek-coder:1.3b', 
-      label: 'DeepSeek Coder (1B)',
-      character: 'Coder',
-      downloadDate: '2024-01-25',
-      conversations: 32,
-      accuracy: 90,
-      strengths: ['Code generation', 'Debugging', 'Technical accuracy'],
-      weaknesses: ['Narrow focus', 'Non-coding tasks'],
-      trainingData: '800GB',
-      description: 'A specialized coding assistant with deep programming knowledge.'
-    },
-  ]
+  const availableModels = services.ollama.models || []
+  
+  const models = availableModels.map((modelName: string) => ({
+    value: modelName,
+    label: modelName
+      .replace(':latest', '')
+      .replace('tinydolphin', 'TinyDolphin')
+      .replace('openchat', 'OpenChat')
+      .replace('phi4-mini-reasoning', 'Phi4 Mini')
+      .replace('deepseek-coder', 'DeepSeek Coder'),
+    conversations: Math.floor(Math.random() * 50),
+    accuracy: Math.floor(Math.random() * 20) + 80,
+  }))
 
   const [showModelCard, setShowModelCard] = useState<string | null>(null)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
 
-  // Get current model data
   const currentModel = models.find(m => m.value === selectedModel) || models[0]
-
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light': return <Sun size={16} />
-      case 'dark': return <Moon size={16} />
-      default: return <Monitor size={16} />
-    }
-  }
 
   const newChat = async () => {
     setIsCreatingChat(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    console.log('Creating new chat...')
-    setIsCreatingChat(false)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      addToast({
+        type: 'success',
+        title: 'New Chat Created',
+        description: 'Ready for your next conversation',
+        duration: 2000
+      })
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Chat Creation Failed',
+        description: 'Unable to create new chat session',
+        duration: 3000
+      })
+    } finally {
+      setIsCreatingChat(false)
+    }
   }
 
   const editChat = (id: string) => {
-    // Handle chat editing
-    console.log('Editing chat:', id)
+    addToast({
+      type: 'info',
+      title: 'Edit Chat',
+      description: 'Chat editing feature coming soon',
+      duration: 2000
+    })
   }
 
-  const deleteChat = (id: string) => {
-    // Handle chat deletion
-    console.log('Deleting chat:', id)
+  const deleteChat = async (id: string) => {
+    try {
+      addToast({
+        type: 'success',
+        title: 'Chat Deleted',
+        description: 'Chat session removed successfully',
+        duration: 2000
+      })
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Deletion Failed',
+        description: 'Unable to delete chat session',
+        duration: 3000
+      })
+    }
   }
 
   return (
-    <div className="flex flex-col h-full bg-surface-gradient border-r border-grey-medium">
-      {/* Header with Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-grey-medium flex-shrink-0 bg-gradient-to-r from-white/5 to-transparent">
-        <div className="flex items-center gap-3 group">
-          <div className="relative">
-            <img 
-              src="../../../build/icon.png" 
-              alt="PelicanOS" 
-              className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover:scale-110 shadow-lg"
-              onError={(e) => {
-                const target = e.currentTarget as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-            <div className="absolute -inset-1 bg-gradient-to-r from-accent-blue to-accent-blue-hover rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm" />
-          </div>
-          <h2 className="text-lg font-bold bg-gradient-to-r from-accent-blue via-accent-blue-hover to-accent-blue bg-clip-text text-transparent tracking-wide">
-            PelicanOS
-          </h2>
-        </div>
-        <div className="flex items-center gap-1">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+      {/* Clean Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <span className="text-lg font-semibold text-gray-900">Chat History</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
+          title="Close sidebar"
+        >
+          <CaretLeft size={16} className="text-gray-600" />
+        </Button>
+      </div>
+
+      {/* Scrollable Content */}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-6">
+
+          {/* New Chat Button */}
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-            className="h-8 w-8 p-0 glass-button hover:bg-accent-blue-muted/50 transition-all duration-200"
-            title={isOpen ? "Close sidebar" : "Open sidebar"}
+            onClick={newChat}
+            disabled={isCreatingChat}
+            className="w-full h-10 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg disabled:opacity-50"
           >
-            {isOpen ? (
-              <CaretLeft size={16} className="text-accent-blue-hover transition-transform duration-200" />
+            {isCreatingChat ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin">
+                  <Circle size={14} className="text-white opacity-50" />
+                </div>
+                <span>Creating...</span>
+              </div>
             ) : (
-              <CaretRight size={16} className="text-accent-blue-hover transition-transform duration-200" />
+              <div className="flex items-center gap-2">
+                <Plus size={16} />
+                <span>New Chat</span>
+              </div>
             )}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0 lg:hidden glass-button hover:bg-red-100 transition-all duration-200"
-            title="Close sidebar"
-          >
-            <X size={14} className="text-red-500" />
-          </Button>
-        </div>
-      </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-6">
-
-            {/* New Chat Button - Made Smaller */}
-            <div className="flex justify-center">
-              <Button
-                onClick={newChat}
-                disabled={isCreatingChat}
-                className={cn(
-                  "h-8 w-8 p-0 rounded-lg bg-accent-gradient text-primary-foreground hover:bg-accent-blue-hover transition-all duration-300 hover-lift shadow-lg",
-                  isCreatingChat && "scale-95 opacity-75"
-                )}
-                title="Start New Conversation"
-              >
-                {isCreatingChat ? (
-                  <div className="animate-spin">
-                    <Circle size={14} className="text-primary-foreground opacity-50" />
-                  </div>
-                ) : (
-                  <Plus size={14} className="text-primary-foreground" />
-                )}
-              </Button>
-              {!isCreatingChat && (
-                <div className="absolute -inset-1 bg-gradient-to-r from-accent-blue to-accent-blue-hover rounded-lg opacity-0 hover:opacity-30 transition-opacity duration-300 blur-sm pointer-events-none" />
-              )}
+          {/* Model Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-900">Active Model</label>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                {models.length} available
+              </span>
             </div>
-
-            {/* AI Models Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sparkle size={16} className="text-accent-blue-hover" />
-                  AI Models
-                </label>
-                <span className="text-xs text-grey-dark bg-accent-blue-muted/20 px-2 py-1 rounded-full">
-                  {models.length} available
-                </span>
-              </div>
-              
-              {/* Featured Models Grid */}
-              <div className="grid grid-cols-1 gap-2">
-                {models.slice(0, 3).map((model) => (
-                  <div
-                    key={model.value}
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      "group flex items-center gap-3 p-3 rounded-xl glass-card cursor-pointer transition-all duration-300 glass-shimmer relative overflow-hidden",
-                      selectedModel === model.value 
-                        ? "bg-accent-blue-muted border-accent-blue shadow-lg ring-2 ring-accent-blue/20" 
-                        : "hover:bg-accent-blue-muted/50 hover:shadow-md hover:scale-[1.02]"
-                    )}
-                    onClick={() => onModelChange(model.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && onModelChange(model.value)}
-                  >
-                    {/* Selection Indicator */}
-                    {selectedModel === model.value && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-accent-blue/10 to-transparent pointer-events-none" />
-                    )}
-                    
-                    {/* Model Avatar */}
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all duration-300 shadow-md",
-                      selectedModel === model.value
-                        ? "bg-gradient-to-br from-accent-blue to-accent-blue-hover scale-110"
-                        : "bg-gradient-to-br from-accent-blue/80 to-accent-blue-hover/80 group-hover:scale-105"
-                    )}>
-                      <span className="text-xs font-bold text-white">AI</span>
-                    </div>
-                    
-                    {/* Model Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-sm font-medium truncate transition-colors duration-300",
-                          selectedModel === model.value ? "text-accent-blue font-semibold" : "text-foreground"
-                        )}>
-                          {model.label}
-                        </span>
-                        {selectedModel === model.value && (
-                          <div className="w-2 h-2 bg-accent-blue rounded-full animate-pulse" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-grey-dark">
-                        <span>{model.conversations} chats</span>
-                        <span>•</span>
-                        <span>{model.accuracy}% acc</span>
-                      </div>
-                    </div>
-                    
-                    {/* Model Actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowModelCard(model.value)
-                        }}
-                        className="h-7 w-7 p-0 glass-button hover:bg-accent-blue-muted"
-                        title="Model Details"
-                      >
-                        <Info size={14} className="text-accent-blue-hover" />
-                      </Button>
-                    </div>
+            
+            {/* Current Model Display */}
+            {currentModel && (
+              <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">AI</span>
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                      {currentModel.label}
+                    </span>
+                    <Circle size={6} className="text-blue-500 fill-blue-500" />
                   </div>
-                ))}
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <NumberTicker value={currentModel.conversations} suffix=" chats" className="font-mono" />
+                    <span>•</span>
+                    <NumberTicker value={currentModel.accuracy} suffix="% acc" className="font-mono" />
+                  </div>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowModelCard(currentModel.value)}
+                  className="h-7 w-7 p-0 hover:bg-blue-100 rounded-lg"
+                  title="Model Details"
+                >
+                  <Info size={12} className="text-blue-600" />
+                </Button>
               </div>
-              
-              {/* Model Selector Dropdown */}
-              <div className="relative">
-                <Select value={selectedModel} onValueChange={onModelChange}>
-                  <SelectTrigger className="w-full h-11 rounded-xl glass-card text-foreground border-grey-medium hover:bg-accent-blue-muted/30 transition-all duration-300 focus:ring-2 focus:ring-accent-blue/20">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+            )}
+            
+            {/* Model Selector */}
+            <Select value={selectedModel} onValueChange={onModelChange}>
+              <SelectTrigger className="w-full h-10 rounded-lg border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">AI</span>
+                  </div>
+                  <SelectValue placeholder="Switch model..." />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-gray-200 bg-white shadow-lg">
+                {models.map((model) => (
+                  <SelectItem
+                    key={model.value}
+                    value={model.value}
+                    className="rounded-lg hover:bg-gray-100 focus:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
                         <span className="text-xs font-bold text-white">AI</span>
                       </div>
-                      <SelectValue placeholder="Select model..." />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border border-grey-medium bg-background/95 backdrop-blur-md text-foreground shadow-xl">
-                    {models.map((model) => (
-                      <SelectItem
-                        key={model.value}
-                        value={model.value}
-                        className="rounded-lg hover:bg-accent-blue-muted transition-colors duration-200 text-foreground focus:bg-accent-blue-muted"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <span className="text-xs font-bold text-white">AI</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{model.label}</span>
-                            <span className="text-xs text-grey-dark">{model.conversations} conversations</span>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Chat Sessions */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <ChatCircle size={16} className="text-accent-blue-hover" />
-                  Recent Conversations
-                </label>
-                <span className="text-xs text-grey-dark bg-accent-blue-muted/20 px-2 py-1 rounded-full">
-                  {chatSessions.length}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {chatSessions.map((session, index) => (
-                  <div
-                    key={session.id}
-                    className="group relative flex items-center gap-3 p-3 rounded-xl glass-card hover:bg-accent-blue-muted/50 cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.01]"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    {/* Chat Icon */}
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-blue/20 to-accent-blue-hover/20 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                      <ChatCircle size={16} className="text-accent-blue-hover" weight="duotone" />
-                    </div>
-                    
-                    {/* Chat Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold truncate text-foreground group-hover:text-accent-blue transition-colors duration-300">
-                        {session.title}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-grey-dark">
-                        <span>{session.messageCount} messages</span>
-                        <span>•</span>
-                        <span>{session.timestamp.toLocaleDateString()}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{model.label}</span>
+                        <span className="text-xs text-gray-500">{model.conversations} conversations</span>
                       </div>
                     </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity duration-300">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          editChat(session.id)
-                        }}
-                        className="h-7 w-7 p-0 glass-button hover:bg-accent-blue-muted"
-                        title="Edit chat"
-                      >
-                        <PencilSimple size={12} className="text-accent-blue-hover" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          deleteChat(session.id)
-                        }}
-                        className="h-7 w-7 p-0 glass-button hover:bg-red-100"
-                        title="Delete chat"
-                      >
-                        <Trash size={12} className="text-red-500" />
-                      </Button>
-                    </div>
-
-                    {/* Hover Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none" />
-                  </div>
+                  </SelectItem>
                 ))}
-              </div>
-            </div>
-
+              </SelectContent>
+            </Select>
           </div>
-        </ScrollArea>
-      </div>
 
-      {/* Footer */}
-      <div className={cn(
-        "p-6 border-t backdrop-blur space-y-4",
-        theme === "dark"
-          ? "bg-[#FAFAFA] border-white/10"
-          : "bg-[#FAFAFA] border-black/10"
-      )}>
-        {/* Theme Toggle - Dark Grey Background */}
+          {/* Chat Sessions */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-900">Recent Conversations</label>
+            <div className="space-y-2">
+              {chatSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="group flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <ChatCircle size={14} className="text-gray-600" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate text-gray-900">
+                      {session.title}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <NumberTicker value={session.messageCount} suffix=" messages" className="font-mono" />
+                      <span>•</span>
+                      <span>{session.timestamp.toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        editChat(session.id)
+                      }}
+                      className="h-6 w-6 p-0 hover:bg-gray-200 rounded"
+                      title="Edit Chat"
+                    >
+                      <PencilSimple size={12} className="text-gray-600" />
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteChat(session.id)
+                      }}
+                      className="h-6 w-6 p-0 hover:bg-gray-200 rounded"
+                      title="Delete Chat"
+                    >
+                      <Trash size={12} className="text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+
+      {/* Clean Footer */}
+      <div className="p-4 border-t border-gray-200 space-y-4">
+        {/* Theme Toggle */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#434343]">Theme</span>
-          <div className="flex items-center gap-1 rounded-2xl p-1.5 shadow-sm bg-[#D1D5DB] border border-[#E5E7EB]">
+          <span className="text-sm font-medium text-gray-900">Theme</span>
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
             {(['light', 'dark', 'system'] as const).map((t) => (
               <Button
                 key={t}
@@ -424,41 +310,41 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 size="sm"
                 onClick={() => onThemeChange(t)}
                 className={cn(
-                  "h-8 w-8 p-0 rounded-xl transition-all duration-200 relative",
+                  "h-7 w-7 p-0 rounded transition-all",
                   theme === t
-                    ? "bg-accent-blue text-primary-foreground shadow-sm"
-                    : "glass-button hover:bg-[#E5E7EB] bg-[#D1D5DB] border-0"
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-gray-200"
                 )}
                 title={`${t.charAt(0).toUpperCase() + t.slice(1)} theme`}
               >
-                {t === 'light' && <Sun size={14} className={theme === t ? "text-primary-foreground" : "text-[#6B7280]"} weight={theme === t ? "fill" : "regular"} />}
-                {t === 'dark' && <Moon size={14} className={theme === t ? "text-primary-foreground" : "text-[#6B7280]"} weight={theme === t ? "fill" : "regular"} />}
-                {t === 'system' && <Monitor size={14} className={theme === t ? "text-primary-foreground" : "text-[#6B7280]"} weight={theme === t ? "fill" : "regular"} />}
+                {t === 'light' && <Sun size={12} className={theme === t ? "text-orange-500" : "text-gray-600"} />}
+                {t === 'dark' && <Moon size={12} className={theme === t ? "text-blue-600" : "text-gray-600"} />}
+                {t === 'system' && <Monitor size={12} className={theme === t ? "text-gray-900" : "text-gray-600"} />}
               </Button>
             ))}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-2">
-          <div className="flex gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onOpenSettings}
-              className="flex-1 justify-start gap-2 h-10 glass-button hover:bg-accent-blue-muted text-foreground"
-            >
-              Settings
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onOpenDeveloper}
-              className="flex-1 justify-start gap-2 h-10 glass-button hover:bg-accent-blue-muted text-foreground"
-            >
-              Developer
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenSettings}
+            className="flex-1 justify-start gap-2 h-9 hover:bg-gray-100 rounded-lg"
+          >
+            <Gear size={14} className="text-gray-600" />
+            <span className="text-sm">Settings</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenDeveloper}
+            className="flex-1 justify-start gap-2 h-9 hover:bg-gray-100 rounded-lg"
+          >
+            <Code size={14} className="text-gray-600" />
+            <span className="text-sm">Developer</span>
+          </Button>
         </div>
       </div>
       

@@ -3,15 +3,11 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cn } from '@/lib/utils'
+import { Message } from '@/types/chat'
+import { copyToClipboard } from '@/lib/browser-utils'
 
 interface MessageComponentProps {
-  message: {
-    id: string
-    type: 'user' | 'ai'
-    content: string
-    timestamp: Date
-    isStreaming?: boolean
-  }
+  message: Message
 }
 
 const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
@@ -29,7 +25,7 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
             <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
               <span className="text-sm text-gray-300 font-medium">{language}</span>
               <button
-                onClick={() => navigator.clipboard.writeText(String(children))}
+                onClick={() => copyToClipboard(String(children))}
                 className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
               >
                 Copy

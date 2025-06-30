@@ -3,7 +3,7 @@ import {
   Robot, 
   Play, 
   Pause, 
-  Settings, 
+  Gear,  // Changed from Settings
   Trash, 
   Copy, 
   Eye,
@@ -14,8 +14,8 @@ import {
   CheckCircle,
   Warning,
   X,
-  Filter,
-  Search,
+  Funnel,  // Changed from Filter
+  MagnifyingGlass,  // Changed from Search
   Plus
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
@@ -281,7 +281,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search agents, skills, or descriptions..."
               value={searchQuery}
@@ -391,7 +391,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                           handleAgentAction('edit', agent)
                         }}
                       >
-                        <Settings size={14} />
+                        <Gear size={14} />
                       </Button>
                     </div>
                   </div>

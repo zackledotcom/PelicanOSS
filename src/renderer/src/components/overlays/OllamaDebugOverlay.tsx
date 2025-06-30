@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   X, 
-  Draggable, 
+  // Removed Draggable - not available in phosphor-react
   Activity, 
   Warning, 
   CheckCircle, 

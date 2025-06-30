@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
@@ -14,8 +14,7 @@ import {
   CheckCircle,
   Gear,
   Eye,
-  EyeSlash,
-  X
+  EyeSlash
 } from 'phosphor-react'
 import { useMemoryService, useSettingsService } from '../hooks/useServices'
 
@@ -38,8 +37,8 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
     
     const updatedSettings = {
       ...settings,
-      memory: {
-        ...settings.memory,
+      memorySettings: {
+        ...settings.memorySettings,
         enabled
       }
     }
@@ -59,14 +58,14 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
     
     const updatedSettings = {
       ...settings,
-      memory: {
-        ...settings.memory,
+      memorySettings: {
+        ...settings.memorySettings,
         retentionDays
       }
     }
     
     await saveSettings(updatedSettings)
-    await updateMemorySettings(settings.memory.enabled, retentionDays)
+    await updateMemorySettings(settings.memorySettings.enabled, retentionDays)
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -80,12 +79,12 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
   const getMemoryHealth = (): { status: string; color: string; icon: React.ReactNode } => {
     if (!memoryStore) return { status: 'Unknown', color: 'gray', icon: <Warning /> }
     
-    if (!memoryStore.enabled) {
+    if (!memoryStore.settings.enabled) {
       return { status: 'Disabled', color: 'yellow', icon: <Warning /> }
     }
     
     const summaryCount = memoryStore.summaries.length
-    const maxSummaries = memoryStore.maxSummaries
+    const maxSummaries = memoryStore.settings.maxSummaries
     
     if (summaryCount < maxSummaries * 0.5) {
       return { status: 'Healthy', color: 'green', icon: <CheckCircle /> }

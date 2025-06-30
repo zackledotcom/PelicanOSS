@@ -1,48 +1,71 @@
+// Settings-related type definitions
 export interface AppSettings {
-  /** Schema version for migration handling */
+  selectedModel: string
+  theme: 'light' | 'dark' | 'system'
+  ollamaUrl: string
+  chromaUrl: string
+  memorySettings: MemorySettings
+  telemetryEnabled: boolean
+  debugMode: boolean
+  autoSave: boolean
   version: string
+}
 
-  /** UI theme preference */
-  theme: 'light' | 'dark'
+export interface ModelSettings {
+  temperature: number
+  maxTokens: number
+  topP: number
+  topK: number
+  repeatPenalty: number
+  contextLength: number
+}
 
-  /** Selected AI model name */
-  modelName: string
+export interface MemorySettings {
+  enabled: boolean
+  retentionDays: number
+  maxSummaries: number
+  compressionLevel: number
+}
 
-  /** ChromaDB endpoint URL */
-  chromaEndpoint: string
-
-  /** Ollama prompt preset configuration */
-  ollamaPromptPreset: string
-
-  /** Memory system preferences */
-  memory: {
-    /** Whether memory system is enabled */
-    enabled: boolean
-
-    /** Memory retention period in days */
-    retentionDays: number
-
-    /** Auto-summarize threshold (number of messages) */
-    autoSummarizeThreshold: number
-
-    /** Show memory in advanced panel */
-    showInAdvancedPanel: boolean
+export interface ServiceSettings {
+  ollama: {
+    url: string
+    timeout: number
+    models: string[]
   }
-
-  /** Telemetry preferences */
-  telemetry?: {
-    /** Whether telemetry collection is enabled (opt-in) */
-    enabled: boolean
-
-    /** Allow collection of usage statistics (duration, token counts) */
-    collectUsageStats: boolean
-
-    /** Allow collection of error reports */
-    collectErrorReports: boolean
-
-    /** Allow collection of feature usage data */
-    collectFeatureUsage: boolean
+  chroma: {
+    url: string
+    timeout: number
+    collection: string
   }
 }
 
-export type Theme = AppSettings['theme']
+export interface SystemMetrics {
+  cpu: {
+    usage: number
+    temperature: number
+    cores: number
+    frequency: number
+  }
+  memory: {
+    used: number
+    total: number
+    percentage: number
+  }
+  disk: {
+    used: number
+    total: number
+    percentage: number
+  }
+  gpu: {
+    usage: number
+    memory: number
+    temperature: number
+    available: boolean
+  }
+  network: {
+    rx: number
+    tx: number
+  }
+  uptime: string
+}

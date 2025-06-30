@@ -1,5 +1,5 @@
 import React from 'react'
-import { Wifi, WifiSlash, Cloud, Monitor } from 'phosphor-react'
+import { WifiHigh as Wifi, WifiSlash, Cloud, Monitor } from 'phosphor-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 

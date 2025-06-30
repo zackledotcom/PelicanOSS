@@ -12,7 +12,7 @@ import AgentManagerOverlay from './components/overlays/AgentManagerOverlay'
 import AdvancedMemoryPanel from './components/AdvancedMemoryPanel'
 
 // Global Systems
-import { ToastProvider } from './components/ui/ToastSystem'
+import { ToastProvider } from './components/ui/toast'
 
 import './globals.css'
 
@@ -177,6 +177,7 @@ const App: React.FC = () => {
                   onOpenSystemStatus={() => updateState({ showSystemStatus: true })}
                   onOpenAgentManager={() => updateState({ showAgentManager: true })}
                   onOpenAdvancedMemory={() => updateState({ showAdvancedMemory: true })}
+                  onToggleSidebar={toggleSidebar}
                 />
               </ErrorBoundary>
             </main>
@@ -209,7 +210,6 @@ const App: React.FC = () => {
           {state.showSystemStatus && (
             <ErrorBoundary>
               <SystemStatusOverlay 
-                isOpen={state.showSystemStatus}
                 onClose={() => updateState({ showSystemStatus: false })}
               />
             </ErrorBoundary>
