@@ -15,21 +15,19 @@ import {
   Share,
   ChartBar,
   FileText,
-  Upload as FileUpload,
+  FileCsv,
   Columns,
-  Stop,
-  Play
+  ShareNetwork,
+  FileArrowUp
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Toggle } from '@/components/ui/toggle'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -47,9 +45,7 @@ interface InputBarProps {
   onAnalyzeCsv?: (file: File) => void
   isLoading?: boolean
   placeholder?: string
-  devMode?: boolean
-  onToggleDevMode?: () => void
-  terminalOutput?: string[]
+  canvasOpen?: boolean
   className?: string
 }
 
@@ -73,9 +69,7 @@ export default function InputBar({
   onAnalyzeCsv,
   isLoading = false,
   placeholder = "Type a message...",
-  devMode = false,
-  onToggleDevMode,
-  terminalOutput = [],
+  canvasOpen = false,
   className
 }: InputBarProps) {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
@@ -227,6 +221,7 @@ export default function InputBar({
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
   }
 
+  // Removed canvas from tools array - now embedded directly in input bar
   const tools = [
     {
       icon: <Paperclip className="w-4 h-4" />,
@@ -243,15 +238,6 @@ export default function InputBar({
       onClick: () => csvInputRef.current?.click(),
       color: "hover:bg-orange-500/10 hover:text-orange-600",
       description: "Upload CSV for data analysis"
-    },
-    {
-      icon: <PaintBrush className="w-4 h-4" />,
-      label: "Canvas",
-      shortcut: "/canvas",
-      onClick: onOpenCanvas,
-      color: "hover:bg-purple-500/10 hover:text-purple-600",
-      disabled: !onOpenCanvas,
-      description: "Open development canvas"
     },
     {
       icon: <Terminal className="w-4 h-4" />,
@@ -284,45 +270,6 @@ export default function InputBar({
 
   return (
     <div className={cn("relative space-y-3", className)}>
-      {/* Development Mode Panel */}
-      {devMode && (
-        <Card className="border-dashed border-primary/50">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <SplitHorizontal className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Development Mode</span>
-                <Badge variant="outline" className="text-xs">Active</Badge>
-              </div>
-              <div className="flex gap-1">
-                <Button size="sm" variant="outline" onClick={onOpenCanvas} className="h-6 px-2">
-                  <PaintBrush className="w-3 h-3 mr-1" />
-                  Canvas
-                </Button>
-                <Button size="sm" variant="outline" onClick={onOpenTerminal} className="h-6 px-2">
-                  <Terminal className="w-3 h-3 mr-1" />
-                  Terminal
-                </Button>
-                {onToggleDevMode && (
-                  <Button size="sm" variant="ghost" onClick={onToggleDevMode} className="h-6 w-6 p-0">
-                    <X className="w-3 h-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            {/* Terminal Output Preview */}
-            {terminalOutput.length > 0 && (
-              <div className="bg-black/90 text-green-400 p-2 rounded font-mono text-xs max-h-20 overflow-auto">
-                {terminalOutput.slice(-3).map((line, i) => (
-                  <div key={i}>{line}</div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* File attachments preview */}
       {attachedFiles.length > 0 && (
         <div className="space-y-2">
@@ -468,16 +415,16 @@ export default function InputBar({
 
             {/* Quick actions */}
             <div className="flex gap-1">
-              {/* Dev mode toggle */}
-              {onToggleDevMode && (
+              {/* Canvas toggle - embedded directly in input bar */}
+              {onOpenCanvas && (
                 <Toggle
-                  pressed={devMode}
-                  onPressedChange={onToggleDevMode}
+                  pressed={canvasOpen}
+                  onPressedChange={onOpenCanvas}
                   size="sm"
                   className="h-8 w-8 p-0"
-                  title="Toggle dev mode"
+                  title="Toggle canvas"
                 >
-                  <SplitHorizontal className="w-4 h-4" />
+                  <Palette className="w-4 h-4" />
                 </Toggle>
               )}
 
@@ -511,7 +458,6 @@ export default function InputBar({
                 </DropdownMenu>
               )}
 
-              {/* Emoji picker */}
               {/* Send button */}
               <Button
                 size="sm"
@@ -537,7 +483,7 @@ export default function InputBar({
               {attachedFiles.length > 0 && (
                 <span>{attachedFiles.length} file{attachedFiles.length !== 1 ? 's' : ''}</span>
               )}
-              {devMode && <Badge variant="outline" className="text-xs">Dev Mode</Badge>}
+              {canvasOpen && <Badge variant="outline" className="text-xs">Canvas Open</Badge>}
             </div>
             
             <div className="flex items-center gap-2">
