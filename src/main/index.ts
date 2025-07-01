@@ -25,6 +25,7 @@ import { streamingService } from './streaming/streamingService'
 import { registerCodeGenerationHandlers } from './code-generation-handlers'
 import { registerModelTuningHandlers } from './model-tuning-handlers'
 import { registerFileSystemHandlers } from './file-system-handlers'
+import { registerAvatarHandlers } from './handlers/avatarHandlers'
 import {
   loadSettings,
   saveSettings,
@@ -287,6 +288,7 @@ app.whenReady().then(async () => {
   registerCodeGenerationHandlers(ipcMain)
   registerModelTuningHandlers(ipcMain)
   registerFileSystemHandlers(ipcMain)
+  registerAvatarHandlers()
   
   // Register new modular chat handlers with streaming support
   registerChatHandlers()
@@ -592,7 +594,9 @@ ipcMain.handle('start-chroma', async () => {
   }
 })
 
-// Chat functionality with enterprise-grade validation, security, and monitoring
+// COMMENTED OUT: Chat functionality with enterprise-grade validation, security, and monitoring
+// This is handled by the modular registerChatHandlers() function instead
+/*
 ipcMain.handle('chat-with-ai', withErrorBoundary(async (event, data: { 
   message: string; 
   model: string; 
@@ -748,6 +752,7 @@ ipcMain.handle('chat-with-ai', withErrorBoundary(async (event, data: {
 
   return chatResult
 }, 'chat', 'chat-with-ai'))
+*/
 
 // Helper function to store conversation in ChromaDB
 async function storeInChroma(userMessage: string, aiResponse: string) {

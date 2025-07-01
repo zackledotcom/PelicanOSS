@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 // Core Chat Components
 import ChatInterface from './components/chat/ChatInterface'
@@ -61,7 +61,7 @@ class ErrorBoundary extends React.Component<
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
-    showLeftSidebar: false,
+    showLeftSidebar: true, // Start with sidebar open
     showSettings: false,
     showDeveloper: false,
     showSystemStatus: false,
@@ -78,6 +78,7 @@ const App: React.FC = () => {
   }
 
   const toggleSidebar = () => {
+    console.log('Toggling sidebar from:', state.showLeftSidebar, 'to:', !state.showLeftSidebar)
     updateState({ showLeftSidebar: !state.showLeftSidebar })
   }
 
@@ -106,91 +107,30 @@ const App: React.FC = () => {
     }
   }, [hoverTimeout])
 
-  // Keyboard support for sidebar
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && state.showLeftSidebar) {
-        updateState({ showLeftSidebar: false })
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [state.showLeftSidebar])
-
   return (
-    <ErrorBoundary>
-      <ToastProvider>
-        <div className="h-screen bg-background text-foreground overflow-hidden">
-          {/* Left Edge Hover Trigger */}
-          {!state.showLeftSidebar && (
-            <>
-              {/* Hover trigger area */}
-              <div 
-                className="fixed left-0 top-0 w-3 h-full z-40 cursor-pointer hover:bg-accent-blue/10 transition-colors duration-200"
-                onMouseEnter={handleLeftEdgeHover}
-                onMouseLeave={handleLeftEdgeLeave}
-                title="Hover to open sidebar"
-              />
-              {/* Visual indicator */}
-              <div className="fixed left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-gradient-to-b from-transparent via-accent-blue/30 to-transparent rounded-r-full z-30 pointer-events-none" />
-            </>
-          )}
+    <ToastProvider>
+      <div className="flex h-screen bg-white overflow-hidden">
+        {/* Left Edge Hover Trigger */}
+        <div 
+          className={`absolute left-0 top-0 w-1 h-full z-50 ${!state.showLeftSidebar ? 'cursor-pointer' : ''}`}
+          onMouseEnter={handleLeftEdgeHover}
+          onMouseLeave={handleLeftEdgeLeave}
+        />
 
-          {/* Main Chat-Focused Layout */}
-          <div className="flex h-full">
-            {/* Sliding Left Sidebar */}
-            {state.showLeftSidebar && (
-              <div className="fixed inset-0 z-50 lg:relative lg:z-auto">
-                {/* Mobile backdrop */}
-                <div 
-                  className="fixed inset-0 bg-black/50 lg:hidden"
-                  onClick={() => updateState({ showLeftSidebar: false })}
-                />
-                
-                {/* Sidebar */}
-                <div className="fixed left-0 top-0 h-full w-80 bg-background border-r border-border transform transition-all duration-300 ease-out lg:relative lg:w-64 lg:shadow-none shadow-2xl animate-in slide-in-from-left">
-                  <ErrorBoundary fallback={<div className="p-4 text-red-600">Sidebar Error</div>}>
-                    <LeftSidebar 
-                      onClose={() => updateState({ showLeftSidebar: false })}
-                      onToggle={toggleSidebar}
-                      isOpen={state.showLeftSidebar}
-                      onOpenSettings={() => updateState({ showSettings: true })}
-                      onOpenDeveloper={() => updateState({ showDeveloper: true })}
-                      selectedModel={state.selectedModel}
-                      onModelChange={(model) => updateState({ selectedModel: model })}
-                      theme={state.theme}
-                      onThemeChange={(theme) => updateState({ theme })}
-                    />
-                  </ErrorBoundary>
-                </div>
-              </div>
-            )}
-
-            {/* Main Chat Area - Full Width Focus */}
-            <main className="flex-1 flex flex-col min-w-0">
-              <ErrorBoundary fallback={<div className="flex-1 bg-red-50 flex items-center justify-center text-red-600">Content Error</div>}>
-                <ChatInterface 
-                  selectedModel={state.selectedModel}
-                  onOpenSettings={() => updateState({ showSettings: true })}
-                  onOpenDeveloper={() => updateState({ showDeveloper: true })}
-                  onOpenSystemStatus={() => updateState({ showSystemStatus: true })}
-                  onOpenAgentManager={() => updateState({ showAgentManager: true })}
-                  onOpenAdvancedMemory={() => updateState({ showAdvancedMemory: true })}
-                  onToggleSidebar={toggleSidebar}
-                  sidebarOpen={state.showLeftSidebar}
-                  onSetSidebarOpen={(open) => updateState({ showLeftSidebar: open })}
-                />
-              </ErrorBoundary>
-            </main>
-          </div>
-
-          {/* Modals */}
-          {state.showSettings && (
-            <ErrorBoundary>
-              <SettingsModal 
-                isOpen={state.showSettings}
-                onClose={() => updateState({ showSettings: false })}
+        {/* Left Sidebar */}
+        <div className={`
+          transition-all duration-300 ease-out 
+          ${state.showLeftSidebar ? 'w-80' : 'w-0'} 
+          bg-gray-50 border-r border-gray-200 overflow-hidden
+        `}>
+          {state.showLeftSidebar && (
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Sidebar Error</div>}>
+              <LeftSidebar 
+                onClose={() => updateState({ showLeftSidebar: false })}
+                onToggle={toggleSidebar}
+                isOpen={state.showLeftSidebar}
+                onOpenSettings={() => updateState({ showSettings: true })}
+                onOpenDeveloper={() => updateState({ showDeveloper: true })}
                 selectedModel={state.selectedModel}
                 onModelChange={(model) => updateState({ selectedModel: model })}
                 theme={state.theme}
@@ -198,45 +138,58 @@ const App: React.FC = () => {
               />
             </ErrorBoundary>
           )}
-
-          {state.showDeveloper && (
-            <ErrorBoundary>
-              <DeveloperModal 
-                isOpen={state.showDeveloper}
-                onClose={() => updateState({ showDeveloper: false })}
-              />
-            </ErrorBoundary>
-          )}
-
-          {/* Advanced Overlays */}
-          {state.showSystemStatus && (
-            <ErrorBoundary>
-              <SystemStatusOverlay 
-                onClose={() => updateState({ showSystemStatus: false })}
-              />
-            </ErrorBoundary>
-          )}
-
-          {state.showAgentManager && (
-            <ErrorBoundary>
-              <AgentManagerOverlay 
-                isOpen={state.showAgentManager}
-                onClose={() => updateState({ showAgentManager: false })}
-              />
-            </ErrorBoundary>
-          )}
-
-          {state.showAdvancedMemory && (
-            <ErrorBoundary>
-              <AdvancedMemoryPanel 
-                isOpen={state.showAdvancedMemory}
-                onClose={() => updateState({ showAdvancedMemory: false })}
-              />
-            </ErrorBoundary>
-          )}
         </div>
-      </ToastProvider>
-    </ErrorBoundary>
+
+        {/* Main Chat Area - Full Width Focus */}
+        <main className="flex-1 flex flex-col min-w-0">
+          <ErrorBoundary fallback={<div className="flex-1 bg-red-50 flex items-center justify-center text-red-600">Content Error</div>}>
+            <ChatInterface 
+              selectedModel={state.selectedModel}
+              onModelChange={(model) => updateState({ selectedModel: model })}
+              onOpenSettings={() => updateState({ showSettings: true })}
+              onOpenDeveloper={() => updateState({ showDeveloper: true })}
+              onOpenSystemStatus={() => updateState({ showSystemStatus: true })}
+              onOpenAgentManager={() => updateState({ showAgentManager: true })}
+              onOpenAdvancedMemory={() => updateState({ showAdvancedMemory: true })}
+              onToggleSidebar={toggleSidebar}
+              sidebarOpen={state.showLeftSidebar}
+              onSetSidebarOpen={(open) => updateState({ showLeftSidebar: open })}
+            />
+          </ErrorBoundary>
+        </main>
+
+        {/* Modals */}
+        {state.showSettings && (
+          <ErrorBoundary fallback={<div>Settings Error</div>}>
+            <SettingsModal onClose={() => updateState({ showSettings: false })} />
+          </ErrorBoundary>
+        )}
+
+        {state.showDeveloper && (
+          <ErrorBoundary fallback={<div>Developer Error</div>}>
+            <DeveloperModal onClose={() => updateState({ showDeveloper: false })} />
+          </ErrorBoundary>
+        )}
+
+        {state.showSystemStatus && (
+          <ErrorBoundary fallback={<div>System Status Error</div>}>
+            <SystemStatusOverlay onClose={() => updateState({ showSystemStatus: false })} />
+          </ErrorBoundary>
+        )}
+
+        {state.showAgentManager && (
+          <ErrorBoundary fallback={<div>Agent Manager Error</div>}>
+            <AgentManagerOverlay onClose={() => updateState({ showAgentManager: false })} />
+          </ErrorBoundary>
+        )}
+
+        {state.showAdvancedMemory && (
+          <ErrorBoundary fallback={<div>Memory Panel Error</div>}>
+            <AdvancedMemoryPanel onClose={() => updateState({ showAdvancedMemory: false })} />
+          </ErrorBoundary>
+        )}
+      </div>
+    </ToastProvider>
   )
 }
 

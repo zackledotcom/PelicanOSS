@@ -1,36 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { 
   PaperPlaneTilt, 
-  Gear, 
-  Paperclip, 
-  Microphone,
-  Stop,
-  ArrowsClockwise,
-  Cpu,
   Code,
-  Sidebar,
-  Circle,
-  Lightning
+  Sparkle,
+  ArrowsOut,
+  ArrowsIn
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
-import { ShimmerButton } from '@/components/ui/shimmer-button'
-import { Ripple } from '@/components/ui/ripple'
-import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Card, CardContent } from '@/components/ui/card'
-import NumberTicker from '@/components/ui/number-ticker'
-import TextShimmer from '@/components/ui/text-shimmer'
 import { cn } from '@/lib/utils'
 import { useAllServices } from '@/hooks/useServices'
 import { Message } from '../../../../types/chat'
 import MessageComponent from './components/MessageComponent'
-import EnhancedChatCanvas from './EnhancedChatCanvas'
+import CodeCanvas from '../canvas/CodeCanvas'
 import InputBar from './InputBar'
+import AppHeader from '../layout/AppHeader'
 import { useAnalyticsTracking } from '../../services/modelAnalytics'
 import { useToast } from '@/components/ui/toast'
 
 interface ChatInterfaceProps {
   selectedModel: string
+  onModelChange: (model: string) => void
   onOpenSettings: () => void
   onOpenDeveloper: () => void
   onOpenSystemStatus: () => void
@@ -43,6 +33,7 @@ interface ChatInterfaceProps {
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   selectedModel,
+  onModelChange,
   onOpenSettings,
   onOpenDeveloper,
   onOpenSystemStatus,
@@ -53,497 +44,367 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onSetSidebarOpen
 }) => {
   const [messages, setMessages] = useState<Message[]>([])
-  const [currentMessage, setCurrentMessage] = useState('')
-  const [messageCount, setMessageCount] = useState(0)
-  const [canvasOpen, setCanvasOpen] = useState(false)
-  const [canvasWidth, setCanvasWidth] = useState(60) // percentage of viewport
-  const [isDragging, setIsDragging] = useState(false)
-  const [responseTime, setResponseTime] = useState(0)
-  const [previousSidebarState, setPreviousSidebarState] = useState(false)
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLDivElement>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [canvasContent, setCanvasContent] = useState<{
+    content: string
+    language: string
+    title: string
+    fileName?: string
+    visible: boolean
+    isFullscreen: boolean
+  } | null>(null)
+  const [isCanvasAnimating, setIsCanvasAnimating] = useState(false)
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const services = useAllServices()
+  const analytics = useAnalyticsTracking()
   const { addToast } = useToast()
 
-  // Use actual services
-  const services = useAllServices()
-  const { chat, ollama } = services
-  const isThinking = chat.isThinking
-  const analytics = useAnalyticsTracking()
-
-  // Generate session ID for analytics
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
-
-  // Clean model name display
-  const getModelDisplayName = (model: string) => {
-    return model
-      .replace(':latest', '')
-      .replace('tinydolphin', 'TinyDolphin')
-      .replace('openchat', 'OpenChat')
-      .replace('phi4-mini-reasoning', 'Phi4 Mini')
-      .replace('deepseek-coder', 'DeepSeek Coder')
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
-    }
+    scrollToBottom()
   }, [messages])
 
-  // Check service status on mount
-  useEffect(() => {
-    ollama.checkStatus()
-  }, [])
-
-  // Handle canvas open/close with sidebar auto-close behavior
-  useEffect(() => {
-    if (canvasOpen) {
-      // Store previous sidebar state and close sidebar
-      setPreviousSidebarState(sidebarOpen)
-      if (sidebarOpen) {
-        onSetSidebarOpen(false)
-      }
-      
-      // Focus into canvas after a short delay to allow animation
-      setTimeout(() => {
-        if (canvasRef.current) {
-          canvasRef.current.focus()
-        }
-      }, 350) // Slightly after the 300ms animation
-    } else {
-      // Restore previous sidebar state when canvas closes
-      onSetSidebarOpen(previousSidebarState)
-    }
-  }, [canvasOpen, sidebarOpen, onSetSidebarOpen, previousSidebarState])
-
-  // Handle Escape key to close canvas
+  // Handle Escape key and click outside canvas
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && canvasOpen) {
-        setCanvasOpen(false)
+      if (event.key === 'Escape' && canvasContent?.visible) {
+        closeCanvas()
+      }
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (canvasContent?.visible && event.target instanceof Element) {
+        const canvasElement = document.querySelector('[data-canvas-panel]')
+        if (canvasElement && !canvasElement.contains(event.target)) {
+          closeCanvas()
+        }
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [canvasOpen])
+    document.addEventListener('mousedown', handleClickOutside)
 
-  // Handle click outside canvas to close
-  const handleCanvasBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setCanvasOpen(false)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleClickOutside)
     }
-  }
+  }, [canvasContent?.visible])
 
-  // Load canvas width from localStorage on mount
-  useEffect(() => {
-    const savedWidth = localStorage.getItem('canvas-width')
-    if (savedWidth) {
-      const width = parseInt(savedWidth, 10)
-      if (width >= 30 && width <= 90) {
-        setCanvasWidth(width)
-      }
-    }
-  }, [])
-
-  // Save canvas width to localStorage
-  const saveCanvasWidth = (width: number) => {
-    localStorage.setItem('canvas-width', width.toString())
-    setCanvasWidth(width)
-  }
-
-  // Handle canvas resize drag
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-    
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const viewportWidth = window.innerWidth
-      const newWidth = ((viewportWidth - moveEvent.clientX) / viewportWidth) * 100
-      
-      // Enforce min 300px (roughly 30% on 1000px screen) and max 90%
-      const minWidth = Math.max(30, (300 / viewportWidth) * 100)
-      const maxWidth = 90
-      const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
-      
-      saveCanvasWidth(clampedWidth)
-    }
-
-    const handleMouseUp = () => {
-      setIsDragging(false)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }
-
-  // Check if mobile/tablet
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
-  const handleSendMessage = async (message: string, attachments?: File[]) => {
-    if (!message.trim() || isThinking) return
+  const handleSendMessage = async (content: string, attachments?: File[]) => {
+    if (!content.trim() || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: message.trim(),
-      timestamp: new Date()
+      content,
+      timestamp: new Date(),
+      model: selectedModel
     }
 
     setMessages(prev => [...prev, userMessage])
-    setMessageCount(prev => prev + 1)
-
-    const startTime = Date.now()
+    setIsLoading(true)
 
     try {
-      const response = await chat.sendMessage(
-        userMessage.content,
-        selectedModel,
-        messages
-      )
+      const startTime = Date.now()
+      
+      // Send to backend
+      const response = await window.api.chatWithAI({
+        message: content,
+        model: selectedModel,
+        history: messages.slice(-10) // Last 10 messages for context
+      })
 
-      const responseTimeMs = Date.now() - startTime
-      setResponseTime(responseTimeMs)
+      const endTime = Date.now()
+      const responseTime = endTime - startTime
 
       if (response.success) {
-        const aiMessage: Message = {
+        const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: response.content || 'No response received',
-          timestamp: new Date()
+          type: 'assistant',
+          content: response.message,
+          timestamp: new Date(),
+          model: selectedModel,
+          responseTime
         }
 
-        setMessages(prev => [...prev, aiMessage])
+        setMessages(prev => [...prev, assistantMessage])
+
+        // Check if response contains code and auto-open canvas
+        const codeMatch = response.message.match(/```(\w+)?\n([\s\S]*?)```/)
+        if (codeMatch) {
+          const language = codeMatch[1] || 'text'
+          const code = codeMatch[2].trim()
+          
+          setCanvasContent({
+            content: code,
+            language,
+            title: `${language.charAt(0).toUpperCase() + language.slice(1)} Code`,
+            fileName: `code.${language}`,
+            visible: true,
+            isFullscreen: false
+          })
+
+          addToast({
+            type: 'info',
+            title: 'Code Canvas Opened',
+            description: 'Your code is now available in the canvas for editing',
+            duration: 3000
+          })
+        }
 
         // Track analytics
-        await analytics.trackChatMessage({
-          modelId: selectedModel,
-          sessionId,
-          prompt: userMessage.content,
-          response: aiMessage.content,
-          responseTime: responseTimeMs,
-          success: true
-        })
-
-        addToast({
-          type: 'success',
-          title: 'Message Sent',
-          description: `Response received in ${responseTimeMs}ms`,
-          duration: 2000
-        })
+        analytics.trackResponse(selectedModel, responseTime, response.message.length)
       } else {
-        addToast({
-          type: 'error',
-          title: 'Send Failed',
-          description: response.error || 'Failed to send message',
-          duration: 3000
-        })
+        throw new Error(response.error || 'Failed to get response')
       }
     } catch (error) {
-      const responseTimeMs = Date.now() - startTime
+      console.error('Chat error:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'system',
+        content: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+        timestamp: new Date(),
+        model: selectedModel
+      }
+      setMessages(prev => [...prev, errorMessage])
       
       addToast({
         type: 'error',
-        title: 'Error',
-        description: 'Failed to send message to AI',
-        duration: 3000
+        title: 'Chat Error',
+        description: 'Failed to get response from AI model',
+        duration: 4000
       })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-      // Track failed message
-      await analytics.trackChatMessage({
-        modelId: selectedModel,
-        sessionId,
-        prompt: userMessage.content,
-        response: '',
-        responseTime: responseTimeMs,
-        success: false
+  const handleOpenCanvas = (content: string, language: string = 'text', title: string = 'Code Canvas') => {
+    setIsCanvasAnimating(true)
+    
+    // First collapse the sidebar
+    if (sidebarOpen) {
+      onSetSidebarOpen(false)
+    }
+    
+    // Then animate the canvas in after a brief delay
+    setTimeout(() => {
+      setCanvasContent({
+        content,
+        language,
+        title,
+        fileName: `code.${language}`,
+        visible: true,
+        isFullscreen: false
+      })
+      setIsCanvasAnimating(false)
+    }, sidebarOpen ? 300 : 0) // Wait for sidebar animation if it was open
+  }
+
+  const handleCanvasContentChange = (content: string) => {
+    if (canvasContent) {
+      setCanvasContent({
+        ...canvasContent,
+        content
       })
     }
   }
 
-  const clearChat = () => {
-    setMessages([])
-    setMessageCount(0)
+  const handleSuggestImprovements = async (content: string) => {
+    const improvementPrompt = `Please analyze this code and suggest improvements:\n\n\`\`\`${canvasContent?.language}\n${content}\n\`\`\``
+    await handleSendMessage(improvementPrompt)
+  }
+
+  const handleExecuteCode = async (content: string, language: string) => {
     addToast({
-      type: 'success',
-      title: 'Chat Cleared',
-      description: 'All messages have been removed',
+      type: 'info',
+      title: 'Code Execution',
+      description: `Executing ${language} code...`,
       duration: 2000
     })
+    
+    // TODO: Implement code execution
+    console.log('Execute code:', { content, language })
   }
 
-  const handleUpdateMessage = (id: string, updates: any) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === id ? { ...msg, ...updates } : msg
-    ))
-  }
-
-  const handleDeleteMessage = (id: string) => {
-    setMessages(prev => prev.filter(msg => msg.id !== id))
-  }
-
-  const handleCorrectMessage = (id: string, newContent: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === id ? { ...msg, content: newContent } : msg
-    ))
-  }
-
-  const handleAddMessage = (message: any) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      type: message.type || 'user',
-      content: message.content,
-      timestamp: new Date(),
-      ...message
+  const toggleCanvasFullscreen = () => {
+    if (canvasContent) {
+      setCanvasContent({
+        ...canvasContent,
+        isFullscreen: !canvasContent.isFullscreen
+      })
     }
-    setMessages(prev => [...prev, newMessage])
+  }
+
+  const closeCanvas = () => {
+    setIsCanvasAnimating(true)
+    setCanvasContent(null)
+    
+    // Brief delay for animation completion
+    setTimeout(() => {
+      setIsCanvasAnimating(false)
+    }, 300)
   }
 
   return (
-    <div className="flex h-full bg-background">
-      {/* Main Chat Area with smooth transitions */}
-      <div 
-        className={cn(
-          "flex flex-col transition-all duration-300 ease-in-out",
-          canvasOpen && isMobile ? "opacity-0" : "opacity-100"
-        )}
-        style={{
-          width: canvasOpen 
-            ? isMobile 
-              ? '0%' 
-              : `${100 - canvasWidth}%`
-            : '100%'
-        }}
-      >
-        {/* Enhanced Header */}
-        <div className="px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggleSidebar}
-                className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
-                title="Toggle Sidebar"
-              >
-                <Sidebar size={16} className="text-muted-foreground" />
-              </Button>
+    <div className="flex flex-col h-screen bg-white">
+      {/* Fixed Header */}
+      <AppHeader
+        selectedModel={selectedModel}
+        onModelChange={onModelChange}
+        onToggleSidebar={onToggleSidebar}
+        sidebarOpen={sidebarOpen}
+        onOpenSettings={onOpenSettings}
+        onOpenDeveloper={onOpenDeveloper}
+        onOpenSystemStatus={onOpenSystemStatus}
+        onOpenAgentManager={onOpenAgentManager}
+        messageCount={messages.length}
+        responseTime={analytics.getAverageResponseTime(selectedModel)}
+      />
 
-              {/* Enhanced Model Profile */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Circle size={12} className="text-primary fill-current" />
-                </div>
-                <div className="flex flex-col">
-                  <TextShimmer className="text-sm font-medium text-foreground">
-                    {getModelDisplayName(selectedModel)}
-                  </TextShimmer>
-                  <span className="text-xs text-muted-foreground">Local AI Model</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Stats & Actions */}
-            <div className="flex items-center gap-4">
-              {/* Live Stats */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <span>Messages:</span>
-                  <NumberTicker value={messageCount} className="font-mono text-foreground" />
-                </div>
-                <div className="flex items-center gap-1">
-                  <span>Response:</span>
-                  <NumberTicker value={responseTime} className="font-mono text-foreground" />ms
-                </div>
-              </div>
-
-              {/* Action Buttons - Canvas button removed as per requirements */}
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onOpenSystemStatus}
-                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
-                  title="System Status"
-                >
-                  <Cpu size={16} className="text-muted-foreground" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearChat}
-                  disabled={messages.length === 0}
-                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg disabled:opacity-50"
-                  title="Clear Chat"
-                >
-                  <ArrowsClockwise size={16} className="text-muted-foreground" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onOpenSettings}
-                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
-                  title="Settings"
-                >
-                  <Gear size={16} className="text-muted-foreground" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages Area */}
-        <ScrollArea ref={scrollAreaRef} className="flex-1 px-6">
-          <div className="max-w-4xl mx-auto py-6 space-y-6">
-            {messages.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Circle size={24} className="text-primary" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Welcome to {getModelDisplayName(selectedModel)}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Start a conversation with your local AI assistant
-                </p>
-                <div className="flex justify-center gap-2 text-sm text-muted-foreground">
-                  <span>100% Local</span>
-                  <span>•</span>
-                  <span>Privacy First</span>
-                  <span>•</span>
-                  <span>No Internet Required</span>
-                </div>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <MessageComponent 
-                  key={message.id} 
-                  message={message}
-                  isThinking={false}
-                />
-              ))
-            )}
-
-            {isThinking && (
-              <div className="flex justify-start">
-                <div className="bg-accent/50 rounded-2xl px-4 py-3 max-w-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.1s]"></div>
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                    </div>
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+      {/* Main Content Area */}
+      <div className="flex flex-1 pt-14"> {/* pt-14 to account for fixed header */}
+        {/* Chat Area */}
+        <div className={cn(
+          "flex flex-col transition-all duration-300 ease-out",
+          canvasContent?.visible 
+            ? canvasContent.isFullscreen 
+              ? "w-0 overflow-hidden opacity-0" 
+              : "w-1/2 opacity-100"
+            : "w-full opacity-100"
+        )}>
+          {/* Messages */}
+          <ScrollArea className="flex-1 px-4">
+            <div className="max-w-4xl mx-auto py-4 space-y-4">
+              {messages.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
+                    <Sparkle size={24} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to PelicanOS</h3>
+                  <p className="text-gray-600 mb-4">Start a conversation with your AI assistant</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage("Write a Python function to calculate fibonacci numbers")}
+                    >
+                      <Code size={14} className="mr-1" />
+                      Write Python code
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage("Explain how neural networks work")}
+                    >
+                      <Sparkle size={14} className="mr-1" />
+                      Explain concepts
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage("Help me debug this JavaScript error")}
+                    >
+                      <Code size={14} className="mr-1" />
+                      Debug code
+                    </Button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+              ) : (
+                messages.map((message) => (
+                  <MessageComponent
+                    key={message.id}
+                    message={message}
+                    onOpenCanvas={handleOpenCanvas}
+                    onEditMessage={(id, content) => {
+                      setMessages(prev => prev.map(msg => 
+                        msg.id === id ? { ...msg, content } : msg
+                      ))
+                    }}
+                    onDeleteMessage={(id) => {
+                      setMessages(prev => prev.filter(msg => msg.id !== id))
+                    }}
+                  />
+                ))
+              )}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 rounded-lg p-4 max-w-xs">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <span className="text-sm ml-2">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
 
-        {/* Enhanced Input Area with embedded canvas toggle */}
-        <div className="border-t border-border bg-card/50 backdrop-blur-sm p-6">
-          <div className="max-w-4xl mx-auto">
-            <InputBar
-              value={currentMessage}
-              onChange={setCurrentMessage}
-              onSend={handleSendMessage}
-              isLoading={isThinking}
-              canvasOpen={canvasOpen}
-              onOpenCanvas={() => setCanvasOpen(!canvasOpen)}
-              placeholder={`Message ${getModelDisplayName(selectedModel)}...`}
-            />
+          {/* Input Bar */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="max-w-4xl mx-auto">
+              <InputBar
+                onSendMessage={handleSendMessage}
+                disabled={isLoading}
+                placeholder={`Message ${selectedModel.replace(':latest', '')}...`}
+                onOpenCanvas={handleOpenCanvas}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Canvas Panel with smooth open/close animations */}
-      <div 
-        ref={canvasRef}
-        className={cn(
-          "border-l border-border bg-background flex flex-col overflow-hidden relative focus:outline-none",
-          "transition-all duration-300 ease-in-out",
-          isMobile && canvasOpen ? "absolute inset-0 z-50" : ""
-        )}
-        style={{
-          width: canvasOpen 
-            ? isMobile 
-              ? '100%' 
-              : `${canvasWidth}%`
-            : '0%',
-          opacity: canvasOpen ? 1 : 0,
-          transform: canvasOpen ? 'translateX(0)' : 'translateX(100%)'
-        }}
-        onClick={handleCanvasBackdropClick}
-        tabIndex={canvasOpen ? 0 : -1}
-      >
-        {/* Draggable resize handle */}
-        {canvasOpen && !isMobile && (
-          <div
-            ref={dragRef}
+        {/* Canvas Area */}
+        {canvasContent?.visible && (
+          <div 
+            data-canvas-panel
             className={cn(
-              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 transition-colors z-10",
-              isDragging && "bg-primary/40"
+              "border-l border-gray-200 transition-all duration-300 ease-out transform",
+              canvasContent.isFullscreen ? "w-full opacity-100 translate-x-0" : "w-1/2 opacity-100 translate-x-0",
+              isCanvasAnimating ? "opacity-0 translate-x-4" : "opacity-100 translate-x-0"
             )}
-            onMouseDown={handleResizeStart}
-            title="Drag to resize canvas"
           >
-            {/* Visual indicator */}
-            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-8 bg-border rounded-full" />
+            <div className="h-full relative">
+              {/* Canvas Header */}
+              <div className="h-10 bg-gray-50 border-b border-gray-200 flex items-center justify-between px-3">
+                <h3 className="text-sm font-medium text-gray-700">Canvas</h3>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={toggleCanvasFullscreen}
+                    className="h-6 w-6 p-0"
+                  >
+                    {canvasContent.isFullscreen ? <ArrowsIn size={12} /> : <ArrowsOut size={12} />}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Canvas Content */}
+              <div className="h-[calc(100%-2.5rem)]">
+                <CodeCanvas
+                  content={canvasContent.content}
+                  language={canvasContent.language}
+                  title={canvasContent.title}
+                  fileName={canvasContent.fileName}
+                  onContentChange={handleCanvasContentChange}
+                  onClose={closeCanvas}
+                  onSuggestImprovements={handleSuggestImprovements}
+                  onExecute={handleExecuteCode}
+                  isFullscreen={canvasContent.isFullscreen}
+                  onToggleFullscreen={toggleCanvasFullscreen}
+                  className="h-full border-0 rounded-none"
+                />
+              </div>
+            </div>
           </div>
         )}
-
-        {/* Canvas Header with smooth opacity transition */}
-        <div 
-          className={cn(
-            "p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between",
-            "transition-opacity duration-200 ease-in-out",
-            canvasOpen ? "opacity-100" : "opacity-0"
-          )}
-        >
-          <div className="flex items-center gap-2">
-            <Lightning size={20} className="text-primary" />
-            <span className="font-semibold text-foreground">Canvas</span>
-            {!isMobile && (
-              <span className="text-xs text-muted-foreground">
-                {Math.round(canvasWidth)}%
-              </span>
-            )}
-          </div>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="h-8 w-8 p-0"
-            onClick={() => setCanvasOpen(false)}
-          >
-            <ArrowsClockwise size={14} className="text-muted-foreground" />
-          </Button>
-        </div>
-        
-        {/* Canvas Content with smooth transition */}
-        <div 
-          className={cn(
-            "flex-1 transition-opacity duration-200 ease-in-out",
-            canvasOpen ? "opacity-100" : "opacity-0"
-          )}
-        >
-          <EnhancedChatCanvas
-            messages={messages}
-            onUpdateMessage={handleUpdateMessage}
-            onDeleteMessage={handleDeleteMessage}
-            onCorrectMessage={handleCorrectMessage}
-            onAddMessage={handleAddMessage}
-          />
-        </div>
       </div>
     </div>
   )

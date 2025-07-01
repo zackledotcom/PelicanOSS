@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Plus,
   ChatCircle,
@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { ChatSession } from '../../../../types/chat'
 import { useAllServices } from '@/hooks/useServices'
 import ModelCard from '../ModelCard'
+import ModelAvatar from '@/components/ui/model-avatar'
 import NumberTicker from '@/components/ui/number-ticker'
 import { useToast } from '@/components/ui/toast'
 
@@ -48,6 +49,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onThemeChange
 }) => {
   const services = useAllServices()
+  
+  useEffect(() => {
+    console.log('LeftSidebar rendered with isOpen:', isOpen)
+  }, [isOpen])
   const { addToast } = useToast()
   
   const [chatSessions] = useState<ChatSession[]>([
@@ -225,9 +230,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     className="rounded-lg hover:bg-gray-100 focus:bg-gray-100"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
-                        <span className="text-xs font-bold text-white">AI</span>
-                      </div>
+                      <ModelAvatar modelName={model.value} size="sm" editable />
                       <div className="flex flex-col">
                         <span className="font-medium">{model.label}</span>
                         <span className="text-xs text-gray-500">{model.conversations} conversations</span>

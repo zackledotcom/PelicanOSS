@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ModelAvatar from '@/components/ui/model-avatar';
 
 const DEFAULT_WIDTH = 260;
 
@@ -10,19 +11,24 @@ interface ModelData {
   downloadDate: string
   conversations: number
   accuracy: number
-  strengths: string[]
-  weaknesses: string[]
+  strengths?: string[]
+  weaknesses?: string[]
   trainingData: string
   description: string
 }
 
 interface ModelCardProps {
-  model: ModelData
+  model?: ModelData
   isOpen: boolean
   onClose: () => void
 }
 
 const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
+  // Early return if no model provided
+  if (!model) {
+    return null;
+  }
+  
   const [cardWidth, setCardWidth] = useState(400);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -168,7 +174,7 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                   }}
                 />
                 <div className="text-9xl filter drop-shadow-2xl transform rotate-12 hidden">
-                  {model.avatar}
+                  <ModelAvatar modelName={model.label} size="lg" className="w-32 h-32" />
                 </div>
               </div>
 
@@ -184,11 +190,12 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Ability Section */}
           <div className="px-4 mb-4">
             <div className="bg-white/25 backdrop-blur-lg rounded-xl p-3 border border-white/40 shadow-inner">
               <h3 className="text-blue-800 font-bold mb-1 flex items-center gap-2">
-                <span className="text-sm font-bold">⚡</span>
+                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
                 Ability: Quick Response
               </h3>
               <p className="text-sm text-gray-800">All queries are processed with lightning speed for instant results.</p>
@@ -238,11 +245,11 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-bold text-green-700 mb-1 flex items-center gap-1">
-                    <span className="text-xs">⚡</span>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     <span className="text-xs">Strengths</span>
                   </h4>
                   <div className="space-y-1">
-                    {model.strengths.slice(0, 2).map((strength, i) => (
+                    {(model.strengths || []).slice(0, 2).map((strength, i) => (
                       <div key={i} className="text-xs bg-green-100/60 backdrop-blur-sm text-green-800 px-2 py-1 rounded-full border border-green-200/50">
                         {strength}
                       </div>
@@ -254,7 +261,7 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                     <span className="text-xs">Limitations</span>
                   </h4>
                   <div className="space-y-1">
-                    {model.weaknesses.slice(0, 2).map((weakness, i) => (
+                    {(model.weaknesses || []).slice(0, 2).map((weakness, i) => (
                       <div key={i} className="text-xs bg-red-100/60 backdrop-blur-sm text-red-800 px-2 py-1 rounded-full border border-red-200/50">
                         {weakness}
                       </div>

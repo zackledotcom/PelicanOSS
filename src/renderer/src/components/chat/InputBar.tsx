@@ -33,7 +33,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 interface InputBarProps {
-  value: string
+  value?: string
   onChange: (value: string) => void
   onSend: (message: string, attachments?: File[]) => void
   onFileUpload?: (files: File[]) => void
@@ -57,7 +57,7 @@ interface AttachedFile {
 }
 
 export default function InputBar({
-  value,
+  value = '',
   onChange,
   onSend,
   onFileUpload,
@@ -70,7 +70,7 @@ export default function InputBar({
   isLoading = false,
   placeholder = "Type a message...",
   canvasOpen = false,
-  className
+  className = ''
 }: InputBarProps) {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const [dragOver, setDragOver] = useState(false)
@@ -406,9 +406,9 @@ export default function InputBar({
               />
               
               {/* Typing indicators */}
-              {value.length > 0 && (
+              {(value || '').length > 0 && (
                 <div className="absolute bottom-1 right-1 text-xs text-muted-foreground">
-                  {value.length}
+                  {(value || '').length}
                 </div>
               )}
             </div>
@@ -462,10 +462,10 @@ export default function InputBar({
               <Button
                 size="sm"
                 onClick={handleSend}
-                disabled={isLoading || (!value.trim() && attachedFiles.length === 0)}
+                disabled={isLoading || (!(value || '').trim() && attachedFiles.length === 0)}
                 className={cn(
                   "h-8 w-8 p-0 transition-all",
-                  (value.trim() || attachedFiles.length > 0) 
+                  ((value || '').trim() || attachedFiles.length > 0) 
                     ? "bg-primary hover:bg-primary/90" 
                     : "bg-muted text-muted-foreground"
                 )}

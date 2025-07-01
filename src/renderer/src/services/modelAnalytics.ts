@@ -500,6 +500,21 @@ class ModelAnalyticsService {
     cleanupDate.setDate(cleanupDate.getDate() - 90)
     await this.storage.cleanup(cleanupDate)
   }
+
+  // Get average response time for a model
+  getAverageResponseTime(modelId?: string): number {
+    if (!modelId) return 1247 // Default mock value
+    
+    // This would calculate real average from stored metrics
+    // For now, return a mock value
+    return Math.floor(Math.random() * 2000) + 500
+  }
+
+  // Track response for the hook
+  trackResponse(modelId: string, responseTime: number, messageLength: number) {
+    // This would be implemented to store the response data
+    console.log('Tracking response:', { modelId, responseTime, messageLength })
+  }
 }
 
 // ===============================
@@ -571,7 +586,10 @@ export const useAnalyticsTracking = () => {
     trackUserRating,
     trackError,
     getAnalytics,
-    endSession
+    endSession,
+    getAverageResponseTime: (modelId: string) => analyticsService.getAverageResponseTime(modelId),
+    trackResponse: (modelId: string, responseTime: number, messageLength: number) => 
+      analyticsService.trackResponse(modelId, responseTime, messageLength)
   }
 }
 

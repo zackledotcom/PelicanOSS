@@ -458,6 +458,28 @@ const api = {
     rateLimit('fs-get-file-info');
     const safeFilePath = z.string().min(1).max(500).parse(filePath);
     return ipcRenderer.invoke('fs-get-file-info', safeFilePath);
+  },
+
+  // Avatar APIs
+  getModelAvatar: (modelName: string): Promise<{modelName: string; avatarPath?: string; initials: string; uploadedAt?: Date}> => {
+    rateLimit('get-model-avatar');
+    const safeModelName = z.string().min(1).max(100).parse(modelName);
+    return ipcRenderer.invoke('get-model-avatar', safeModelName);
+  },
+  uploadModelAvatar: (modelName: string, imageBuffer: Uint8Array, originalName: string): Promise<{success: boolean; avatarPath: string}> => {
+    rateLimit('upload-model-avatar');
+    const safeModelName = z.string().min(1).max(100).parse(modelName);
+    const safeOriginalName = z.string().min(1).max(255).parse(originalName);
+    return ipcRenderer.invoke('upload-model-avatar', safeModelName, imageBuffer, safeOriginalName);
+  },
+  removeModelAvatar: (modelName: string): Promise<{success: boolean}> => {
+    rateLimit('remove-model-avatar');
+    const safeModelName = z.string().min(1).max(100).parse(modelName);
+    return ipcRenderer.invoke('remove-model-avatar', safeModelName);
+  },
+  getAllAvatars: (): Promise<{modelName: string; avatarPath?: string; initials: string; uploadedAt?: Date}[]> => {
+    rateLimit('get-all-avatars');
+    return ipcRenderer.invoke('get-all-avatars');
   }
 } as const;
 

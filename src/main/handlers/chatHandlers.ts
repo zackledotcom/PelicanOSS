@@ -12,8 +12,8 @@ import { ipcMain, IpcMainInvokeEvent } from 'electron'
 import { logger } from '../utils/logger'
 import { withErrorBoundary } from '../core/errorHandler'
 import { validateChatMessage } from '../validation/schemas'
-import { ollamaService } from '../services/ollamaService'
-import { streamingService, ChatStream } from '../streaming/streamingService'
+// import { ollamaService } from '../services/ollama'
+// import { streamingService, ChatStream } from '../streaming/streamingService'
 
 export interface ChatRequest {
   message: string
@@ -320,6 +320,3 @@ export function registerChatHandlers(): void {
     handlers: ['chat-with-ai', 'chat-stream-start', 'chat-stream-cancel', 'chat-get-metrics']
   }, 'chat-handlers')
 }
-
-// Export for testing and external use
-export { ChatProcessor }
