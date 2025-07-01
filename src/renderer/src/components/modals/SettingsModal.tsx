@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { BlurIn } from '@/components/ui/blur-in'
 import { Ripple } from '@/components/ui/ripple'
 import { useAllServices } from '@/hooks/useServices'
-import { ModelSettings } from '@/types/settings'
+import { ModelSettings } from '../../../../types/settings'
 
 
 

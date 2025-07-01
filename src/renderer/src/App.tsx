@@ -178,6 +178,8 @@ const App: React.FC = () => {
                   onOpenAgentManager={() => updateState({ showAgentManager: true })}
                   onOpenAdvancedMemory={() => updateState({ showAdvancedMemory: true })}
                   onToggleSidebar={toggleSidebar}
+                  sidebarOpen={state.showLeftSidebar}
+                  onSetSidebarOpen={(open) => updateState({ showLeftSidebar: open })}
                 />
               </ErrorBoundary>
             </main>

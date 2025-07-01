@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cn } from '@/lib/utils'
-import { Message } from '@/types/chat'
+import { Message } from '../../../../../types/chat'
 import { copyToClipboard } from '@/lib/browser-utils'
 
 interface MessageComponentProps {

@@ -4,11 +4,27 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn, exec, ChildProcess } from 'child_process'
 import axios from 'axios'
-console.log('✅ index.ts is up to date and executing');
+console.log('✅ index.ts is up to date and executing')
+
+// Import enterprise systems
+import { logger } from './utils/logger'
+import { withErrorBoundary } from './core/errorHandler'
+import { withValidation, validateChatMessage, validateSettings } from './validation/schemas'
+import { agentSecurity, validateAgentAction } from './security/agentSafety'
+import { initializeHealthMonitoring } from './monitoring/healthMonitor'
+import { initializeMemoryMonitoring } from './monitoring/memoryMonitor'
+import { initializeConfiguration } from './config/configManager'
+
+// Import modular services and handlers
+import { ollamaService } from './services/ollamaService'
+import { chromaService } from './services/chromaService'
+import { registerChatHandlers } from './handlers/chatHandlers'
+import { streamingService } from './streaming/streamingService'
+
 // Import the handlers
 import { registerCodeGenerationHandlers } from './code-generation-handlers'
 import { registerModelTuningHandlers } from './model-tuning-handlers'
-import { registerFileSystemHandlers } from './file-system-handlers';
+import { registerFileSystemHandlers } from './file-system-handlers'
 import {
   loadSettings,
   saveSettings,
@@ -140,11 +156,46 @@ function withErrorRecovery<T extends any[], R>(
 }
 
 // Service management
+const MCP_SERVERS = {
+  context7: {
+    command: 'npx',
+    args: ['-y', '@upstash/context7-mcp@latest']
+  },
+  '@magicuidesign/mcp': {
+    command: 'npx',
+    args: ['-y', '@magicuidesign/mcp@latest']
+  },
+  // sequentialthinking: {
+  //   command: 'npx', 
+  //   args: ['-y', '@modelcontextprotocol/sequentialthinking@latest']
+  // }
+};
+
+const runningMCPs: Record<string, import('child_process').ChildProcess> = {};
+
+function launchMCPServers() {
+  for (const [name, { command, args }] of Object.entries(MCP_SERVERS)) {
+    const proc = spawn(command, args, {
+      stdio: 'inherit',
+      shell: true
+    });
+    runningMCPs[name] = proc;
+
+    proc.on('exit', (code, signal) => {
+      console.log(`MCP [${name}] exited with code ${code}, signal ${signal}`);
+    });
+
+    proc.on('error', (err) => {
+      console.error(`MCP [${name}] error:`, err);
+    });
+  }
+}
+
 let chromaProcess: ChildProcess | null = null
 let ollamaProcess: ChildProcess | null = null
 const CHROMA_PORT = 8000
 const OLLAMA_BASE_URL = 'http://127.0.0.1:11434'  // Use IPv4 explicitly
-const CHROMA_BASE_URL = `http://127.0.0.1:${CHROMA_PORT}`  // Use IPv4 explicitly
+const CHROMA_BASE_URL = `http://localhost:${CHROMA_PORT}`  // Use localhost to match chroma server
 
 // Path constants
 const CHROMA_PATH = '/Users/jibbr/.local/bin/chroma'
@@ -188,25 +239,64 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
+  // Initialize enterprise systems
+  logger.info('🚀 Starting PelicanOS with enterprise-grade systems...', undefined, 'startup')
+  
+  try {
+    // 1. Initialize configuration system
+    const { manager: configManager, result: configResult } = await initializeConfiguration()
+    logger.success('Configuration system initialized', { 
+      valid: configResult.valid,
+      warnings: configResult.warnings.length 
+    }, 'startup')
+
+    // 2. Initialize health monitoring
+    const healthMonitor = initializeHealthMonitoring()
+    logger.success('Health monitoring system active', undefined, 'startup')
+
+    // 3. Initialize memory monitoring  
+    const memoryMonitor = initializeMemoryMonitoring()
+    logger.success('Memory monitoring system active', undefined, 'startup')
+
+    // 4. Log system readiness
+    logger.success('🎯 All enterprise systems initialized successfully', {
+      configuration: configResult.valid,
+      healthMonitoring: true,
+      memoryMonitoring: true,
+      securityLayer: true,
+      inputValidation: true
+    }, 'startup')
+
+  } catch (error) {
+    logger.error('Failed to initialize enterprise systems', error, 'startup')
+  }
+
   // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  launchMCPServers()
   createWindow()
 
-  // Register IPC handlers
+  // Register modular IPC handlers with enterprise architecture
   registerCodeGenerationHandlers(ipcMain)
   registerModelTuningHandlers(ipcMain)
-
-  // Register file system handlers
   registerFileSystemHandlers(ipcMain)
+  
+  // Register new modular chat handlers with streaming support
+  registerChatHandlers()
+  
+  logger.success('🎯 All IPC handlers registered with modular architecture', {
+    chatHandlers: true,
+    streamingSupport: true,
+    enterpriseValidation: true,
+    errorBoundaries: true
+  }, 'startup')
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
@@ -229,44 +319,72 @@ app.on('window-all-closed', () => {
       ollamaProcess.kill('SIGTERM')
       ollamaProcess = null
     }
+    Object.values(runningMCPs).forEach(proc => proc.kill('SIGTERM'));
     app.quit()
   }
 })
 
+// Helper function for retrying connections with exponential backoff
+async function retryConnection(
+  checkFn: () => Promise<any>,
+  serviceName: string,
+  maxRetries: number = 5,
+  initialDelay: number = 1000
+): Promise<any> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 ${serviceName} connection attempt ${attempt}/${maxRetries}`)
+      const result = await checkFn()
+      console.log(`✅ ${serviceName} connected on attempt ${attempt}`)
+      return result
+    } catch (error) {
+      console.log(`❌ ${serviceName} attempt ${attempt} failed:`, error.message)
+      
+      if (attempt === maxRetries) {
+        console.error(`🚫 ${serviceName} failed after ${maxRetries} attempts`)
+        throw error
+      }
+      
+      // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+      const delay = initialDelay * Math.pow(2, attempt - 1)
+      console.log(`⏱️ Waiting ${delay}ms before retry...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+}
+
 // IPC Handlers for AI Services
 
-// Ollama Service Management
+// Enhanced Ollama status check with retry
 ipcMain.handle('check-ollama-status', async () => {
-  console.log('🔍 Checking Ollama status...')
-  console.log('🌐 Using URL:', OLLAMA_BASE_URL)
+  console.log('🔍 Checking Ollama status with retry logic...')
+  
   try {
-    const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`, {
-      timeout: 5000,
-      headers: {
-        'Content-Type': 'application/json'
+    const result = await retryConnection(async () => {
+      const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`, {
+        timeout: 8000, // Increased timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      const models = response.data.models?.map((model: any) => model.name) || []
+      return {
+        connected: true,
+        message: 'Ollama is running and accessible',
+        models: models,
+        responseTime: Date.now()
       }
-    })
-    console.log('✅ Ollama connected successfully')
-    console.log('📊 Response status:', response.status)
-    console.log('📋 Response data:', JSON.stringify(response.data, null, 2))
-    const models = response.data.models?.map((model: any) => model.name) || []
-    console.log('📋 Available models:', models)
-
-    return {
-      connected: true,
-      message: 'Ollama is running and accessible',
-      models: models
-    }
+    }, 'Ollama', 3, 2000) // 3 retries, 2s initial delay
+    
+    return result
   } catch (error) {
-    console.error('❌ Ollama connection failed:', error.message)
-    console.error('🔧 Error details:', {
-      code: error.code,
-      response: error.response?.status,
-      responseData: error.response?.data
-    })
+    console.error('🚫 Ollama final connection failure:', error.message)
     return {
       connected: false,
-      message: `Ollama is not running or not accessible: ${error.message}`
+      message: `Ollama is not running or not accessible: ${error.message}`,
+      models: [],
+      lastError: error.code
     }
   }
 })
@@ -384,30 +502,31 @@ ipcMain.handle('pull-model', async (event, modelName: string) => {
   }
 })
 
-// ChromaDB Service Management
+// Enhanced ChromaDB status check with retry
 ipcMain.handle('check-chroma-status', async () => {
-  console.log('🔍 Checking Chroma status...')
-  console.log('🌐 Using URL:', CHROMA_BASE_URL)
+  console.log('🔍 Checking ChromaDB status with retry logic...')
+  
   try {
-    const response = await axios.get(`${CHROMA_BASE_URL}/api/v2/heartbeat`, { timeout: 5000 })
-    console.log('✅ ChromaDB connected successfully')
-    console.log('📊 Response status:', response.status)
-    console.log('📋 Response data:', JSON.stringify(response.data, null, 2})
-
-    return {
-      connected: true,
-      message: 'ChromaDB is running and accessible'
-    }
+    const result = await retryConnection(async () => {
+      const response = await axios.get(`${CHROMA_BASE_URL}/api/v2/heartbeat`, { 
+        timeout: 8000 // Increased timeout
+      })
+      
+      return {
+        connected: true,
+        message: 'ChromaDB is running and accessible',
+        version: 'v2',
+        responseTime: Date.now()
+      }
+    }, 'ChromaDB', 3, 2000) // 3 retries, 2s initial delay
+    
+    return result
   } catch (error) {
-    console.error('❌ ChromaDB connection failed:', error.message)
-    console.error('🔧 Error details:', {
-      code: error.code,
-      response: error.response?.status,
-      responseData: error.response?.data
-    })
+    console.error('🚫 ChromaDB final connection failure:', error.message)
     return {
       connected: false,
-      message: `ChromaDB is not running: ${error.message}`
+      message: `ChromaDB is not running or not accessible: ${error.message}`,
+      lastError: error.code
     }
   }
 })
@@ -473,13 +592,32 @@ ipcMain.handle('start-chroma', async () => {
   }
 })
 
-// Chat functionality with model routing and error recovery
-ipcMain.handle('chat-with-ai', async (event, data: { message: string; model: string; history: any[]; memoryOptions?: any }) => {
-  console.log('💬 Chat request received:', { model: data.model, message: data.message.substring(0, 50) + '...' })
+// Chat functionality with enterprise-grade validation, security, and monitoring
+ipcMain.handle('chat-with-ai', withErrorBoundary(async (event, data: { 
+  message: string; 
+  model: string; 
+  history: any[]; 
+  memoryOptions?: any 
+}) => {
+  logger.info('💬 Chat request received', { 
+    model: data.model, 
+    messageLength: data.message.length,
+    historyLength: data.history?.length || 0
+  }, 'chat')
+
+  // Validate input data
+  const validation = await validateChatMessage(data)
+  if (!validation.success) {
+    logger.warn('Chat validation failed', validation.error, 'chat')
+    return {
+      success: false,
+      error: validation.error.message
+    }
+  }
 
   const { message, model, history, memoryOptions = {} } = data
 
-  // Use model routing for resilient model selection
+  // Use model routing for resilient model selection  
   const { result: chatResult, routing } = await withModelRouting(
     async (selectedModel) => {
       // Load settings to check if memory is enabled
@@ -609,7 +747,7 @@ ipcMain.handle('chat-with-ai', async (event, data: { message: string; model: str
   )
 
   return chatResult
-})
+}, 'chat', 'chat-with-ai'))
 
 // Helper function to store conversation in ChromaDB
 async function storeInChroma(userMessage: string, aiResponse: string) {
@@ -827,7 +965,7 @@ ipcMain.handle('chat-with-ai-working', async (event, data: { message: string; mo
     }
 
   } catch (error) {
-    console.error('❌ Chat error:', error.message)
+    logger.error('❌ Chat error', error, 'chat')
 
     let errorMessage = 'Sorry, I encountered an error.'
     if (error.code === 'ECONNABORTED') {
@@ -844,4 +982,4 @@ ipcMain.handle('chat-with-ai-working', async (event, data: { message: string; mo
       modelUsed: model
     }
   }
-})
+}, 'chat', 'chat-with-ai')

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import DeveloperMode from '../chat/DeveloperMode'
 import { useAllServices } from '../../hooks/useServices'
-import { Message } from '@/types/chat'
-import { SystemMetrics } from '@/types/settings'
+import { Message } from '../../../../types/chat'
+import { SystemMetrics } from '../../../../types/settings'
 
 interface DeveloperModalProps {
   isOpen: boolean

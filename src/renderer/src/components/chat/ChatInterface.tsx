@@ -37,6 +37,8 @@ interface ChatInterfaceProps {
   onOpenAgentManager: () => void
   onOpenAdvancedMemory: () => void
   onToggleSidebar: () => void
+  sidebarOpen: boolean
+  onSetSidebarOpen: (open: boolean) => void
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -46,7 +48,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onOpenSystemStatus,
   onOpenAgentManager,
   onOpenAdvancedMemory,
-  onToggleSidebar
+  onToggleSidebar,
+  sidebarOpen,
+  onSetSidebarOpen
 }) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentMessage, setCurrentMessage] = useState('')
@@ -55,8 +59,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [canvasWidth, setCanvasWidth] = useState(60) // percentage of viewport
   const [isDragging, setIsDragging] = useState(false)
   const [responseTime, setResponseTime] = useState(0)
+  const [previousSidebarState, setPreviousSidebarState] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
   const { addToast } = useToast()
 
   // Use actual services
@@ -89,6 +95,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   useEffect(() => {
     ollama.checkStatus()
   }, [])
+
+  // Handle canvas open/close with sidebar auto-close behavior
+  useEffect(() => {
+    if (canvasOpen) {
+      // Store previous sidebar state and close sidebar
+      setPreviousSidebarState(sidebarOpen)
+      if (sidebarOpen) {
+        onSetSidebarOpen(false)
+      }
+      
+      // Focus into canvas after a short delay to allow animation
+      setTimeout(() => {
+        if (canvasRef.current) {
+          canvasRef.current.focus()
+        }
+      }, 350) // Slightly after the 300ms animation
+    } else {
+      // Restore previous sidebar state when canvas closes
+      onSetSidebarOpen(previousSidebarState)
+    }
+  }, [canvasOpen, sidebarOpen, onSetSidebarOpen, previousSidebarState])
 
   // Handle Escape key to close canvas
   useEffect(() => {
@@ -281,9 +308,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   return (
     <div className="flex h-full bg-background">
-      {/* Main Chat Area */}
+      {/* Main Chat Area with smooth transitions */}
       <div 
-        className="flex flex-col transition-all duration-300 ease-in-out"
+        className={cn(
+          "flex flex-col transition-all duration-300 ease-in-out",
+          canvasOpen && isMobile ? "opacity-0" : "opacity-100"
+        )}
         style={{
           width: canvasOpen 
             ? isMobile 
@@ -436,11 +466,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </div>
 
-      {/* Canvas Panel with responsive width and drag handle */}
+      {/* Canvas Panel with smooth open/close animations */}
       <div 
+        ref={canvasRef}
         className={cn(
-          "border-l border-border bg-background flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative",
-          canvasOpen ? "opacity-100" : "opacity-0",
+          "border-l border-border bg-background flex flex-col overflow-hidden relative focus:outline-none",
+          "transition-all duration-300 ease-in-out",
           isMobile && canvasOpen ? "absolute inset-0 z-50" : ""
         )}
         style={{
@@ -448,9 +479,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             ? isMobile 
               ? '100%' 
               : `${canvasWidth}%`
-            : '0%'
+            : '0%',
+          opacity: canvasOpen ? 1 : 0,
+          transform: canvasOpen ? 'translateX(0)' : 'translateX(100%)'
         }}
         onClick={handleCanvasBackdropClick}
+        tabIndex={canvasOpen ? 0 : -1}
       >
         {/* Draggable resize handle */}
         {canvasOpen && !isMobile && (
@@ -468,7 +502,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
 
-        <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
+        {/* Canvas Header with smooth opacity transition */}
+        <div 
+          className={cn(
+            "p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between",
+            "transition-opacity duration-200 ease-in-out",
+            canvasOpen ? "opacity-100" : "opacity-0"
+          )}
+        >
           <div className="flex items-center gap-2">
             <Lightning size={20} className="text-primary" />
             <span className="font-semibold text-foreground">Canvas</span>
@@ -487,7 +528,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <ArrowsClockwise size={14} className="text-muted-foreground" />
           </Button>
         </div>
-        <div className="flex-1">
+        
+        {/* Canvas Content with smooth transition */}
+        <div 
+          className={cn(
+            "flex-1 transition-opacity duration-200 ease-in-out",
+            canvasOpen ? "opacity-100" : "opacity-0"
+          )}
+        >
           <EnhancedChatCanvas
             messages={messages}
             onUpdateMessage={handleUpdateMessage}

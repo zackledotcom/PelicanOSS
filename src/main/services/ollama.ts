@@ -2,7 +2,7 @@ import axios from 'axios'
 import path from 'path'
 import fs from 'fs/promises'
 import { z } from 'zod'
-import { encrypt, decrypt } from './crypto'
+import { trackPerformanceEvent, shouldCollectTelemetry } from '../utils/telemetryUtils'
 import type { Message, MemorySummary } from '../../types/chat'
 
 const OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
@@ -177,23 +177,14 @@ JSON Response:`
  */
 async function trackSummaryEvent(params: { duration: number; tokenCount: number; success: boolean }): Promise<void> {
   try {
-    // Import loadSettings dynamically to avoid circular dependencies
-    const { loadSettings } = await import('../storage')
-    const settings = await loadSettings()
-
-    // Check if telemetry is enabled and usage stats collection is allowed
-    if (!settings.telemetry?.enabled || !settings.telemetry?.collectUsageStats) {
-      // Telemetry is disabled or usage stats collection is not allowed
+    // Check if telemetry collection is enabled using the centralized utility
+    const shouldCollect = await shouldCollectTelemetry()
+    if (!shouldCollect) {
       return
     }
 
-    // Collect telemetry data
-    const { duration, tokenCount, success } = params
-
-    // Log telemetry data (in a real implementation, this would send to a telemetry service)
-    console.log(`[Telemetry] Summary event - Duration: ${duration}ms, Tokens: ${tokenCount}, Success: ${success}`)
-
-    // Additional telemetry implementation would go here
+    // Track the performance event using the centralized telemetry system
+    await trackPerformanceEvent(params)
   } catch (error) {
     // Silently fail if telemetry collection fails - should never block main functionality
     console.error('Telemetry collection failed:', error)
