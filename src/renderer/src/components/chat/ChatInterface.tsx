@@ -54,11 +54,50 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     isFullscreen: boolean
   } | null>(null)
   const [isCanvasAnimating, setIsCanvasAnimating] = useState(false)
+  const [canvasWidth, setCanvasWidth] = useState(60) // Default 60% on desktop
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [dragStartWidth, setDragStartWidth] = useState(0)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const services = useAllServices()
   const analytics = useAnalyticsTracking()
   const { addToast } = useToast()
+
+  // Load saved canvas width from localStorage
+  useEffect(() => {
+    const savedWidth = localStorage.getItem('canvasWidth')
+    if (savedWidth) {
+      const width = parseInt(savedWidth, 10)
+      if (width >= 30 && width <= 90) {
+        setCanvasWidth(width)
+      }
+    }
+  }, [])
+
+  // Save canvas width to localStorage
+  useEffect(() => {
+    localStorage.setItem('canvasWidth', canvasWidth.toString())
+  }, [canvasWidth])
+
+  // Get responsive canvas width based on screen size
+  const getCanvasWidthPercent = () => {
+    if (typeof window === 'undefined') return 60
+    
+    // Mobile: 100% width
+    if (window.innerWidth < 768) {
+      return 100
+    }
+    
+    // Desktop: use saved width or default 60%
+    return canvasWidth
+  }
+
+  // Calculate minimum width in pixels (300px minimum)
+  const getMinWidthPercent = () => {
+    if (typeof window === 'undefined') return 30
+    return Math.max(30, (300 / window.innerWidth) * 100)
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -93,6 +132,48 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [canvasContent?.visible])
+
+  // Handle canvas resize dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !canvasContent?.visible) return
+
+      const deltaX = e.clientX - dragStartX
+      const newWidthPercent = dragStartWidth + (deltaX / window.innerWidth) * 100
+      
+      // Enforce min/max constraints
+      const minWidth = getMinWidthPercent()
+      const maxWidth = 90
+      const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidthPercent))
+      
+      setCanvasWidth(clampedWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragStartX, dragStartWidth, canvasContent?.visible])
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setDragStartX(e.clientX)
+    setDragStartWidth(canvasWidth)
+  }
 
   const handleSendMessage = async (content: string, attachments?: File[]) => {
     if (!content.trim() || isLoading) return
@@ -274,9 +355,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           canvasContent?.visible 
             ? canvasContent.isFullscreen 
               ? "w-0 overflow-hidden opacity-0" 
-              : "w-1/2 opacity-100"
+              : `opacity-100`
             : "w-full opacity-100"
-        )}>
+        )}
+        style={{
+          width: canvasContent?.visible && !canvasContent.isFullscreen 
+            ? `${100 - getCanvasWidthPercent()}%` 
+            : undefined
+        }}
+        >
           {/* Messages */}
           <ScrollArea className="flex-1 px-4">
             <div className="max-w-4xl mx-auto py-4 space-y-4">
@@ -365,11 +452,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div 
             data-canvas-panel
             className={cn(
-              "border-l border-gray-200 transition-all duration-300 ease-out transform",
-              canvasContent.isFullscreen ? "w-full opacity-100 translate-x-0" : "w-1/2 opacity-100 translate-x-0",
+              "border-l border-gray-200 transition-all duration-300 ease-out transform relative",
+              canvasContent.isFullscreen ? "opacity-100 translate-x-0" : "opacity-100 translate-x-0",
               isCanvasAnimating ? "opacity-0 translate-x-4" : "opacity-100 translate-x-0"
             )}
+            style={{
+              width: canvasContent.isFullscreen ? '100%' : `${getCanvasWidthPercent()}%`
+            }}
           >
+            {/* Draggable Resize Handle */}
+            {!canvasContent.isFullscreen && window.innerWidth >= 768 && (
+              <div
+                onMouseDown={handleResizeStart}
+                className="absolute left-0 top-0 w-1 h-full bg-transparent hover:bg-blue-500 cursor-col-resize z-10 transition-colors duration-200"
+                style={{ marginLeft: '-2px' }}
+              />
+            )}
+            
             <div className="h-full relative">
               {/* Canvas Header */}
               <div className="h-10 bg-gray-50 border-b border-gray-200 flex items-center justify-between px-3">
