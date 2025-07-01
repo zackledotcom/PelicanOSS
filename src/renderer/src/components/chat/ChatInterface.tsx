@@ -52,8 +52,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [currentMessage, setCurrentMessage] = useState('')
   const [messageCount, setMessageCount] = useState(0)
   const [canvasOpen, setCanvasOpen] = useState(false)
+  const [canvasWidth, setCanvasWidth] = useState(60) // percentage of viewport
+  const [isDragging, setIsDragging] = useState(false)
   const [responseTime, setResponseTime] = useState(0)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<HTMLDivElement>(null)
   const { addToast } = useToast()
 
   // Use actual services
@@ -105,6 +108,57 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setCanvasOpen(false)
     }
   }
+
+  // Load canvas width from localStorage on mount
+  useEffect(() => {
+    const savedWidth = localStorage.getItem('canvas-width')
+    if (savedWidth) {
+      const width = parseInt(savedWidth, 10)
+      if (width >= 30 && width <= 90) {
+        setCanvasWidth(width)
+      }
+    }
+  }, [])
+
+  // Save canvas width to localStorage
+  const saveCanvasWidth = (width: number) => {
+    localStorage.setItem('canvas-width', width.toString())
+    setCanvasWidth(width)
+  }
+
+  // Handle canvas resize drag
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const viewportWidth = window.innerWidth
+      const newWidth = ((viewportWidth - moveEvent.clientX) / viewportWidth) * 100
+      
+      // Enforce min 300px (roughly 30% on 1000px screen) and max 90%
+      const minWidth = Math.max(30, (300 / viewportWidth) * 100)
+      const maxWidth = 90
+      const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
+      
+      saveCanvasWidth(clampedWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  // Check if mobile/tablet
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   const handleSendMessage = async (message: string, attachments?: File[]) => {
     if (!message.trim() || isThinking) return
@@ -228,10 +282,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="flex h-full bg-background">
       {/* Main Chat Area */}
-      <div className={cn(
-        "flex flex-col transition-all duration-300 ease-in-out",
-        canvasOpen ? "w-3/5" : "w-full"
-      )}>
+      <div 
+        className="flex flex-col transition-all duration-300 ease-in-out"
+        style={{
+          width: canvasOpen 
+            ? isMobile 
+              ? '0%' 
+              : `${100 - canvasWidth}%`
+            : '100%'
+        }}
+      >
         {/* Enhanced Header */}
         <div className="px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="flex items-center justify-between">
@@ -376,18 +436,47 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </div>
 
-      {/* Canvas Panel with smooth animations */}
+      {/* Canvas Panel with responsive width and drag handle */}
       <div 
         className={cn(
-          "border-l border-border bg-background flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
-          canvasOpen ? "w-2/5 opacity-100" : "w-0 opacity-0"
+          "border-l border-border bg-background flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative",
+          canvasOpen ? "opacity-100" : "opacity-0",
+          isMobile && canvasOpen ? "absolute inset-0 z-50" : ""
         )}
+        style={{
+          width: canvasOpen 
+            ? isMobile 
+              ? '100%' 
+              : `${canvasWidth}%`
+            : '0%'
+        }}
         onClick={handleCanvasBackdropClick}
       >
+        {/* Draggable resize handle */}
+        {canvasOpen && !isMobile && (
+          <div
+            ref={dragRef}
+            className={cn(
+              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 transition-colors z-10",
+              isDragging && "bg-primary/40"
+            )}
+            onMouseDown={handleResizeStart}
+            title="Drag to resize canvas"
+          >
+            {/* Visual indicator */}
+            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-8 bg-border rounded-full" />
+          </div>
+        )}
+
         <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Lightning size={20} className="text-primary" />
             <span className="font-semibold text-foreground">Canvas</span>
+            {!isMobile && (
+              <span className="text-xs text-muted-foreground">
+                {Math.round(canvasWidth)}%
+              </span>
+            )}
           </div>
           <Button 
             size="sm" 
