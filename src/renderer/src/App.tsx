@@ -154,6 +154,8 @@ const App: React.FC = () => {
               onToggleSidebar={toggleSidebar}
               sidebarOpen={state.showLeftSidebar}
               onSetSidebarOpen={(open) => updateState({ showLeftSidebar: open })}
+              showLeftSidebar={state.showLeftSidebar}
+              onToggleLeftSidebar={toggleSidebar}
             />
           </ErrorBoundary>
         </main>

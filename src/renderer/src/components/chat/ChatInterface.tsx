@@ -29,6 +29,8 @@ interface ChatInterfaceProps {
   onToggleSidebar: () => void
   sidebarOpen: boolean
   onSetSidebarOpen: (open: boolean) => void
+  showLeftSidebar: boolean
+  onToggleLeftSidebar: () => void
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -41,7 +43,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onOpenAdvancedMemory,
   onToggleSidebar,
   sidebarOpen,
-  onSetSidebarOpen
+  onSetSidebarOpen,
+  showLeftSidebar,
+  onToggleLeftSidebar
 }) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -58,6 +62,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [dragStartWidth, setDragStartWidth] = useState(0)
+  const [previousSidebarState, setPreviousSidebarState] = useState(false)
+  const canvasRef = useRef<HTMLDivElement>(null)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const services = useAllServices()
@@ -267,9 +273,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const handleOpenCanvas = (content: string, language: string = 'text', title: string = 'Code Canvas') => {
     setIsCanvasAnimating(true)
     
-    // First collapse the sidebar
-    if (sidebarOpen) {
-      onSetSidebarOpen(false)
+    // Store current sidebar state for restoration later
+    setPreviousSidebarState(showLeftSidebar)
+    
+    // Collapse the sidebar first if it's open
+    if (showLeftSidebar) {
+      onToggleLeftSidebar()
     }
     
     // Then animate the canvas in after a brief delay
@@ -283,7 +292,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         isFullscreen: false
       })
       setIsCanvasAnimating(false)
-    }, sidebarOpen ? 300 : 0) // Wait for sidebar animation if it was open
+      
+      // Focus the canvas editor after opening
+      setTimeout(() => {
+        if (canvasRef.current) {
+          const focusableElement = canvasRef.current.querySelector('[role="textbox"], textarea, input, [tabindex="0"]') as HTMLElement
+          if (focusableElement) {
+            focusableElement.focus()
+          }
+        }
+      }, 100)
+    }, showLeftSidebar ? 300 : 0) // Wait for sidebar animation if it was open
   }
 
   const handleCanvasContentChange = (content: string) => {
@@ -324,6 +343,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const closeCanvas = () => {
     setIsCanvasAnimating(true)
     setCanvasContent(null)
+    
+    // Restore previous sidebar state when canvas closes
+    if (previousSidebarState && !showLeftSidebar) {
+      setTimeout(() => {
+        onToggleLeftSidebar()
+      }, 150) // Brief delay to avoid conflict with canvas close animation
+    }
     
     // Brief delay for animation completion
     setTimeout(() => {
@@ -450,6 +476,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Canvas Area */}
         {canvasContent?.visible && (
           <div 
+            ref={canvasRef}
             data-canvas-panel
             className={cn(
               "border-l border-gray-200 transition-all duration-300 ease-out transform relative",
