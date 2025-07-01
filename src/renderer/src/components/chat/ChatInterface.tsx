@@ -87,6 +87,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     ollama.checkStatus()
   }, [])
 
+  // Handle Escape key to close canvas
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && canvasOpen) {
+        setCanvasOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [canvasOpen])
+
+  // Handle click outside canvas to close
+  const handleCanvasBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setCanvasOpen(false)
+    }
+  }
+
   const handleSendMessage = async (message: string, attachments?: File[]) => {
     if (!message.trim() || isThinking) return
 
@@ -210,7 +229,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <div className="flex h-full bg-background">
       {/* Main Chat Area */}
       <div className={cn(
-        "flex flex-col transition-all duration-300",
+        "flex flex-col transition-all duration-300 ease-in-out",
         canvasOpen ? "w-3/5" : "w-full"
       )}>
         {/* Enhanced Header */}
@@ -357,34 +376,38 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </div>
 
-      {/* Canvas Panel with seamless theming */}
-      {canvasOpen && (
-        <div className="w-2/5 border-l border-border bg-background flex flex-col">
-          <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Lightning size={20} className="text-primary" />
-              <span className="font-semibold text-foreground">Canvas</span>
-            </div>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-8 w-8 p-0"
-              onClick={() => setCanvasOpen(false)}
-            >
-              <ArrowsClockwise size={14} className="text-muted-foreground" />
-            </Button>
+      {/* Canvas Panel with smooth animations */}
+      <div 
+        className={cn(
+          "border-l border-border bg-background flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
+          canvasOpen ? "w-2/5 opacity-100" : "w-0 opacity-0"
+        )}
+        onClick={handleCanvasBackdropClick}
+      >
+        <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Lightning size={20} className="text-primary" />
+            <span className="font-semibold text-foreground">Canvas</span>
           </div>
-          <div className="flex-1">
-            <EnhancedChatCanvas
-              messages={messages}
-              onUpdateMessage={handleUpdateMessage}
-              onDeleteMessage={handleDeleteMessage}
-              onCorrectMessage={handleCorrectMessage}
-              onAddMessage={handleAddMessage}
-            />
-          </div>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="h-8 w-8 p-0"
+            onClick={() => setCanvasOpen(false)}
+          >
+            <ArrowsClockwise size={14} className="text-muted-foreground" />
+          </Button>
         </div>
-      )}
+        <div className="flex-1">
+          <EnhancedChatCanvas
+            messages={messages}
+            onUpdateMessage={handleUpdateMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onCorrectMessage={handleCorrectMessage}
+            onAddMessage={handleAddMessage}
+          />
+        </div>
+      </div>
     </div>
   )
 }
