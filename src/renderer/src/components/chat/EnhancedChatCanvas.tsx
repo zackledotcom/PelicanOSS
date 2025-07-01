@@ -36,6 +36,7 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 interface EnhancedChatCanvasProps {
   messages: any[]
@@ -71,7 +72,6 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
     messageIds: string[]
   }>>([])
   const [canvasSettings, setCanvasSettings] = useState({
-    theme: 'light',
     snapToGrid: false,
     showMetadata: true,
     showMinimap: true
@@ -174,13 +174,13 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
   const createGroup = () => {
     if (selectedMessages.size === 0 || !newGroupName.trim()) return
     
-    // Generate random color
+    // Generate random color using theme colors
     const colors = [
-      'rgba(99, 102, 241, 0.7)', // Indigo
-      'rgba(236, 72, 153, 0.7)', // Pink
-      'rgba(16, 185, 129, 0.7)', // Emerald
-      'rgba(245, 158, 11, 0.7)', // Amber
-      'rgba(99, 102, 241, 0.7)'  // Indigo
+      'hsl(var(--primary))', 
+      'hsl(var(--accent))', 
+      'hsl(217 91% 60%)',  // Blue
+      'hsl(142 71% 45%)',  // Green
+      'hsl(38 92% 50%)'    // Orange
     ]
     const color = colors[Math.floor(Math.random() * colors.length)]
     
@@ -214,14 +214,18 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
     linkElement.click()
   }
 
-  // Render individual message
+  // Render individual message with theme-aware styling
   const renderMessage = (message: any) => {
     if (!message.position) return null
     
     return (
       <div
         key={message.id}
-        className="absolute bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-white/20 w-80 overflow-hidden select-none"
+        className={cn(
+          "absolute rounded-xl shadow-lg border backdrop-blur-sm w-80 overflow-hidden select-none transition-all duration-200",
+          "bg-card text-card-foreground border-border",
+          selectedMessages.has(message.id) && "ring-2 ring-primary shadow-xl scale-105"
+        )}
         style={{
           left: message.position.x,
           top: message.position.y,
@@ -282,44 +286,56 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           e.stopPropagation()
         }}
       >
-        {/* Message header */}
-        <div 
-          className={`
-            p-2 text-xs font-medium flex items-center justify-between
-            ${message.type === 'user' ? 'bg-blue-500 text-white' : 
-              message.type === 'ai' ? 'bg-green-500 text-white' : 
-              message.type === 'code' ? 'bg-purple-500 text-white' : 
-              message.type === 'file' ? 'bg-amber-500 text-white' : 
-              'bg-gray-500 text-white'}
-          `}
-        >
-          <div className="flex items-center gap-1">
-            {message.type === 'user' ? 'User' : 
-             message.type === 'ai' ? 'AI' : 
-             message.type === 'code' ? 'Code' : 
-             message.type === 'file' ? 'File' : 
-             'Message'}
-            
-            {message.id && 
-              <span className="text-xs opacity-70">#{message.id.split('-')[1] || '?'}</span>
-            }
+        {/* Message header with theme-aware colors */}
+        <div className={cn(
+          "p-3 text-sm font-medium flex items-center justify-between",
+          message.type === 'user' && "bg-primary text-primary-foreground",
+          message.type === 'ai' && "bg-accent text-accent-foreground",
+          message.type === 'code' && "bg-secondary text-secondary-foreground",
+          message.type === 'file' && "bg-muted text-muted-foreground",
+          !message.type && "bg-muted text-muted-foreground"
+        )}>
+          <div className="flex items-center gap-2">
+            <span className="capitalize">
+              {message.type === 'user' ? 'User' : 
+               message.type === 'ai' ? 'AI' : 
+               message.type === 'code' ? 'Code' : 
+               message.type === 'file' ? 'File' : 
+               'Message'}
+            </span>
+            {message.id && (
+              <span className="text-xs opacity-70">
+                #{message.id.split('-')[1] || '?'}
+              </span>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
             {selectedMessages.has(message.id) && (
-              <div className="w-3 h-3 rounded-full bg-white" />
+              <Check className="w-4 h-4" />
             )}
           </div>
         </div>
-        
+
         {/* Message content */}
-        <div className="p-3 text-sm max-h-40 overflow-y-auto">
-          {message.content}
+        <div className="p-4">
+          {message.type === 'file' ? (
+            <div className="space-y-2">
+              <div className="font-medium">{message.fileName || message.content}</div>
+              <div className="text-xs text-muted-foreground">
+                {message.fileType || 'Unknown file type'}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm leading-relaxed">
+              {message.content || 'No content'}
+            </div>
+          )}
         </div>
-        
-        {/* Message footer */}
+
+        {/* Message metadata with theme-aware styling */}
         {canvasSettings.showMetadata && (
-          <div className="p-2 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">
+          <div className="p-3 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
             <div>
               {message.timestamp && new Date(message.timestamp).toLocaleTimeString()}
             </div>
@@ -328,7 +344,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
                 <Badge 
                   key={tag} 
                   variant="outline" 
-                  className="px-1 py-0 h-4 text-xs"
+                  className="px-2 py-0 h-5 text-xs"
                 >
                   {tag}
                 </Badge>
@@ -338,34 +354,35 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         )}
       </div>
     )
-  }  
-  // Main render
+  }
+
+  // Main render with seamless theming
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className}`}>
-      {/* Enhanced Canvas Controls */}
+    <div className={cn("relative w-full h-full overflow-hidden", className)}>
+      {/* Enhanced Canvas Controls with theme-aware styling */}
       <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* Search */}
+          {/* Search with proper theming */}
           <div className="relative">
-            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search messages..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64 h-9 bg-white/80 backdrop-blur-sm border-white/20"
+              className="pl-10 w-64 h-9 bg-background/80 backdrop-blur-sm border-border"
             />
           </div>
 
-          {/* Filter by tags */}
+          {/* Filter by tags with theme styling */}
           {allTags.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
+                <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm h-9">
                   <Funnel size={16} className="mr-2" />
                   Filter ({filterTags.length})
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
+              <DropdownMenuContent className="bg-popover/95 backdrop-blur-sm border-border">
                 {allTags.map(tag => (
                   <DropdownMenuItem
                     key={tag}
@@ -391,19 +408,19 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Selection info */}
-          <Badge variant="outline" className="bg-white/80 backdrop-blur-sm">
+          {/* Selection info with theme styling */}
+          <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
             {selectedMessages.size} / {filteredMessages.length} selected
           </Badge>
           
-          {/* Canvas mode */}
+          {/* Canvas mode with theme styling */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
-                <GridFour size={16} className={canvasMode !== 'free' ? 'text-blue-500' : ''} />
+              <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm h-9">
+                <GridFour size={16} className={canvasMode !== 'free' ? 'text-primary' : ''} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
+            <DropdownMenuContent className="bg-popover/95 backdrop-blur-sm border-border">
               <DropdownMenuItem onClick={() => setCanvasMode('free')}>
                 {canvasMode === 'free' ? <Check size={14} className="mr-2" /> : <div className="w-4" />}
                 Free Layout
@@ -422,11 +439,11 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           {/* Layout options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
+              <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm h-9">
                 <ArrowsOut size={16} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
+            <DropdownMenuContent className="bg-popover/95 backdrop-blur-sm border-border">
               <DropdownMenuItem onClick={autoArrangeFlow}>
                 <GridFour size={14} className="mr-2" />
                 Auto Arrange Grid
@@ -446,11 +463,11 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           {/* Tools */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm h-9">
+              <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm h-9">
                 <Wrench size={16} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white/95 backdrop-blur-sm">
+            <DropdownMenuContent className="bg-popover/95 backdrop-blur-sm border-border">
               <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
                 <Upload size={14} className="mr-2" />
                 Import Files
@@ -478,28 +495,30 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         </div>
       </div>
 
-      {/* Canvas Area */}
+      {/* Canvas Area with seamless theming */}
       <div
         ref={canvasRef}
-        className={`
-          w-full h-full relative pt-16
-          ${canvasMode === 'grid' || canvasSettings.snapToGrid ? 'bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.1)_1px,transparent_0)] [background-size:20px_20px]' : ''}
-          ${canvasSettings.theme === 'dark' 
-            ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-            : 'bg-gradient-to-br from-blue-50/50 via-white/30 to-purple-50/50'
-          }
-        `}
+        className={cn(
+          "w-full h-full relative pt-16 transition-all duration-200",
+          // Grid background when enabled
+          (canvasMode === 'grid' || canvasSettings.snapToGrid) && 
+          "bg-[radial-gradient(circle_at_1px_1px,hsl(var(--border))_1px,transparent_0)] [background-size:20px_20px]",
+          // Theme-aware background with subtle pattern
+          "bg-background",
+          // Add subtle pattern overlay
+          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_2px_2px,hsl(var(--muted))_0.5px,transparent_0)] before:[background-size:40px_40px] before:opacity-30 before:pointer-events-none"
+        )}
         onDrop={handleCanvasDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => setSelectedMessages(new Set())}
       >
-        {/* Drop Zone Indicator */}
+        {/* Drop Zone Indicator with theme styling */}
         {filteredMessages.length === 0 && (
           <div className="absolute inset-16 pointer-events-none">
-            <div className="w-full h-full border-2 border-dashed border-gray-300/50 rounded-lg flex items-center justify-center">
-              <div className="text-center text-gray-400">
+            <div className="w-full h-full border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
                 <Plus size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Enhanced Canvas Mode</p>
+                <p className="text-lg font-medium mb-2 text-foreground">Enhanced Canvas Mode</p>
                 <p className="text-sm mb-4">Drag files here, arrange messages, create connections</p>
                 <div className="flex justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1">
@@ -520,58 +539,20 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           </div>
         )}
 
-        {/* Connection Lines */}
-        {showConnections && (
-          <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 5 }}>
-            {filteredMessages.map(message => 
-              message.connections?.map(connectedId => {
-                const connectedMessage = messages.find(m => m.id === connectedId)
-                if (!connectedMessage || !message.position || !connectedMessage.position) return null
-                
-                const x1 = message.position.x + 150
-                const y1 = message.position.y + 50
-                const x2 = connectedMessage.position.x + 150
-                const y2 = connectedMessage.position.y + 50
-                
-                return (
-                  <line
-                    key={`${message.id}-${connectedId}`}
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke="rgba(99, 102, 241, 0.4)"
-                    strokeWidth="2"
-                    strokeDasharray="5,5"
-                    markerEnd="url(#arrowhead)"
-                  />
-                )
-              })
-            )}
-            
-            {/* Arrow marker */}
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                      refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="rgba(99, 102, 241, 0.4)" />
-              </marker>
-            </defs>
-          </svg>
-        )}
-
-        {/* Render Messages */}
+        {/* Render messages */}
         {filteredMessages.map(renderMessage)}
-        
-        {/* Group Indicators */}
+
+        {/* Render groups with theme-aware styling */}
         {groups.map(group => {
-          const groupMessages = filteredMessages.filter(m => group.messageIds.includes(m.id))
+          const groupMessages = filteredMessages.filter(msg => group.messageIds.includes(msg.id))
           if (groupMessages.length === 0) return null
-          
-          const minX = Math.min(...groupMessages.map(m => m.position?.x || 0))
-          const minY = Math.min(...groupMessages.map(m => m.position?.y || 0))
-          const maxX = Math.max(...groupMessages.map(m => (m.position?.x || 0) + 300))
-          const maxY = Math.max(...groupMessages.map(m => (m.position?.y || 0) + 200))
-          
+
+          const positions = groupMessages.map(msg => msg.position || { x: 0, y: 0 })
+          const minX = Math.min(...positions.map(p => p.x))
+          const maxX = Math.max(...positions.map(p => p.x + 320))
+          const minY = Math.min(...positions.map(p => p.y))
+          const maxY = Math.max(...positions.map(p => p.y + 200))
+
           return (
             <div
               key={group.id}
@@ -586,7 +567,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
               }}
             >
               <div 
-                className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-medium"
+                className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-medium text-primary-foreground"
                 style={{ backgroundColor: group.color }}
               >
                 {group.name}
@@ -595,28 +576,28 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           )
         })}
         
-        {/* Selection Tools */}
+        {/* Selection Tools with theme styling */}
         {selectedMessages.size > 0 && (
-          <div className="absolute bottom-4 left-4 p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg">
+          <div className="absolute bottom-4 left-4 p-4 bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg">
             <div className="text-sm font-medium mb-3">
               {selectedMessages.size} message{selectedMessages.size > 1 ? 's' : ''} selected
             </div>
             <div className="flex flex-wrap gap-2">
               {selectedMessages.size > 1 && (
-                <Button size="sm" variant="outline" className="bg-white/60" onClick={() => setIsCreatingGroup(true)}>
+                <Button size="sm" variant="outline" onClick={() => setIsCreatingGroup(true)}>
                   <Folder size={14} className="mr-1" />
                   Group
                 </Button>
               )}
-              <Button size="sm" variant="outline" className="bg-white/60">
+              <Button size="sm" variant="outline">
                 <Link size={14} className="mr-1" />
                 Connect
               </Button>
-              <Button size="sm" variant="outline" className="bg-white/60">
+              <Button size="sm" variant="outline">
                 <PaintBucket size={14} className="mr-1" />
                 Color
               </Button>
-              <Button size="sm" variant="outline" className="bg-white/60">
+              <Button size="sm" variant="outline">
                 <Export size={14} className="mr-1" />
                 Export
               </Button>
@@ -627,7 +608,7 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
                   selectedMessages.forEach(id => onDeleteMessage(id))
                   setSelectedMessages(new Set())
                 }}
-                className="bg-white/60 text-red-600 hover:text-red-700"
+                className="text-destructive hover:text-destructive"
               >
                 <Trash size={14} className="mr-1" />
                 Delete
@@ -636,20 +617,23 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
           </div>
         )}
 
-        {/* Minimap */}
+        {/* Minimap with theme styling */}
         {canvasSettings.showMinimap && filteredMessages.length > 0 && (
-          <div className="absolute bottom-4 right-4 w-48 h-32 bg-white/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg p-2">
+          <div className="absolute bottom-4 right-4 w-48 h-32 bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg p-2">
             <div className="text-xs font-medium mb-2">Minimap</div>
-            <div className="relative w-full h-full bg-gray-100 rounded overflow-hidden">
+            <div className="relative w-full h-full bg-muted rounded overflow-hidden">
               {filteredMessages.map(message => (
                 <div
                   key={message.id}
-                  className={`absolute w-2 h-2 rounded ${
-                    selectedMessages.has(message.id) ? 'bg-purple-500' :
-                    message.type === 'user' ? 'bg-blue-500' :
-                    message.type === 'ai' ? 'bg-green-500' :
-                    message.type === 'code' ? 'bg-purple-400' : 'bg-gray-400'
-                  }`}
+                  className={cn(
+                    "absolute w-2 h-2 rounded",
+                    selectedMessages.has(message.id) && "ring-1 ring-primary",
+                    message.type === 'user' && "bg-primary",
+                    message.type === 'ai' && "bg-accent", 
+                    message.type === 'code' && "bg-secondary",
+                    message.type === 'file' && "bg-muted-foreground",
+                    !message.type && "bg-muted-foreground"
+                  )}
                   style={{
                     left: ((message.position?.x || 0) / 2000) * 100 + '%',
                     top: ((message.position?.y || 0) / 1000) * 100 + '%'
@@ -661,12 +645,12 @@ const EnhancedChatCanvas: React.FC<EnhancedChatCanvasProps> = ({
         )}
       </div>
 
-      {/* Create Group Dialog */}
+      {/* Create Group Dialog with theme styling */}
       <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
-        <DialogContent className="bg-white/95 backdrop-blur-sm">
+        <DialogContent className="bg-background/95 backdrop-blur-sm border-border">
           <DialogHeader>
             <DialogTitle>Create Message Group</DialogTitle>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               Group {selectedMessages.size} selected messages together
             </div>
           </DialogHeader>
