@@ -22,8 +22,10 @@ import NumberTicker from '@/components/ui/number-ticker'
 import TextShimmer from '@/components/ui/text-shimmer'
 import { cn } from '@/lib/utils'
 import { useAllServices } from '@/hooks/useServices'
-import { Message } from '@/types/chat'
+import { Message } from '../../../../types/chat'
 import MessageComponent from './components/MessageComponent'
+import EnhancedChatCanvas from './EnhancedChatCanvas'
+import InputBar from './InputBar'
 import { useAnalyticsTracking } from '../../services/modelAnalytics'
 import { useToast } from '@/components/ui/toast'
 
@@ -48,11 +50,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 }) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentMessage, setCurrentMessage] = useState('')
-  const [isRecording, setIsRecording] = useState(false)
   const [messageCount, setMessageCount] = useState(0)
-  const [developerMode, setDeveloperMode] = useState(false)
+  const [canvasOpen, setCanvasOpen] = useState(false)
   const [responseTime, setResponseTime] = useState(0)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const { addToast } = useToast()
 
@@ -75,14 +75,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       .replace('deepseek-coder', 'DeepSeek Coder')
   }
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
-    }
-  }, [currentMessage])
-
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -95,20 +87,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     ollama.checkStatus()
   }, [])
 
-  const handleSendMessage = async () => {
-    if (!currentMessage.trim() || isThinking) return
+  const handleSendMessage = async (message: string, attachments?: File[]) => {
+    if (!message.trim() || isThinking) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: currentMessage.trim(),
+      content: message.trim(),
       timestamp: new Date()
     }
 
     setMessages(prev => [...prev, userMessage])
     setMessageCount(prev => prev + 1)
-    const messageToSend = currentMessage.trim()
-    setCurrentMessage('')
 
     const startTime = Date.now()
 
@@ -126,390 +116,275 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'ai',
-          content: response.message,
+          content: response.content || 'No response received',
           timestamp: new Date()
         }
+
         setMessages(prev => [...prev, aiMessage])
 
-        addToast({
-          type: 'success',
-          title: 'Response Generated',
-          description: `Completed in ${responseTimeMs}ms`,
-          duration: 3000
-        })
-
+        // Track analytics
         await analytics.trackChatMessage({
           modelId: selectedModel,
           sessionId,
-          prompt: messageToSend,
-          response: response.message,
+          prompt: userMessage.content,
+          response: aiMessage.content,
           responseTime: responseTimeMs,
           success: true
         })
-      } else {
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: response.message || 'Sorry, I encountered an error processing your request.',
-          timestamp: new Date()
-        }
-        setMessages(prev => [...prev, errorMessage])
 
         addToast({
+          type: 'success',
+          title: 'Message Sent',
+          description: `Response received in ${responseTimeMs}ms`,
+          duration: 2000
+        })
+      } else {
+        addToast({
           type: 'error',
-          title: 'Generation Failed',
-          description: response.message || 'Unknown error occurred',
-          duration: 5000
+          title: 'Send Failed',
+          description: response.error || 'Failed to send message',
+          duration: 3000
         })
       }
     } catch (error) {
-      console.error('Error sending message:', error)
+      const responseTimeMs = Date.now() - startTime
+      
       addToast({
         type: 'error',
-        title: 'Connection Error',
-        description: 'Failed to connect to AI service',
-        duration: 5000
+        title: 'Error',
+        description: 'Failed to send message to AI',
+        duration: 3000
       })
-    }
-  }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+      // Track failed message
+      await analytics.trackChatMessage({
+        modelId: selectedModel,
+        sessionId,
+        prompt: userMessage.content,
+        response: '',
+        responseTime: responseTimeMs,
+        success: false
+      })
     }
   }
 
   const clearChat = () => {
     setMessages([])
     setMessageCount(0)
-    setResponseTime(0)
     addToast({
-      type: 'info',
+      type: 'success',
       title: 'Chat Cleared',
       description: 'All messages have been removed',
       duration: 2000
     })
   }
+
+  const handleUpdateMessage = (id: string, updates: any) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === id ? { ...msg, ...updates } : msg
+    ))
+  }
+
+  const handleDeleteMessage = (id: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== id))
+  }
+
+  const handleCorrectMessage = (id: string, newContent: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === id ? { ...msg, content: newContent } : msg
+    ))
+  }
+
+  const handleAddMessage = (message: any) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: message.type || 'user',
+      content: message.content,
+      timestamp: new Date(),
+      ...message
+    }
+    setMessages(prev => [...prev, newMessage])
+  }
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Clean Professional Header */}
-      <div className="border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between px-6 py-4">
-          {/* Left: Logo and Model */}
-          <div className="flex items-center gap-6">
-            {/* Sidebar Toggle + Logo */}
-            <div className="flex items-center gap-3">
+    <div className="flex h-full bg-background">
+      {/* Main Chat Area */}
+      <div className={cn(
+        "flex flex-col transition-all duration-300",
+        canvasOpen ? "w-3/5" : "w-full"
+      )}>
+        {/* Enhanced Header */}
+        <div className="px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onToggleSidebar}
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg transition-colors"
+                className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
+                title="Toggle Sidebar"
               >
-                <Sidebar size={16} className="text-gray-600" />
+                <Sidebar size={16} className="text-muted-foreground" />
               </Button>
-              
-              <div className="flex items-center gap-2">
-                <img 
-                  src="../../../build/icon.png" 
-                  alt="PelicanOS" 
-                  className="w-6 h-6 rounded"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-                <span className="text-lg font-semibold text-gray-900">PelicanOS</span>
+
+              {/* Enhanced Model Profile */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Circle size={12} className="text-primary fill-current" />
+                </div>
+                <div className="flex flex-col">
+                  <TextShimmer className="text-sm font-medium text-foreground">
+                    {getModelDisplayName(selectedModel)}
+                  </TextShimmer>
+                  <span className="text-xs text-muted-foreground">Local AI Model</span>
+                </div>
               </div>
             </div>
 
-            {/* Model Info */}
-            <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="text-sm font-medium text-gray-700">
-                {getModelDisplayName(selectedModel)}
-              </span>
-              <div className="flex items-center gap-1">
-                <Circle 
-                  size={6} 
-                  className={cn(
-                    ollama.status.connected ? "text-green-500 fill-green-500" : "text-red-500 fill-red-500"
-                  )} 
-                />
-                <span className="text-xs text-gray-500">
-                  {ollama.status.connected ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Stats and Actions */}
-          <div className="flex items-center gap-6">
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <span>Messages:</span>
-                <NumberTicker 
-                  value={messageCount} 
-                  className="font-mono text-blue-600 font-medium"
-                />
-              </div>
-              {responseTime > 0 && (
+            {/* Enhanced Stats & Actions */}
+            <div className="flex items-center gap-4">
+              {/* Live Stats */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <span>Messages:</span>
+                  <NumberTicker value={messageCount} className="font-mono text-foreground" />
+                </div>
                 <div className="flex items-center gap-1">
                   <span>Response:</span>
-                  <NumberTicker 
-                    value={responseTime} 
-                    suffix="ms"
-                    className="font-mono text-blue-600 font-medium"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDeveloperMode(!developerMode)}
-                className={cn(
-                  "h-8 px-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors",
-                  developerMode && "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                )}
-                title="Toggle Canvas Mode"
-              >
-                <Lightning size={16} />
-                <span className="ml-1.5 text-xs font-medium">Canvas</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onOpenSystemStatus}
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
-                title="System Status"
-              >
-                <Cpu size={16} className="text-gray-600" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearChat}
-                disabled={messages.length === 0}
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg disabled:opacity-50"
-                title="Clear Chat"
-              >
-                <ArrowsClockwise size={16} className="text-gray-600" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onOpenSettings}
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
-                title="Settings"
-              >
-                <Gear size={16} className="text-gray-600" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className={`flex-1 flex ${developerMode ? '' : 'flex-col'}`}>
-        {/* Chat Section */}
-        <div className={`flex flex-col ${developerMode ? 'w-3/5 border-r border-gray-200' : 'flex-1'}`}>
-          {/* Chat Area */}
-          <ScrollArea className="flex-1 bg-gray-50" ref={scrollAreaRef}>
-        <div className="max-w-4xl mx-auto">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[60vh] px-6">
-              <div className="text-center space-y-6 max-w-xl">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center mx-auto">
-                  <span className="text-2xl text-white font-bold">AI</span>
-                </div>
-                
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-semibold text-gray-900">
-                    Welcome to {getModelDisplayName(selectedModel)}
-                  </h2>
-                  <p className="text-gray-600">
-                    Your private AI assistant is ready to help. Start a conversation below.
-                  </p>
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                    <Circle 
-                      size={8} 
-                      className={cn(
-                        ollama.status.connected ? "text-green-500 fill-green-500" : "text-red-500 fill-red-500"
-                      )} 
-                    />
-                    <span>{ollama.status.connected ? "Connected & Ready" : "Connecting..."}</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 max-w-lg">
-                  {[
-                    { text: "Explain quantum computing", category: "Science" },
-                    { text: "Write a Python function", category: "Code" }, 
-                    { text: "Help me plan a project", category: "Planning" },
-                    { text: "Analyze this data", category: "Analysis" }
-                  ].map((example, index) => (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      onClick={() => setCurrentMessage(example.text)}
-                      className="p-4 text-left rounded-xl hover:bg-white border border-gray-200 hover:border-gray-300 h-auto transition-all"
-                    >
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium text-gray-900">
-                          {example.text}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {example.category}
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
+                  <NumberTicker value={responseTime} className="font-mono text-foreground" />ms
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-6 p-6">
-              {messages.map((message) => (
-                <MessageComponent key={message.id} message={message} />
-              ))}
 
-              {isThinking && (
-                <div className="flex gap-4 max-w-4xl">
-                  <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-bold">AI</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-white rounded-xl p-4 border border-gray-200 inline-block">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-
-      {/* Clean Input Area */}
-      <div className="border-t border-gray-200 bg-white p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-end gap-3 p-4 border border-gray-200 rounded-xl bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 flex-shrink-0 hover:bg-gray-100 rounded-lg"
-              disabled={isThinking}
-              title="Attach file"
-            >
-              <Paperclip size={16} className="text-gray-600" />
-            </Button>
-
-            <div className="flex-1 relative">
-              <Textarea
-                ref={textareaRef}
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={`Message ${getModelDisplayName(selectedModel)}...`}
-                className="min-h-[24px] max-h-[120px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm placeholder:text-gray-500 text-gray-900"
-                disabled={isThinking}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {currentMessage.trim() ? (
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={isThinking}
-                  className="h-8 w-8 p-0 bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50"
-                  title="Send message"
-                >
-                  {isThinking ? (
-                    <div className="animate-spin">
-                      <ArrowsClockwise size={14} className="text-white" />
-                    </div>
-                  ) : (
-                    <PaperPlaneTilt size={14} weight="fill" className="text-white" />
-                  )}
-                </Button>
-              ) : (
+              {/* Action Buttons - Canvas button removed as per requirements */}
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setIsRecording(!isRecording)}
-                  className={cn(
-                    "h-8 w-8 p-0 rounded-lg transition-all",
-                    isRecording 
-                      ? "bg-red-500 text-white" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                  disabled={isThinking}
-                  title={isRecording ? "Stop recording" : "Start voice input"}
+                  onClick={onOpenSystemStatus}
+                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
+                  title="System Status"
                 >
-                  {isRecording ? <Stop size={14} /> : <Microphone size={14} />}
+                  <Cpu size={16} className="text-muted-foreground" />
                 </Button>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
-            <div className="flex items-center gap-2">
-              <span>AI responses may contain errors.</span>
-              <span>•</span>
-              <span>Everything runs locally on your machine.</span>
-            </div>
-            <div>
-              <span>Press Shift+Enter for new line</span>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearChat}
+                  disabled={messages.length === 0}
+                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg disabled:opacity-50"
+                  title="Clear Chat"
+                >
+                  <ArrowsClockwise size={16} className="text-muted-foreground" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onOpenSettings}
+                  className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
+                  title="Settings"
+                >
+                  <Gear size={16} className="text-muted-foreground" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-        </div>
 
-        {/* Canvas Panel */}
-        {developerMode && (
-          <div className="w-2/5 bg-gray-900 text-white flex flex-col">
-            <div className="p-4 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lightning size={20} className="text-blue-400" />
-                <span className="font-semibold">Canvas</span>
+        {/* Messages Area */}
+        <ScrollArea ref={scrollAreaRef} className="flex-1 px-6">
+          <div className="max-w-4xl mx-auto py-6 space-y-6">
+            {messages.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Circle size={24} className="text-primary" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  Welcome to {getModelDisplayName(selectedModel)}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Start a conversation with your local AI assistant
+                </p>
+                <div className="flex justify-center gap-2 text-sm text-muted-foreground">
+                  <span>100% Local</span>
+                  <span>•</span>
+                  <span>Privacy First</span>
+                  <span>•</span>
+                  <span>No Internet Required</span>
+                </div>
               </div>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-gray-700"
-                onClick={() => setDeveloperMode(false)}
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="flex-1 flex flex-col">
-              <div className="p-2 bg-gray-800 border-b border-gray-700 text-sm text-gray-400">
-                code.js
-              </div>
-              <Textarea
-                className="flex-1 bg-gray-900 text-green-400 font-mono text-sm border-0 rounded-none resize-none focus:ring-0"
-                placeholder="// Canvas - AI Code Editor
-console.log('Hello from Canvas!');
+            ) : (
+              messages.map((message) => (
+                <MessageComponent 
+                  key={message.id} 
+                  message={message}
+                  isThinking={false}
+                />
+              ))
+            )}
 
-// Ask the AI to write code here"
-                style={{ minHeight: '400px' }}
-              />
-            </div>
+            {isThinking && (
+              <div className="flex justify-start">
+                <div className="bg-accent/50 rounded-2xl px-4 py-3 max-w-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.1s]"></div>
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </ScrollArea>
+
+        {/* Enhanced Input Area with embedded canvas toggle */}
+        <div className="border-t border-border bg-card/50 backdrop-blur-sm p-6">
+          <div className="max-w-4xl mx-auto">
+            <InputBar
+              value={currentMessage}
+              onChange={setCurrentMessage}
+              onSend={handleSendMessage}
+              isLoading={isThinking}
+              canvasOpen={canvasOpen}
+              onOpenCanvas={() => setCanvasOpen(!canvasOpen)}
+              placeholder={`Message ${getModelDisplayName(selectedModel)}...`}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Canvas Panel with seamless theming */}
+      {canvasOpen && (
+        <div className="w-2/5 border-l border-border bg-background flex flex-col">
+          <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Lightning size={20} className="text-primary" />
+              <span className="font-semibold text-foreground">Canvas</span>
+            </div>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0"
+              onClick={() => setCanvasOpen(false)}
+            >
+              <ArrowsClockwise size={14} className="text-muted-foreground" />
+            </Button>
+          </div>
+          <div className="flex-1">
+            <EnhancedChatCanvas
+              messages={messages}
+              onUpdateMessage={handleUpdateMessage}
+              onDeleteMessage={handleDeleteMessage}
+              onCorrectMessage={handleCorrectMessage}
+              onAddMessage={handleAddMessage}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
