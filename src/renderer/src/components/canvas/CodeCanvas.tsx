@@ -14,7 +14,9 @@ import {
   FileText,
   Folder,
   Eye,
-  EyeSlash
+  EyeSlash,
+  Export,
+  Share
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -112,6 +114,78 @@ const CodeCanvas: React.FC<CodeCanvasProps> = ({
       description: `Downloading ${fileName || `code.${language}`}`,
       duration: 2000
     })
+  }
+
+  const handleExport = () => {
+    // Create a dropdown-like behavior by showing toast with options
+    addToast({
+      type: 'info',
+      title: 'Export Options',
+      description: 'Choose format: .tsx, .txt, or .zip',
+      duration: 5000
+    })
+
+    // For now, we'll implement the basic export functionality
+    // This could be expanded to show a proper dropdown in the future
+    const fileExtension = language === 'typescript' || language === 'tsx' ? 'tsx' : 
+                         language === 'javascript' || language === 'jsx' ? 'jsx' :
+                         language === 'python' ? 'py' :
+                         language === 'html' ? 'html' :
+                         language === 'css' ? 'css' : 'txt'
+    
+    const blob = new Blob([localContent], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${fileName?.split('.')[0] || 'code'}.${fileExtension}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        // Create a file to share
+        const file = new File([localContent], fileName || `code.${language}`, {
+          type: 'text/plain'
+        })
+        
+        await navigator.share({
+          title: title || 'Code from PelicanOS',
+          text: `Check out this ${language} code:`,
+          files: [file]
+        })
+        
+        addToast({
+          type: 'success',
+          title: 'Shared Successfully',
+          description: 'Code shared via system dialog',
+          duration: 2000
+        })
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          // Fallback to clipboard if sharing fails
+          await handleCopy()
+          addToast({
+            type: 'info',
+            title: 'Share Not Available',
+            description: 'Code copied to clipboard instead',
+            duration: 3000
+          })
+        }
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      await handleCopy()
+      addToast({
+        type: 'info',
+        title: 'Share Not Available',
+        description: 'Code copied to clipboard',
+        duration: 3000
+      })
+    }
   }
 
   const handleExecute = () => {
@@ -245,6 +319,27 @@ const CodeCanvas: React.FC<CodeCanvasProps> = ({
               className="h-7 w-7 p-0"
             >
               <Download size={14} />
+            </Button>
+
+            {/* Export and Share Controls */}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleExport}
+              className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700"
+              title="Export as .tsx, .txt, or zip file"
+            >
+              <Export size={14} />
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleShare}
+              className="h-7 w-7 p-0 text-green-600 hover:text-green-700"
+              title="Share via system dialog"
+            >
+              <Share size={14} />
             </Button>
 
             {onExecute && (
