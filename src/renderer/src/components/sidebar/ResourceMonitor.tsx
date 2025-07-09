@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Cpu, 
-  HardDrive, 
-  Lightning, 
-  TrendingUp, 
-  Activity,
-  Memory
-} from 'phosphor-react'
+import { Cpu, HardDrive, Lightning, TrendingUp, Activity, Memory } from 'phosphor-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -46,10 +39,10 @@ export default function ResourceMonitor({
   className
 }: ResourceMonitorProps) {
   const [cpuHistory, setCpuHistory] = useState<number[]>([])
-  
+
   useEffect(() => {
     if (showLiveChart) {
-      setCpuHistory(prev => [...prev.slice(-19), metrics.cpu.usage])
+      setCpuHistory((prev) => [...prev.slice(-19), metrics.cpu.usage])
     }
   }, [metrics.cpu.usage, showLiveChart])
 
@@ -57,7 +50,7 @@ export default function ResourceMonitor({
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
     if (bytes === 0) return '0 B'
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
   }
 
   const getUsageColor = (percentage: number) => {
@@ -73,14 +66,14 @@ export default function ResourceMonitor({
   }
 
   return (
-    <Card className={cn("w-80", className)}>
+    <Card className={cn('w-80', className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Activity className="w-4 h-4" />
           System Resources
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* CPU */}
         <div className="space-y-2">
@@ -93,15 +86,10 @@ export default function ResourceMonitor({
               {metrics.cpu.usage.toFixed(1)}%
             </Badge>
           </div>
-          <Progress 
-            value={metrics.cpu.usage} 
-            className="h-2"
-          />
+          <Progress value={metrics.cpu.usage} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{metrics.cpu.cores} cores</span>
-            {metrics.cpu.temperature && (
-              <span>{metrics.cpu.temperature}°C</span>
-            )}
+            {metrics.cpu.temperature && <span>{metrics.cpu.temperature}°C</span>}
           </div>
         </div>
 
@@ -112,17 +100,14 @@ export default function ResourceMonitor({
               <Memory className="w-4 h-4" />
               <span className="text-sm font-medium">Memory</span>
             </div>
-            <Badge 
-              variant={getUsageVariant((metrics.memory.used / metrics.memory.total) * 100)} 
+            <Badge
+              variant={getUsageVariant((metrics.memory.used / metrics.memory.total) * 100)}
               className="text-xs"
             >
               {((metrics.memory.used / metrics.memory.total) * 100).toFixed(1)}%
             </Badge>
           </div>
-          <Progress 
-            value={(metrics.memory.used / metrics.memory.total) * 100} 
-            className="h-2"
-          />
+          <Progress value={(metrics.memory.used / metrics.memory.total) * 100} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{formatBytes(metrics.memory.used)} used</span>
             <span>{formatBytes(metrics.memory.total)} total</span>
@@ -141,15 +126,10 @@ export default function ResourceMonitor({
                 {metrics.gpu.usage.toFixed(1)}%
               </Badge>
             </div>
-            <Progress 
-              value={metrics.gpu.usage} 
-              className="h-2"
-            />
+            <Progress value={metrics.gpu.usage} className="h-2" />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{formatBytes(metrics.gpu.memory)} VRAM</span>
-              {metrics.gpu.temperature && (
-                <span>{metrics.gpu.temperature}°C</span>
-              )}
+              {metrics.gpu.temperature && <span>{metrics.gpu.temperature}°C</span>}
             </div>
           </div>
         )}
@@ -161,17 +141,14 @@ export default function ResourceMonitor({
               <HardDrive className="w-4 h-4" />
               <span className="text-sm font-medium">Storage</span>
             </div>
-            <Badge 
-              variant={getUsageVariant((metrics.disk.used / metrics.disk.total) * 100)} 
+            <Badge
+              variant={getUsageVariant((metrics.disk.used / metrics.disk.total) * 100)}
               className="text-xs"
             >
               {((metrics.disk.used / metrics.disk.total) * 100).toFixed(1)}%
             </Badge>
           </div>
-          <Progress 
-            value={(metrics.disk.used / metrics.disk.total) * 100} 
-            className="h-2"
-          />
+          <Progress value={(metrics.disk.used / metrics.disk.total) * 100} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{formatBytes(metrics.disk.used)} used</span>
             <span>{formatBytes(metrics.disk.total)} total</span>
@@ -189,10 +166,7 @@ export default function ResourceMonitor({
               {cpuHistory.map((usage, index) => (
                 <div
                   key={index}
-                  className={cn(
-                    "w-3 rounded-t transition-all duration-200",
-                    getUsageColor(usage)
-                  )}
+                  className={cn('w-3 rounded-t transition-all duration-200', getUsageColor(usage))}
                   style={{ height: `${(usage / 100) * 100}%` }}
                 />
               ))}

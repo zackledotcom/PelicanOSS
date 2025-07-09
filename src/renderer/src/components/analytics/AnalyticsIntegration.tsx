@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
-import { ChartBar } from 'phosphor-react'  // Changed from BarChart
+import { ChartBar } from 'phosphor-react' // Changed from BarChart
 import ModelAnalyticsDashboard from '../analytics/ModelAnalyticsDashboard'
 import { useAnalyticsTracking } from '../../services/modelAnalytics'
 
@@ -14,17 +14,14 @@ interface AnalyticsIntegrationProps {
   selectedModel: string
 }
 
-const AnalyticsIntegration: React.FC<AnalyticsIntegrationProps> = ({
-  models,
-  selectedModel
-}) => {
+const AnalyticsIntegration: React.FC<AnalyticsIntegrationProps> = ({ models, selectedModel }) => {
   const [showDashboard, setShowDashboard] = useState(false)
   const analytics = useAnalyticsTracking()
 
   // Example of how to integrate analytics tracking into your chat
   const handleChatMessage = async (prompt: string, response: string, responseTime: number) => {
     const sessionId = `session-${Date.now()}` // Would be persistent session ID
-    
+
     await analytics.trackChatMessage({
       modelId: selectedModel,
       sessionId,
@@ -37,7 +34,7 @@ const AnalyticsIntegration: React.FC<AnalyticsIntegrationProps> = ({
 
   const handleUserRating = async (messageId: string, rating: number) => {
     const sessionId = `session-${Date.now()}` // Would be current session ID
-    
+
     await analytics.trackUserRating({
       modelId: selectedModel,
       sessionId,

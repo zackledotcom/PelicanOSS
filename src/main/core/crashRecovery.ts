@@ -33,7 +33,7 @@ class CrashRecoveryManager {
   private logDir: string
   private recoveryAttempts = new Map<string, number>()
   private sessionId: string
-  
+
   constructor() {
     this.logDir = join(app.getPath('userData'), 'logs')
     this.sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2)
@@ -76,7 +76,7 @@ class CrashRecoveryManager {
     try {
       const logFile = join(this.logDir, `crash-${new Date().toISOString().split('T')[0]}.jsonl`)
       await fs.appendFile(logFile, JSON.stringify(errorRecord) + '\n', 'utf8')
-      
+
       // Also log to console for development
       console.error(`🔥 CRASH LOGGED [${context.severity.toUpperCase()}]:`, {
         operation: context.operation,
@@ -98,7 +98,7 @@ class CrashRecoveryManager {
       return this.handleFileSystemError(error, context, attempts)
     }
 
-    // Network/service errors  
+    // Network/service errors
     if (error.message.includes('ECONNREFUSED') || error.message.includes('timeout')) {
       return this.handleNetworkError(error, context, attempts)
     }
@@ -114,7 +114,11 @@ class CrashRecoveryManager {
     }
 
     // Database/storage errors
-    if (operation.includes('chroma') || operation.includes('storage') || operation.includes('memory')) {
+    if (
+      operation.includes('chroma') ||
+      operation.includes('storage') ||
+      operation.includes('memory')
+    ) {
       return this.handleStorageError(error, context, attempts)
     }
 
@@ -122,7 +126,11 @@ class CrashRecoveryManager {
     return this.getDefaultRecoveryPlan(error, context, attempts)
   }
 
-  private handleFileSystemError(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private handleFileSystemError(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     if (attempts < 3) {
       return {
         immediate: [
@@ -171,7 +179,11 @@ class CrashRecoveryManager {
     }
   }
 
-  private handleNetworkError(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private handleNetworkError(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     return {
       immediate: [
         {
@@ -196,7 +208,11 @@ class CrashRecoveryManager {
     }
   }
 
-  private handleMemoryError(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private handleMemoryError(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     return {
       immediate: [
         {
@@ -220,7 +236,11 @@ class CrashRecoveryManager {
     }
   }
 
-  private handleModelError(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private handleModelError(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     return {
       immediate: [
         {
@@ -244,7 +264,11 @@ class CrashRecoveryManager {
     }
   }
 
-  private handleStorageError(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private handleStorageError(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     return {
       immediate: [
         {
@@ -269,7 +293,11 @@ class CrashRecoveryManager {
     }
   }
 
-  private getDefaultRecoveryPlan(error: Error, context: ErrorContext, attempts: number): ErrorRecoveryPlan {
+  private getDefaultRecoveryPlan(
+    error: Error,
+    context: ErrorContext,
+    attempts: number
+  ): ErrorRecoveryPlan {
     if (context.severity === 'critical') {
       return {
         immediate: [
@@ -315,7 +343,7 @@ class CrashRecoveryManager {
   async executeRecovery(plan: ErrorRecoveryPlan, context: ErrorContext): Promise<boolean> {
     const attemptKey = `${context.component}:${context.operation}`
     let attempts = this.recoveryAttempts.get(attemptKey) || 0
-    
+
     this.recoveryAttempts.set(attemptKey, attempts + 1)
 
     try {
@@ -356,7 +384,16 @@ class CrashRecoveryManager {
     switch (action.type) {
       case 'retry':
         // Implement retry logic
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, (this.recoveryAttempts.get(`${context.component}:${context.operation}`) || 0))))
+        await new Promise((resolve) =>
+          setTimeout(
+            resolve,
+            1000 *
+              Math.pow(
+                2,
+                this.recoveryAttempts.get(`${context.component}:${context.operation}`) || 0
+              )
+          )
+        )
         return true
 
       case 'fallback':
@@ -391,25 +428,32 @@ class CrashRecoveryManager {
   async getErrorSummary(): Promise<any> {
     try {
       const logFiles = await fs.readdir(this.logDir)
-      const crashFiles = logFiles.filter(f => f.startsWith('crash-') && f.endsWith('.jsonl'))
-      
+      const crashFiles = logFiles.filter((f) => f.startsWith('crash-') && f.endsWith('.jsonl'))
+
       let totalErrors = 0
       let errorsByComponent: Record<string, number> = {}
       let errorsBySeverity: Record<string, number> = {}
       let recentErrors = []
 
-      for (const file of crashFiles.slice(-7)) { // Last 7 days
+      for (const file of crashFiles.slice(-7)) {
+        // Last 7 days
         const content = await fs.readFile(join(this.logDir, file), 'utf8')
-        const lines = content.trim().split('\n').filter(l => l.trim())
-        
-        for (const line of lines.slice(-100)) { // Recent errors only
+        const lines = content
+          .trim()
+          .split('\n')
+          .filter((l) => l.trim())
+
+        for (const line of lines.slice(-100)) {
+          // Recent errors only
           try {
             const error = JSON.parse(line)
             totalErrors++
-            
-            errorsByComponent[error.context.component] = (errorsByComponent[error.context.component] || 0) + 1
-            errorsBySeverity[error.context.severity] = (errorsBySeverity[error.context.severity] || 0) + 1
-            
+
+            errorsByComponent[error.context.component] =
+              (errorsByComponent[error.context.component] || 0) + 1
+            errorsBySeverity[error.context.severity] =
+              (errorsBySeverity[error.context.severity] || 0) + 1
+
             if (recentErrors.length < 20) {
               recentErrors.push({
                 timestamp: error.timestamp,

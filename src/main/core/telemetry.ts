@@ -99,23 +99,29 @@ class TelemetryManager {
   private async flush(): Promise<void> {
     if (this.buffer.length === 0) return
 
-    const events = this.buffer.filter(item => 'type' in item) as TelemetryEvent[]
-    const audits = this.buffer.filter(item => 'actor' in item) as AuditRecord[]
-    
+    const events = this.buffer.filter((item) => 'type' in item) as TelemetryEvent[]
+    const audits = this.buffer.filter((item) => 'actor' in item) as AuditRecord[]
+
     this.buffer = []
 
     try {
       // Write telemetry events
       if (events.length > 0) {
-        const telemetryFile = join(this.telemetryDir, `telemetry-${new Date().toISOString().split('T')[0]}.jsonl`)
-        const telemetryData = events.map(e => JSON.stringify(e)).join('\n') + '\n'
+        const telemetryFile = join(
+          this.telemetryDir,
+          `telemetry-${new Date().toISOString().split('T')[0]}.jsonl`
+        )
+        const telemetryData = events.map((e) => JSON.stringify(e)).join('\n') + '\n'
         await fs.appendFile(telemetryFile, telemetryData, 'utf8')
       }
 
       // Write audit records
       if (audits.length > 0) {
-        const auditFile = join(this.auditDir, `audit-${new Date().toISOString().split('T')[0]}.jsonl`)
-        const auditData = audits.map(a => JSON.stringify(a)).join('\n') + '\n'
+        const auditFile = join(
+          this.auditDir,
+          `audit-${new Date().toISOString().split('T')[0]}.jsonl`
+        )
+        const auditData = audits.map((a) => JSON.stringify(a)).join('\n') + '\n'
         await fs.appendFile(auditFile, auditData, 'utf8')
       }
     } catch (error) {
@@ -133,23 +139,26 @@ class TelemetryManager {
   }): Promise<string> {
     try {
       const files = await fs.readdir(this.telemetryDir)
-      const telemetryFiles = files.filter(f => f.startsWith('telemetry-') && f.endsWith('.jsonl'))
-      
+      const telemetryFiles = files.filter((f) => f.startsWith('telemetry-') && f.endsWith('.jsonl'))
+
       let allEvents: TelemetryEvent[] = []
 
       for (const file of telemetryFiles) {
         const content = await fs.readFile(join(this.telemetryDir, file), 'utf8')
-        const lines = content.trim().split('\n').filter(l => l.trim())
-        
+        const lines = content
+          .trim()
+          .split('\n')
+          .filter((l) => l.trim())
+
         for (const line of lines) {
           try {
             const event = JSON.parse(line) as TelemetryEvent
-            
+
             // Apply filters
             if (options.startDate && event.timestamp < options.startDate) continue
             if (options.endDate && event.timestamp > options.endDate) continue
             if (options.types && !options.types.includes(event.type)) continue
-            
+
             allEvents.push(event)
           } catch (parseError) {
             // Skip malformed entries
@@ -159,7 +168,9 @@ class TelemetryManager {
 
       // Generate output
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const outputPath = options.outputPath || join(app.getPath('userData'), `telemetry-export-${timestamp}.${options.format}`)
+      const outputPath =
+        options.outputPath ||
+        join(app.getPath('userData'), `telemetry-export-${timestamp}.${options.format}`)
 
       let outputData: string
 
@@ -167,27 +178,31 @@ class TelemetryManager {
         case 'json':
           outputData = JSON.stringify(allEvents, null, 2)
           break
-        
+
         case 'csv':
           const headers = ['timestamp', 'type', 'category', 'action', 'label', 'value', 'sessionId']
           const csvRows = [
             headers.join(','),
-            ...allEvents.map(event => [
-              event.timestamp,
-              event.type,
-              event.category,
-              event.action,
-              event.label || '',
-              event.value || '',
-              event.sessionId
-            ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+            ...allEvents.map((event) =>
+              [
+                event.timestamp,
+                event.type,
+                event.category,
+                event.action,
+                event.label || '',
+                event.value || '',
+                event.sessionId
+              ]
+                .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+                .join(',')
+            )
           ]
           outputData = csvRows.join('\n')
           break
-        
+
         case 'jsonl':
         default:
-          outputData = allEvents.map(e => JSON.stringify(e)).join('\n')
+          outputData = allEvents.map((e) => JSON.stringify(e)).join('\n')
           break
       }
 
@@ -209,24 +224,27 @@ class TelemetryManager {
   }): Promise<string> {
     try {
       const files = await fs.readdir(this.auditDir)
-      const auditFiles = files.filter(f => f.startsWith('audit-') && f.endsWith('.jsonl'))
-      
+      const auditFiles = files.filter((f) => f.startsWith('audit-') && f.endsWith('.jsonl'))
+
       let allRecords: AuditRecord[] = []
 
       for (const file of auditFiles) {
         const content = await fs.readFile(join(this.auditDir, file), 'utf8')
-        const lines = content.trim().split('\n').filter(l => l.trim())
-        
+        const lines = content
+          .trim()
+          .split('\n')
+          .filter((l) => l.trim())
+
         for (const line of lines) {
           try {
             const record = JSON.parse(line) as AuditRecord
-            
+
             // Apply filters
             if (options.startDate && record.timestamp < options.startDate) continue
             if (options.endDate && record.timestamp > options.endDate) continue
             if (options.operations && !options.operations.includes(record.operation)) continue
             if (options.components && !options.components.includes(record.component)) continue
-            
+
             allRecords.push(record)
           } catch (parseError) {
             // Skip malformed entries
@@ -236,7 +254,9 @@ class TelemetryManager {
 
       // Generate output
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const outputPath = options.outputPath || join(app.getPath('userData'), `audit-export-${timestamp}.${options.format}`)
+      const outputPath =
+        options.outputPath ||
+        join(app.getPath('userData'), `audit-export-${timestamp}.${options.format}`)
 
       let outputData: string
 
@@ -244,27 +264,39 @@ class TelemetryManager {
         case 'json':
           outputData = JSON.stringify(allRecords, null, 2)
           break
-        
+
         case 'csv':
-          const headers = ['timestamp', 'operation', 'component', 'actor', 'success', 'duration', 'sessionId']
+          const headers = [
+            'timestamp',
+            'operation',
+            'component',
+            'actor',
+            'success',
+            'duration',
+            'sessionId'
+          ]
           const csvRows = [
             headers.join(','),
-            ...allRecords.map(record => [
-              record.timestamp,
-              record.operation,
-              record.component,
-              record.actor,
-              record.success,
-              record.duration || '',
-              record.sessionId
-            ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+            ...allRecords.map((record) =>
+              [
+                record.timestamp,
+                record.operation,
+                record.component,
+                record.actor,
+                record.success,
+                record.duration || '',
+                record.sessionId
+              ]
+                .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+                .join(',')
+            )
           ]
           outputData = csvRows.join('\n')
           break
-        
+
         case 'jsonl':
         default:
-          outputData = allRecords.map(r => JSON.stringify(r)).join('\n')
+          outputData = allRecords.map((r) => JSON.stringify(r)).join('\n')
           break
       }
 
@@ -279,25 +311,30 @@ class TelemetryManager {
   async getTelemetrySummary(): Promise<any> {
     try {
       const files = await fs.readdir(this.telemetryDir)
-      const telemetryFiles = files.filter(f => f.startsWith('telemetry-') && f.endsWith('.jsonl'))
-      
+      const telemetryFiles = files.filter((f) => f.startsWith('telemetry-') && f.endsWith('.jsonl'))
+
       let totalEvents = 0
       let eventsByType: Record<string, number> = {}
       let eventsByCategory: Record<string, number> = {}
       let recentEvents = []
 
-      for (const file of telemetryFiles.slice(-7)) { // Last 7 days
+      for (const file of telemetryFiles.slice(-7)) {
+        // Last 7 days
         const content = await fs.readFile(join(this.telemetryDir, file), 'utf8')
-        const lines = content.trim().split('\n').filter(l => l.trim())
-        
-        for (const line of lines.slice(-1000)) { // Recent events only
+        const lines = content
+          .trim()
+          .split('\n')
+          .filter((l) => l.trim())
+
+        for (const line of lines.slice(-1000)) {
+          // Recent events only
           try {
             const event = JSON.parse(line)
             totalEvents++
-            
+
             eventsByType[event.type] = (eventsByType[event.type] || 0) + 1
             eventsByCategory[event.category] = (eventsByCategory[event.category] || 0) + 1
-            
+
             if (recentEvents.length < 50) {
               recentEvents.push({
                 timestamp: event.timestamp,
@@ -338,10 +375,11 @@ class TelemetryManager {
   }): Promise<any[]> {
     try {
       let searchDirs: string[] = []
-      
+
       if (!query.type || query.type === 'telemetry') searchDirs.push(this.telemetryDir)
       if (!query.type || query.type === 'audit') searchDirs.push(this.auditDir)
-      if (!query.type || query.type === 'crash') searchDirs.push(join(app.getPath('userData'), 'logs'))
+      if (!query.type || query.type === 'crash')
+        searchDirs.push(join(app.getPath('userData'), 'logs'))
 
       let results: any[] = []
       const limit = query.limit || 100
@@ -349,15 +387,19 @@ class TelemetryManager {
       for (const dir of searchDirs) {
         try {
           const files = await fs.readdir(dir)
-          
-          for (const file of files.slice(-10)) { // Recent files only
+
+          for (const file of files.slice(-10)) {
+            // Recent files only
             const content = await fs.readFile(join(dir, file), 'utf8')
-            const lines = content.trim().split('\n').filter(l => l.trim())
-            
+            const lines = content
+              .trim()
+              .split('\n')
+              .filter((l) => l.trim())
+
             for (const line of lines) {
               try {
                 const record = JSON.parse(line)
-                
+
                 // Apply filters
                 if (query.startDate && record.timestamp < query.startDate) continue
                 if (query.endDate && record.timestamp > query.endDate) continue
@@ -365,22 +407,22 @@ class TelemetryManager {
                   const searchText = JSON.stringify(record).toLowerCase()
                   if (!searchText.includes(query.text.toLowerCase())) continue
                 }
-                
+
                 results.push({
                   ...record,
                   sourceFile: file,
                   sourceDir: dir
                 })
-                
+
                 if (results.length >= limit) break
               } catch (parseError) {
                 // Skip malformed entries
               }
             }
-            
+
             if (results.length >= limit) break
           }
-          
+
           if (results.length >= limit) break
         } catch (dirError) {
           // Skip inaccessible directories

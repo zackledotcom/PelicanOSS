@@ -10,26 +10,26 @@ import { Plus, Trash, ArrowsClockwise, FloppyDisk, Export, Upload } from 'phosph
 
 // Types (should match the backend)
 interface TuningExample {
-  input: string;
-  output: string;
+  input: string
+  output: string
 }
 
 interface TuningDataset {
-  id: string;
-  name: string;
-  description: string;
-  examples: TuningExample[];
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  description: string
+  examples: TuningExample[]
+  createdAt: string
+  updatedAt: string
 }
 
 interface DatasetEditorProps {
-  className?: string;
-  onDatasetCreated?: (dataset: TuningDataset) => void;
-  selectedDataset?: TuningDataset | null;
+  className?: string
+  onDatasetCreated?: (dataset: TuningDataset) => void
+  selectedDataset?: TuningDataset | null
 }
 
-const DatasetEditor: React.FC<DatasetEditorProps> = ({ 
+const DatasetEditor: React.FC<DatasetEditorProps> = ({
   className,
   onDatasetCreated,
   selectedDataset
@@ -41,12 +41,12 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentDataset, setCurrentDataset] = useState<TuningDataset | null>(null)
-  
+
   // Create/edit example state
   const [currentInput, setCurrentInput] = useState('')
   const [currentOutput, setCurrentOutput] = useState('')
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  
+
   // Load dataset if provided
   useEffect(() => {
     if (selectedDataset) {
@@ -58,7 +58,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
       resetForm()
     }
   }, [selectedDataset])
-  
+
   // Reset the form
   const resetForm = () => {
     setName('')
@@ -70,25 +70,25 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
     setError('')
     setCurrentDataset(null)
   }
-  
+
   // Save dataset
   const saveDataset = async () => {
     if (!name.trim()) {
       setError('Dataset name is required')
       return
     }
-    
+
     if (examples.length === 0) {
       setError('Dataset must have at least one example')
       return
     }
-    
+
     setIsLoading(true)
     setError('')
-    
+
     try {
       let result
-      
+
       if (currentDataset) {
         // Update existing dataset
         result = await window.api.updateTuningDataset({
@@ -107,10 +107,10 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
           examples
         })
       }
-      
+
       setCurrentDataset(result)
       onDatasetCreated?.(result)
-      
+
       if (!currentDataset) {
         // Reset form after creating a new dataset
         resetForm()
@@ -122,19 +122,19 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
       setIsLoading(false)
     }
   }
-  
+
   // Add or update example
   const addOrUpdateExample = () => {
     if (!currentInput.trim() || !currentOutput.trim()) {
       setError('Both input and output are required')
       return
     }
-    
+
     const example: TuningExample = {
       input: currentInput,
       output: currentOutput
     }
-    
+
     if (editingIndex !== null && editingIndex >= 0 && editingIndex < examples.length) {
       // Update existing example
       const updatedExamples = [...examples]
@@ -144,26 +144,26 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
       // Add new example
       setExamples([...examples, example])
     }
-    
+
     // Reset form
     setCurrentInput('')
     setCurrentOutput('')
     setEditingIndex(null)
     setError('')
   }
-  
+
   // Delete example
   const deleteExample = (index: number) => {
     const updatedExamples = examples.filter((_, i) => i !== index)
     setExamples(updatedExamples)
-    
+
     if (editingIndex === index) {
       setCurrentInput('')
       setCurrentOutput('')
       setEditingIndex(null)
     }
   }
-  
+
   // Edit example
   const editExample = (index: number) => {
     const example = examples[index]
@@ -171,20 +171,22 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
     setCurrentOutput(example.output)
     setEditingIndex(index)
   }
-  
+
   // Export dataset
   const exportDataset = async () => {
     if (!currentDataset) return
-    
+
     try {
       const filePath = await window.api.exportTuningDataset(currentDataset.id)
       console.log(`Dataset exported to ${filePath}`)
     } catch (error) {
       console.error('Failed to export dataset:', error)
-      setError(`Failed to export dataset: ${error instanceof Error ? error.message : String(error)}`)
+      setError(
+        `Failed to export dataset: ${error instanceof Error ? error.message : String(error)}`
+      )
     }
   }
-  
+
   return (
     <Card className="bg-gray-800/80 border-gray-700/50 backdrop-blur-md overflow-hidden">
       <CardHeader className="pb-2">
@@ -206,7 +208,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                 className="bg-gray-900 border-gray-700 text-white"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm text-gray-400 mb-1">Description</label>
               <Textarea
@@ -217,14 +219,10 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
               />
             </div>
           </div>
-          
+
           {/* Error Message */}
-          {error && (
-            <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">
-              {error}
-            </div>
-          )}
-          
+          {error && <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">{error}</div>}
+
           {/* Examples Section */}
           <div className="pt-2">
             <Tabs defaultValue="examples" className="w-full">
@@ -232,19 +230,21 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                 <TabsTrigger value="examples">Examples ({examples.length})</TabsTrigger>
                 <TabsTrigger value="add">Add Example</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="examples">
                 <div className="py-2">
                   <ScrollArea className="h-[300px] pr-4">
                     {examples.length > 0 ? (
                       <div className="space-y-4">
                         {examples.map((example, index) => (
-                          <div 
+                          <div
                             key={index}
                             className="bg-gray-900 rounded p-3 border border-gray-700"
                           >
                             <div className="flex justify-between items-start mb-2">
-                              <span className="text-sm text-blue-400 font-medium">Example #{index + 1}</span>
+                              <span className="text-sm text-blue-400 font-medium">
+                                Example #{index + 1}
+                              </span>
                               <div className="flex gap-1">
                                 <Button
                                   variant="ghost"
@@ -264,7 +264,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                                 </Button>
                               </div>
                             </div>
-                            
+
                             <div className="space-y-2">
                               <div>
                                 <div className="text-xs text-gray-400 mb-1">Input:</div>
@@ -272,7 +272,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                                   {example.input}
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <div className="text-xs text-gray-400 mb-1">Output:</div>
                                 <div className="text-sm text-white bg-gray-800 p-2 rounded overflow-auto max-h-24">
@@ -291,12 +291,14 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                   </ScrollArea>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="add">
                 <div className="py-2 space-y-3">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      {editingIndex !== null ? `Editing Example #${editingIndex + 1}` : 'Input (Prompt)'}
+                      {editingIndex !== null
+                        ? `Editing Example #${editingIndex + 1}`
+                        : 'Input (Prompt)'}
                     </label>
                     <Textarea
                       value={currentInput}
@@ -305,7 +307,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                       className="bg-gray-900 border-gray-700 text-white h-[100px] resize-none"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Output (Response)</label>
                     <Textarea
@@ -315,7 +317,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
                       className="bg-gray-900 border-gray-700 text-white h-[100px] resize-none"
                     />
                   </div>
-                  
+
                   <Button
                     onClick={addOrUpdateExample}
                     disabled={!currentInput.trim() || !currentOutput.trim()}
@@ -337,7 +339,7 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
               </TabsContent>
             </Tabs>
           </div>
-          
+
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button
@@ -348,17 +350,14 @@ const DatasetEditor: React.FC<DatasetEditorProps> = ({
               <FloppyDisk size={16} className="mr-2" />
               {currentDataset ? 'Update Dataset' : 'Save Dataset'}
             </Button>
-            
+
             {currentDataset && (
-              <Button
-                onClick={exportDataset}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
+              <Button onClick={exportDataset} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Export size={16} className="mr-2" />
                 Export
               </Button>
             )}
-            
+
             <Button
               onClick={resetForm}
               variant="outline"

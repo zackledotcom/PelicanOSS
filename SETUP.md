@@ -11,6 +11,7 @@ Before using the AI Assistant, you need to install the required services:
 ### 1. Install Ollama
 
 **macOS/Linux:**
+
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
@@ -19,6 +20,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 Download from: https://ollama.com/download
 
 **Verify Installation:**
+
 ```bash
 ollama --version
 ```
@@ -30,6 +32,7 @@ pip install chromadb
 ```
 
 **Verify Installation:**
+
 ```bash
 chroma --version
 ```
@@ -37,11 +40,13 @@ chroma --version
 ## 🎯 Usage
 
 1. **Start the Application:**
+
    ```bash
    npm run dev
    ```
 
 2. **Service Setup:**
+
    - The app will check if Ollama and ChromaDB are running
    - If not running, use the "Start" buttons in the interface
    - For first-time use, you'll need to pull an AI model (like llama2)
@@ -54,17 +59,20 @@ chroma --version
 ## ⚙️ Features
 
 ### ✅ Service Management
+
 - **Auto-detection** of Ollama and ChromaDB services
 - **One-click startup** for services
 - **Real-time status** indicators
 
 ### 🤖 AI Chat
+
 - **Multiple model support** (switch between downloaded models)
 - **Conversation memory** via ChromaDB integration
 - **Context-aware responses** using chat history
 - **Export functionality** for chat logs
 
 ### 🧠 RAG (Retrieval-Augmented Generation)
+
 - **Automatic storage** of conversations in ChromaDB
 - **Context search** for better responses
 - **Persistent memory** across sessions
@@ -72,16 +80,19 @@ chroma --version
 ## 🔧 Troubleshooting
 
 ### Ollama Issues
+
 - **"Failed to connect"**: Ensure Ollama is installed and in PATH
 - **"No models available"**: Run `ollama pull llama2` in terminal
 - **Port conflicts**: Ollama runs on port 11434 by default
 
 ### ChromaDB Issues
+
 - **"ChromaDB not responding"**: Check if port 8000 is available
 - **Installation errors**: Ensure Python 3.8+ is installed
 - **Permission issues**: Run with appropriate permissions
 
 ### Common Commands
+
 ```bash
 # Manual Ollama commands
 ollama serve                    # Start Ollama service
@@ -95,6 +106,7 @@ chroma run --host localhost --port 8000    # Start ChromaDB
 ## 🏗️ Development
 
 ### Build Commands
+
 ```bash
 npm run dev          # Development mode
 npm run build        # Production build
@@ -102,6 +114,7 @@ npm run start        # Start built app
 ```
 
 ### Project Structure
+
 ```
 src/
 ├── main/           # Electron main process
@@ -114,11 +127,13 @@ src/
 ## 🎨 Customization
 
 ### Adding New Models
+
 1. Download model: `ollama pull model-name`
 2. Restart the application
 3. Select from dropdown in interface
 
 ### Styling
+
 - Modify `AIAssistant.vue` for UI changes
 - Uses gradient background with glassmorphism effects
 - Responsive design for different screen sizes
@@ -144,6 +159,7 @@ src/
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check the service status indicators in the app
 2. Verify prerequisites are installed
 3. Check console output for error details

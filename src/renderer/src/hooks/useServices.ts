@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { MemoryStore, MemorySummary } from '../../../types/chat'
 import type { AppSettings } from '../../../types/settings'
 
@@ -43,7 +43,7 @@ export const useOllamaService = () => {
       if (response.models) {
         setModels(response.models)
       }
-    } catch (error) {
+    } catch {
       setStatus({
         connected: false,
         message: 'Failed to check Ollama status',
@@ -53,13 +53,13 @@ export const useOllamaService = () => {
   }, [])
 
   const startService = useCallback(async () => {
-    setStatus(prev => ({ ...prev, starting: true }))
+    setStatus((prev) => ({ ...prev, starting: true }))
     try {
       const response = await window.api.startOllama()
-      await checkStatus() // Recheck after start attempt
+      await checkStatus()
       return response
     } catch (error) {
-      setStatus(prev => ({ ...prev, starting: false }))
+      setStatus((prev) => ({ ...prev, starting: false }))
       throw error
     }
   }, [checkStatus])
@@ -77,23 +77,23 @@ export const useOllamaService = () => {
     }
   }, [])
 
-  const pullModel = useCallback(async (modelName: string) => {
-    try {
-      const response = await window.api.pullModel(modelName)
-      if (response) {
-        await getModels() // Refresh models after pull
+  const pullModel = useCallback(
+    async (modelName: string) => {
+      try {
+        const response = await window.api.pullModel(modelName)
+        if (response) await getModels()
+        return response
+      } catch (error) {
+        console.error('Failed to pull model:', error)
+        return false
       }
-      return response
-    } catch (error) {
-      console.error('Failed to pull model:', error)
-      return false
-    }
-  }, [getModels])
+    },
+    [getModels]
+  )
 
-  // Auto-check status on mount
   useEffect(() => {
     checkStatus()
-    const interval = setInterval(checkStatus, 30000) // Check every 30s
+    const interval = setInterval(checkStatus, 30000)
     return () => clearInterval(interval)
   }, [checkStatus])
 
@@ -126,7 +126,7 @@ export const useChromaService = () => {
         message: response.message,
         starting: false
       })
-    } catch (error) {
+    } catch {
       setStatus({
         connected: false,
         message: 'Failed to check ChromaDB status',
@@ -136,21 +136,20 @@ export const useChromaService = () => {
   }, [])
 
   const startService = useCallback(async () => {
-    setStatus(prev => ({ ...prev, starting: true }))
+    setStatus((prev) => ({ ...prev, starting: true }))
     try {
       const response = await window.api.startChroma()
-      await checkStatus() // Recheck after start attempt
+      await checkStatus()
       return response
     } catch (error) {
-      setStatus(prev => ({ ...prev, starting: false }))
+      setStatus((prev) => ({ ...prev, starting: false }))
       throw error
     }
   }, [checkStatus])
 
-  // Auto-check status on mount
   useEffect(() => {
     checkStatus()
-    const interval = setInterval(checkStatus, 30000) // Check every 30s
+    const interval = setInterval(checkStatus, 30000)
     return () => clearInterval(interval)
   }, [checkStatus])
 
@@ -168,35 +167,39 @@ export const useChromaService = () => {
 export const useChatService = () => {
   const [isThinking, setIsThinking] = useState(false)
 
-  const sendMessage = useCallback(async (
-    message: string,
-    model: string,
-    history: any[] = [],
-    options?: any
-  ): Promise<ChatResponse> => {
-    setIsThinking(true)
-    try {
-      const response = await window.api.chatWithAI({
-        message,
-        model,
-        history,
-        memoryOptions: options
-      })
-      return response
-    } catch (error) {
-      console.error('Chat error:', error)
-      return {
-        success: false,
-        message: 'Sorry, I encountered an error processing your request.'
+  const sendMessage = useCallback(
+    async (
+      message: string,
+      model: string,
+      history: any[] = [],
+      options?: any
+    ): Promise<ChatResponse> => {
+      setIsThinking(true)
+      try {
+        const response = await window.api.chatWithAI({
+          message,
+          model,
+          history,
+          memoryOptions: options
+        })
+        return {
+          success: response.success,
+          message: response.message || '', // Use response.message, not response.response
+          modelUsed: response.modelUsed
+        }
+      } catch (error) {
+        console.error('Chat error:', error)
+        return { success: false, message: 'Sorry, I encountered an error processing your request.' }
+      } finally {
+        setIsThinking(false)
       }
-    } finally {
-      setIsThinking(false)
-    }
-  }, [])
+    },
+    []
+  )
 
   const searchContext = useCallback(async (query: string) => {
     try {
-      return await window.api.searchContext(query)
+      return await window.api.searchMemory(query)
     } catch (error) {
       console.error('Search context error:', error)
       return { success: false, results: [] }
@@ -207,6 +210,99 @@ export const useChatService = () => {
     isThinking,
     sendMessage,
     searchContext
+  }
+}
+
+// ===============================
+// Streaming Chat Service Hook
+// ===============================
+
+export const useStreamingChatService = () => {
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [streamingText, setStreamingText] = useState('')
+  const [currentStreamId, setCurrentStreamId] = useState<string | null>(null)
+  const streamingTextRef = useRef('')
+
+  const startStreamingChat = useCallback(
+    async (
+      message: string,
+      model: string,
+      onChunk?: (chunk: string) => void,
+      onComplete?: (fullText: string) => void,
+      onError?: (error: string) => void
+    ) => {
+      const streamId = `stream_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      setCurrentStreamId(streamId)
+      setIsStreaming(true)
+      setStreamingText('')
+      streamingTextRef.current = ''
+
+      let removeChunkListener: () => void
+      let removeCompleteListener: () => void
+      let removeErrorListener: () => void
+
+      try {
+        removeChunkListener = window.api.onChatStreamChunk((data) => {
+          if (data.id !== streamId) return
+          setStreamingText((prev) => {
+            const next = prev + data.chunk
+            streamingTextRef.current = next
+            return next
+          })
+          onChunk?.(data.chunk)
+        })
+
+        removeCompleteListener = window.api.onChatStreamComplete((data) => {
+          if (data.id !== streamId) return
+          setIsStreaming(false)
+          setCurrentStreamId(null)
+          onComplete?.(data.fullText || streamingTextRef.current)
+          removeChunkListener?.()
+          removeCompleteListener?.()
+          removeErrorListener?.()
+        })
+
+        removeErrorListener = window.api.onChatStreamError((data) => {
+          if (data.id !== streamId) return
+          setIsStreaming(false)
+          setCurrentStreamId(null)
+          onError?.(data.error)
+          removeChunkListener?.()
+          removeCompleteListener?.()
+          removeErrorListener?.()
+        })
+
+        const response = await window.api.startChatStream({ message, model, streamId })
+        if (!response.success) throw new Error(response.error || 'Failed to start streaming')
+        return response
+      } catch (error: any) {
+        setIsStreaming(false)
+        setCurrentStreamId(null)
+        onError?.(error.message)
+        throw error
+      }
+    },
+    []
+  )
+
+  const stopStreaming = useCallback(async () => {
+    if (!currentStreamId) return
+    try {
+      await window.api.stopChatStream(currentStreamId)
+    } catch (error) {
+      console.error('Error stopping stream:', error)
+    } finally {
+      setIsStreaming(false)
+      setCurrentStreamId(null)
+      setStreamingText('')
+    }
+  }, [currentStreamId])
+
+  return {
+    isStreaming,
+    streamingText,
+    startStreamingChat,
+    stopStreaming
   }
 }
 
@@ -232,21 +328,51 @@ export const useMemoryService = () => {
     }
   }, [])
 
-  const addSummary = useCallback(async (summary: MemorySummary) => {
+  const addSummary = useCallback(
+    async (summary: MemorySummary) => {
+      try {
+        await window.api.addMemorySummary(summary)
+        await loadMemoryStore()
+        return true
+      } catch (error) {
+        console.error('Failed to add memory summary:', error)
+        return false
+      }
+    },
+    [loadMemoryStore]
+  )
+
+  const searchMemory = useCallback(async (query: string, limit?: number) => {
     try {
-      await window.api.addMemorySummary(summary)
-      await loadMemoryStore() // Refresh after adding
-      return true
+      return await window.api.searchMemory(query, limit)
     } catch (error) {
-      console.error('Failed to add memory summary:', error)
-      return false
+      console.error('Failed to search memory:', error)
+      return { success: false, results: [] }
     }
-  }, [loadMemoryStore])
+  }, [])
+
+  const createMemorySummary = useCallback(async (messages: any[]) => {
+    try {
+      return await window.api.createMemorySummary(messages)
+    } catch (error) {
+      console.error('Failed to create memory summary:', error)
+      return { success: false, error: error.message }
+    }
+  }, [])
+
+  const enrichWithMemory = useCallback(async (prompt: string, options?: any) => {
+    try {
+      return await window.api.enrichWithMemory({ prompt, options })
+    } catch (error) {
+      console.error('Failed to enrich with memory:', error)
+      return { success: false, error: error.message }
+    }
+  }, [])
 
   const clearMemory = useCallback(async () => {
     try {
       await window.api.clearMemory()
-      await loadMemoryStore() // Refresh after clearing
+      await loadMemoryStore()
       return true
     } catch (error) {
       console.error('Failed to clear memory:', error)
@@ -254,27 +380,20 @@ export const useMemoryService = () => {
     }
   }, [loadMemoryStore])
 
-  const updateSettings = useCallback(async (enabled: boolean, retentionDays?: number) => {
-    try {
-      await window.api.updateMemorySettings(enabled, retentionDays)
-      await loadMemoryStore() // Refresh after update
-      return true
-    } catch (error) {
-      console.error('Failed to update memory settings:', error)
-      return false
-    }
-  }, [loadMemoryStore])
+  const updateSettings = useCallback(
+    async (enabled: boolean, retentionDays?: number) => {
+      try {
+        await window.api.updateMemorySettings(enabled, retentionDays)
+        await loadMemoryStore()
+        return true
+      } catch (error) {
+        console.error('Failed to update memory settings:', error)
+        return false
+      }
+    },
+    [loadMemoryStore]
+  )
 
-  const getSummaries = useCallback(async () => {
-    try {
-      return await window.api.getMemorySummaries()
-    } catch (error) {
-      console.error('Failed to get memory summaries:', error)
-      return []
-    }
-  }, [])
-
-  // Load memory store on mount
   useEffect(() => {
     loadMemoryStore()
   }, [loadMemoryStore])
@@ -284,9 +403,11 @@ export const useMemoryService = () => {
     loading,
     loadMemoryStore,
     addSummary,
+    searchMemory,
+    createMemorySummary,
+    enrichWithMemory,
     clearMemory,
-    updateSettings,
-    getSummaries
+    updateSettings
   }
 }
 
@@ -326,7 +447,6 @@ export const useSettingsService = () => {
     }
   }, [])
 
-  // Load settings on mount
   useEffect(() => {
     loadSettings()
   }, [loadSettings])

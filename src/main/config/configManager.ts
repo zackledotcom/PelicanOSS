@@ -1,9 +1,9 @@
 /**
  * Enterprise Configuration Validation and Management System
- * 
+ *
  * Implements comprehensive configuration validation, auto-repair,
  * schema enforcement, and secure configuration handling.
- * 
+ *
  * @author PelicanOS Configuration Management Team
  * @version 1.0.0
  */
@@ -103,10 +103,16 @@ export const AppConfigSchema = z.object({
   ui: UIConfigSchema,
   services: ServicesConfigSchema,
   logging: LoggingConfigSchema,
-  
+
   // Metadata
-  createdAt: z.string().datetime().default(() => new Date().toISOString()),
-  updatedAt: z.string().datetime().default(() => new Date().toISOString()),
+  createdAt: z
+    .string()
+    .datetime()
+    .default(() => new Date().toISOString()),
+  updatedAt: z
+    .string()
+    .datetime()
+    .default(() => new Date().toISOString()),
   configVersion: z.string().default('2.0.0')
 })
 
@@ -154,7 +160,11 @@ export class ConfigurationManager {
    * Initialize configuration system
    */
   async initialize(): Promise<ConfigValidationResult> {
-    logger.info('Initializing configuration system', { configPath: this.configPath }, 'config-manager')
+    logger.info(
+      'Initializing configuration system',
+      { configPath: this.configPath },
+      'config-manager'
+    )
 
     try {
       // Ensure directories exist
@@ -165,25 +175,34 @@ export class ConfigurationManager {
 
       if (result.valid && result.config) {
         this.currentConfig = result.config
-        logger.success('Configuration system initialized successfully', {
-          version: result.config.version,
-          environment: result.config.environment
-        }, 'config-manager')
+        logger.success(
+          'Configuration system initialized successfully',
+          {
+            version: result.config.version,
+            environment: result.config.environment
+          },
+          'config-manager'
+        )
       }
 
       return result
-
     } catch (error) {
       logger.error('Failed to initialize configuration system', error, 'config-manager')
-      
+
       // Return default configuration as fallback
       const defaultConfig = await this.getDefaultConfig()
       this.currentConfig = defaultConfig
-      
+
       return {
         valid: false,
         config: defaultConfig,
-        errors: [{ path: 'system', message: 'Failed to load configuration, using defaults', code: 'LOAD_ERROR' }],
+        errors: [
+          {
+            path: 'system',
+            message: 'Failed to load configuration, using defaults',
+            code: 'LOAD_ERROR'
+          }
+        ],
         warnings: [],
         repaired: true,
         backupCreated: false
@@ -202,14 +221,21 @@ export class ConfigurationManager {
       rawConfig = JSON.parse(configContent)
     } catch (error) {
       if (!configExists) {
-        logger.info('Configuration file does not exist, will create default', undefined, 'config-manager')
+        logger.info(
+          'Configuration file does not exist, will create default',
+          undefined,
+          'config-manager'
+        )
       }
     }
 
     return await this.validateAndRepairConfig(rawConfig, !configExists)
   }
 
-  private async validateAndRepairConfig(rawConfig: any, isNewConfig: boolean = false): Promise<ConfigValidationResult> {
+  private async validateAndRepairConfig(
+    rawConfig: any,
+    isNewConfig: boolean = false
+  ): Promise<ConfigValidationResult> {
     const parseResult = AppConfigSchema.safeParse(rawConfig)
 
     if (parseResult.success) {
@@ -233,11 +259,13 @@ export class ConfigurationManager {
         valid: true,
         config: defaultConfig,
         errors: [],
-        warnings: [{
-          path: 'system',
-          message: 'Configuration was reset to defaults',
-          suggestion: 'Review the configuration file to ensure all settings are correct'
-        }],
+        warnings: [
+          {
+            path: 'system',
+            message: 'Configuration was reset to defaults',
+            suggestion: 'Review the configuration file to ensure all settings are correct'
+          }
+        ],
         repaired: true,
         backupCreated: false
       }

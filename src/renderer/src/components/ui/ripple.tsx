@@ -1,79 +1,59 @@
-"use client";
+'use client'
 
-import React, { useRef } from "react";
-import { motion } from "framer-motion";
+import React, { ComponentPropsWithoutRef, CSSProperties } from 'react'
+import { cn } from '@/lib/utils'
 
-interface RippleProps {
-  children: React.ReactNode;
-  className?: string;
-  disabled?: boolean;
+interface RippleProps extends ComponentPropsWithoutRef<'div'> {
+  mainCircleSize?: number
+  mainCircleOpacity?: number
+  numCircles?: number
 }
 
-const Ripple = React.forwardRef<HTMLDivElement, RippleProps>(
-  ({ children, className = "", disabled = false }, ref) => {
-    const [ripples, setRipples] = React.useState<
-      Array<{ id: number; x: number; y: number }>
-    >([]);
+export const Ripple = React.memo(function Ripple({
+  mainCircleSize = 210,
+  mainCircleOpacity = 0.24,
+  numCircles = 8,
+  className,
+  ...props
+}: RippleProps) {
+  return (
+    <div
+      className={cn(
+        'pointer-events-none absolute inset-0 select-none [mask-image:linear-gradient(to_bottom,white,transparent)]',
+        className
+      )}
+      {...props}
+    >
+      {Array.from({ length: numCircles }, (_, i) => {
+        const size = mainCircleSize + i * 70
+        const opacity = mainCircleOpacity - i * 0.03
+        const animationDelay = `${i * 0.06}s`
+        const borderStyle = 'solid'
 
-    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-      if (disabled) return;
-
-      const rect = event.currentTarget.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-
-      const newRipple = {
-        id: Date.now(),
-        x,
-        y,
-      };
-
-      setRipples((prev) => [...prev, newRipple]);
-
-      // Remove ripple after animation
-      setTimeout(() => {
-        setRipples((prev) => prev.filter((ripple) => ripple.id !== newRipple.id));
-      }, 600);
-    };
-
-    return (
-      <div
-        ref={ref}
-        className={`relative overflow-hidden ${className}`}
-        onClick={handleClick}
-      >
-        {children}
-        {ripples.map((ripple) => (
-          <motion.span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/30 pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-            }}
-            initial={{
-              width: 0,
-              height: 0,
-              x: "-50%",
-              y: "-50%",
-              opacity: 1,
-            }}
-            animate={{
-              width: 400,
-              height: 400,
-              opacity: 0,
-            }}
-            transition={{
-              duration: 0.6,
-              ease: "easeOut",
-            }}
+        return (
+          <div
+            key={i}
+            className={`absolute animate-ripple rounded-full border bg-foreground/25 shadow-xl`}
+            style={
+              {
+                '--i': i,
+                width: `${size}px`,
+                height: `${size}px`,
+                opacity,
+                animationDelay,
+                borderStyle,
+                borderWidth: '1px',
+                borderColor: `var(--foreground)`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%) scale(1)'
+              } as CSSProperties
+            }
           />
-        ))}
-      </div>
-    );
-  }
-);
+        )
+      })}
+    </div>
+  )
+})
 
-Ripple.displayName = "Ripple";
-
-export { Ripple };
+Ripple.displayName = 'Ripple'

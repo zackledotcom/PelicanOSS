@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { ScrollArea } from '../ui/scroll-area'
-import { 
-  Warning, 
-  Activity, 
-  Database, 
-  Cpu, 
-  Download, 
+import {
+  Warning,
+  Activity,
+  Database,
+  Cpu,
+  Download,
   MagnifyingGlass,
   ArrowsClockwise,
   FileText,
@@ -45,7 +45,7 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
-    
+
     try {
       const results = await window.api.searchLogs({
         text: searchQuery,
@@ -59,12 +59,13 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
 
   const handleExport = async (type: 'telemetry' | 'audit', format: 'json' | 'csv' | 'jsonl') => {
     try {
-      const exportFunction = type === 'telemetry' ? window.api.exportTelemetry : window.api.exportAudit
+      const exportFunction =
+        type === 'telemetry' ? window.api.exportTelemetry : window.api.exportAudit
       const filePath = await exportFunction({
         format,
         startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       })
-      
+
       onExport?.(type, format)
       alert(`${type} exported to: ${filePath}`)
     } catch (error) {
@@ -102,9 +103,11 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded">
               <Cpu className="h-6 w-6 mx-auto mb-2 text-blue-600" />
               <div className="text-sm text-muted-foreground">Uptime</div>
-              <div className="font-semibold">{Math.floor((diagnostics?.system?.uptime || 0) / 3600)}h</div>
+              <div className="font-semibold">
+                {Math.floor((diagnostics?.system?.uptime || 0) / 3600)}h
+              </div>
             </div>
-            
+
             <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded">
               <Database className="h-6 w-6 mx-auto mb-2 text-green-600" />
               <div className="text-sm text-muted-foreground">Memory</div>
@@ -112,13 +115,13 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
                 {Math.round((diagnostics?.system?.memory?.heapUsed || 0) / 1024 / 1024)}MB
               </div>
             </div>
-            
+
             <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded">
               <Warning className="h-6 w-6 mx-auto mb-2 text-purple-600" />
               <div className="text-sm text-muted-foreground">Errors</div>
               <div className="font-semibold">{diagnostics?.crash?.totalErrors || 0}</div>
             </div>
-            
+
             <div className="text-center p-4 bg-orange-50 dark:bg-orange-950 rounded">
               <FileText className="h-6 w-6 mx-auto mb-2 text-orange-600" />
               <div className="text-sm text-muted-foreground">Events</div>
@@ -140,17 +143,17 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
             <div>
               <h4 className="font-medium mb-2">Telemetry Data</h4>
               <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleExport('telemetry', 'json')}
                   className="w-full"
                 >
                   Export JSON
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleExport('telemetry', 'csv')}
                   className="w-full"
                 >
@@ -158,21 +161,21 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({ onExport }
                 </Button>
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Audit Logs</h4>
               <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleExport('audit', 'json')}
                   className="w-full"
                 >
                   Export JSON
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleExport('audit', 'csv')}
                   className="w-full"
                 >

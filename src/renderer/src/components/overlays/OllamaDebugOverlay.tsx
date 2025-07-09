@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  X, 
+import {
+  X,
   // Removed Draggable - not available in phosphor-react
-  Activity, 
-  Warning, 
-  CheckCircle, 
+  Activity,
+  Warning,
+  CheckCircle,
   XCircle,
   Database,
   Cpu,
@@ -40,13 +40,13 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
   const [position, setPosition] = useState({ x: 100, y: 100 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  
+
   const [apiStatus, setApiStatus] = useState<ApiStatus>({
     connected: true,
     endpoint: 'http://localhost:11434',
     responseTime: 45
   })
-  
+
   const [logs, setLogs] = useState<LogEntry[]>([
     {
       id: '1',
@@ -63,7 +63,7 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
       details: { size: '636MB', quantization: 'Q4_0' }
     }
   ])
-  
+
   const [streamInfo, setStreamInfo] = useState({
     isStreaming: false,
     currentPrompt: '',
@@ -120,7 +120,7 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
       message,
       details
     }
-    setLogs(prev => [newLog, ...prev.slice(0, 99)]) // Keep last 100 logs
+    setLogs((prev) => [newLog, ...prev.slice(0, 99)]) // Keep last 100 logs
   }
 
   const copyToClipboard = (text: string) => {
@@ -150,7 +150,7 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
           <span className="font-medium">Ollama Debug</span>
           {getStatusIcon()}
         </div>
-        
+
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X size={16} />
         </Button>
@@ -171,11 +171,11 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">API Connection</span>
-                <Badge variant={apiStatus.connected ? "default" : "destructive"}>
-                  {apiStatus.connected ? "Connected" : "Disconnected"}
+                <Badge variant={apiStatus.connected ? 'default' : 'destructive'}>
+                  {apiStatus.connected ? 'Connected' : 'Disconnected'}
                 </Badge>
               </div>
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Endpoint:</span>
@@ -201,9 +201,9 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                 </div>
               )}
 
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="w-full"
                 onClick={() => addLog('info', 'Manual API status check triggered')}
               >
@@ -218,8 +218,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Live Stream</span>
-                <Badge variant={streamInfo.isStreaming ? "default" : "secondary"}>
-                  {streamInfo.isStreaming ? "Active" : "Idle"}
+                <Badge variant={streamInfo.isStreaming ? 'default' : 'secondary'}>
+                  {streamInfo.isStreaming ? 'Active' : 'Idle'}
                 </Badge>
               </div>
 
@@ -238,8 +238,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Current Prompt</span>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(streamInfo.currentPrompt)}
                     >
@@ -256,8 +256,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Last Response</span>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(streamInfo.lastResponse)}
                     >
@@ -265,9 +265,7 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                     </Button>
                   </div>
                   <ScrollArea className="h-20">
-                    <div className="p-2 bg-muted rounded text-xs">
-                      {streamInfo.lastResponse}
-                    </div>
+                    <div className="p-2 bg-muted rounded text-xs">{streamInfo.lastResponse}</div>
                   </ScrollArea>
                 </div>
               )}
@@ -279,19 +277,19 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
             <ScrollArea className="h-full p-3">
               <div className="space-y-2">
                 {logs.map((log) => (
-                  <div 
+                  <div
                     key={log.id}
                     className={cn(
-                      "p-2 rounded text-xs border-l-2",
-                      log.level === 'error' && "bg-red-50 border-red-500",
-                      log.level === 'warn' && "bg-yellow-50 border-yellow-500",
-                      log.level === 'info' && "bg-blue-50 border-blue-500"
+                      'p-2 rounded text-xs border-l-2',
+                      log.level === 'error' && 'bg-red-50 border-red-500',
+                      log.level === 'warn' && 'bg-yellow-50 border-yellow-500',
+                      log.level === 'info' && 'bg-blue-50 border-blue-500'
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium">{log.level.toUpperCase()}</span>
                       <span className="text-muted-foreground">
-                        {log.timestamp.toLocaleTimeString()}
+                        {log.timestamp instanceof Date && !isNaN(log.timestamp.getTime()) ? log.timestamp.toLocaleTimeString() : 'Invalid time'}
                       </span>
                     </div>
                     <div>{log.message}</div>
@@ -321,8 +319,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                     <span>{systemMetrics.cpu}%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
+                    <div
+                      className="bg-primary h-2 rounded-full"
                       style={{ width: `${systemMetrics.cpu}%` }}
                     />
                   </div>
@@ -334,8 +332,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                     <span>{systemMetrics.memory}%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
+                    <div
+                      className="bg-green-500 h-2 rounded-full"
                       style={{ width: `${systemMetrics.memory}%` }}
                     />
                   </div>
@@ -347,8 +345,8 @@ const OllamaDebugOverlay: React.FC<OllamaDebugOverlayProps> = ({ onClose }) => {
                     <span>{systemMetrics.gpu}%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full" 
+                    <div
+                      className="bg-blue-500 h-2 rounded-full"
                       style={{ width: `${systemMetrics.gpu}%` }}
                     />
                   </div>

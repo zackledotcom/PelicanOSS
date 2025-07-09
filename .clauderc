@@ -1,0 +1,8 @@
+{
+“temperature”: 0.2,
+“max_tokens”: 8000,
+“focus”: [“code_quality”, “performance”, “security”],
+“exclude_behavior”: [“verbose_explanations”, “generic_responses”],
+“auto_retry”: true,
+“context_depth”: 10
+}

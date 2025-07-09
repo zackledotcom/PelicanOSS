@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
@@ -15,13 +10,7 @@ import { Switch } from '../ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Separator } from '../ui/separator'
 import { ScrollArea } from '../ui/scroll-area'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import {
   Robot,
   Plus,
@@ -41,8 +30,6 @@ import {
 } from 'phosphor-react'
 import { useAllServices } from '@/hooks/useServices'
 
-
-
 interface AgentManagerOverlayProps {
   isOpen: boolean
   onClose: () => void
@@ -60,15 +47,12 @@ const AVAILABLE_TOOLS = {
   'network.request': { name: 'HTTP Requests', icon: Globe, color: 'teal' }
 }
 
-const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
-  isOpen,
-  onClose
-}) => {
+const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({ isOpen, onClose }) => {
   // Service integration
   const services = useAllServices()
-  
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
+
+  const [agents, setAgents] = useState<any[]>([])
+  const [selectedAgent, setSelectedAgent] = useState<any | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -91,34 +75,26 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
   const loadAgents = async () => {
     setLoading(true)
     try {
-      // TODO: Implement backend agent loading via IPC
-      // const loadedAgents = await window.api.agentGetAll()
-      // setAgents(loadedAgents)
-      
-      // For now, use minimal mock data as placeholder
-      setAgents([{
-        id: '1',
-        name: 'Default Assistant',
-        description: 'General purpose AI assistant',
-        model: 'ollama',
-        systemPrompt: 'You are a helpful AI assistant.',
-        temperature: 0.7,
-        maxTokens: 2048,
-        tools: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        metadata: {
-          version: '1.0.0',
-          author: 'System',
-          tags: ['default'],
-          category: 'general',
-          isActive: true,
-          memoryEnabled: true,
-          usageCount: 0
+      // Use the new Agent System APIs
+      const result = await window.api.getAgentRegistry()
+      if (result.success && result.registry) {
+        const agentArray = Object.values(result.registry.agents)
+        setAgents(agentArray)
+
+        // Load active agent
+        const activeResult = await window.api.getActiveAgent()
+        if (activeResult.success && activeResult.agent) {
+          setSelectedAgent(activeResult.agent)
         }
-      }])
+      } else {
+        console.error('Failed to load agent registry:', result.error)
+        setAgents([])
+      }
+
+      console.log('✅ Loaded agents from new system')
     } catch (error) {
-      console.error('Failed to load agents:', error)
+      console.error('❌ Failed to load agents:', error)
+      setAgents([])
     } finally {
       setLoading(false)
     }
@@ -161,49 +137,52 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
     setLoading(true)
     try {
       if (isEditing && selectedAgent) {
-        // TODO: Implement backend agent updating via IPC
-        // const updatedAgent = await window.api.agentUpdate(selectedAgent.id, formData)
-        // setAgents(prev => prev.map(agent =>
-        //   agent.id === selectedAgent.id ? updatedAgent : agent
-        // ))
-        // setSelectedAgent(updatedAgent)
-        
-        // For now, update local state only
-        const updatedAgent = { ...selectedAgent, ...formData, updatedAt: new Date() }
-        setAgents(prev => prev.map(agent =>
-          agent.id === selectedAgent.id ? updatedAgent : agent
-        ))
-        setSelectedAgent(updatedAgent)
-      } else {
-        // TODO: Implement backend agent creation via IPC
-        // const newAgent = await window.api.agentCreate(formData)
-        // setAgents(prev => [...prev, newAgent])
-        // setSelectedAgent(newAgent)
-        
-        // For now, create local agent only
-        const newAgent: Agent = {
-          id: Date.now().toString(),
+        // Update existing agent
+        const result = await window.api.updateAgent(selectedAgent.id, {
           name: formData.name,
           description: formData.description,
           model: formData.model,
           systemPrompt: formData.systemPrompt,
-          temperature: 0.7,
-          maxTokens: 2048,
           tools: formData.tools,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {
-            version: '1.0.0',
-            author: 'User',
-            tags: [],
-            category: 'custom',
-            isActive: false,
-            memoryEnabled: formData.memoryEnabled,
-            usageCount: 0
+          settings: {
+            temperature: 0.7,
+            max_tokens: 2048
           }
+        })
+
+        if (result.success) {
+          console.log('✅ Updated agent:', selectedAgent.id)
+          await loadAgents() // Refresh from backend
+          setSelectedAgent(result.agent)
+        } else {
+          console.error('Failed to update agent:', result.error)
         }
-        setAgents(prev => [...prev, newAgent])
-        setSelectedAgent(newAgent)
+      } else {
+        // Create new agent
+        const result = await window.api.createAgent({
+          name: formData.name,
+          description: formData.description,
+          model: formData.model,
+          systemPrompt: formData.systemPrompt,
+          tools: formData.tools,
+          settings: {
+            temperature: 0.7,
+            max_tokens: 2048
+          }
+        })
+
+        if (result.success) {
+          console.log('✅ Created agent:', result.agent?.id)
+          await loadAgents() // Refresh from backend
+
+          // Set as active agent
+          if (result.agent) {
+            await window.api.setActiveAgent(result.agent.id)
+            setSelectedAgent(result.agent)
+          }
+        } else {
+          console.error('Failed to create agent:', result.error)
+        }
       }
 
       setIsCreating(false)
@@ -219,46 +198,60 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
     if (window.confirm('Are you sure you want to delete this agent?')) {
       setLoading(true)
       try {
-        // TODO: Implement backend agent deletion via IPC
-        // await window.api.agentDelete(id)
-        
-        // For now, delete from local state only
-        setAgents(prev => prev.filter(agent => agent.id !== id))
-        if (selectedAgent?.id === id) {
-          setSelectedAgent(null)
+        const result = await window.api.deleteAgent(id)
+        if (result.success) {
+          console.log('✅ Deleted agent:', id)
+
+          // If deleted agent was selected, clear selection
+          if (selectedAgent?.id === id) {
+            setSelectedAgent(null)
+          }
+
+          await loadAgents() // Refresh from backend
+        } else {
+          console.error('Failed to delete agent:', result.error)
         }
       } catch (error) {
-        console.error('Failed to delete agent:', error)
+        console.error('❌ Failed to delete agent:', error)
       } finally {
         setLoading(false)
       }
     }
   }
 
-  const handleCloneAgent = (agent: Agent) => {
-    const clonedAgent: Agent = {
-      ...agent,
-      id: Date.now().toString(),
-      name: `${agent.name} (Copy)`,
-      isActive: false,
-      createdAt: new Date().toISOString().split('T')[0],
-      metadata: { usageCount: 0 }
+  const handleCloneAgent = async (agent: any) => {
+    try {
+      const result = await window.api.cloneAgent(agent.id, `${agent.name} (Copy)`)
+      if (result.success) {
+        console.log('✅ Cloned agent:', result.agent?.id)
+        await loadAgents() // Refresh from backend
+      } else {
+        console.error('Failed to clone agent:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to clone agent:', error)
     }
-    setAgents(prev => [...prev, clonedAgent])
   }
 
-  const handleSetActive = (id: string) => {
-    setAgents(prev => prev.map(agent => ({
-      ...agent,
-      isActive: agent.id === id
-    })))
+  const handleSetActive = async (id: string) => {
+    try {
+      const result = await window.api.setActiveAgent(id)
+      if (result.success) {
+        console.log('✅ Set active agent:', id)
+        await loadAgents() // Refresh from backend
+      } else {
+        console.error('Failed to set active agent:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to set active agent:', error)
+    }
   }
 
   const toggleTool = (tool: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       tools: prev.tools.includes(tool)
-        ? prev.tools.filter(t => t !== tool)
+        ? prev.tools.filter((t) => t !== tool)
         : [...prev.tools, tool]
     }))
   }
@@ -331,12 +324,14 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                             {agent.description}
                           </p>
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs ${
-                                agent.model === 'ollama' ? 'border-blue-200 text-blue-700' :
-                                agent.model === 'claude' ? 'border-purple-200 text-purple-700' :
-                                'border-orange-200 text-orange-700'
+                                agent.model === 'ollama'
+                                  ? 'border-blue-200 text-blue-700'
+                                  : agent.model === 'claude'
+                                    ? 'border-purple-200 text-purple-700'
+                                    : 'border-orange-200 text-orange-700'
                               }`}
                             >
                               {agent.model}
@@ -350,7 +345,7 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                           </div>
                         </div>
                       </div>
-                      
+
                       {agent.metadata && (
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
                           <span className="text-xs text-gray-500">
@@ -372,7 +367,7 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
 
           {/* Agent Details/Editor */}
           <div className="flex-1">
-            {(isCreating || isEditing) ? (
+            {isCreating || isEditing ? (
               <Card className="h-full bg-white/60 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
@@ -384,7 +379,11 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       <Button variant="outline" onClick={cancelEditing} size="sm">
                         Cancel
                       </Button>
-                      <Button onClick={handleSaveAgent} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                      <Button
+                        onClick={handleSaveAgent}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
                         {isEditing ? 'Update' : 'Create'}
                       </Button>
                     </div>
@@ -397,7 +396,7 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       <Label>Agent Name</Label>
                       <Input
                         value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                         placeholder="Enter agent name"
                         className="bg-white/60"
                       />
@@ -406,7 +405,9 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       <Label>Model</Label>
                       <Select
                         value={formData.model}
-                        onValueChange={(value: any) => setFormData(prev => ({ ...prev, model: value }))}
+                        onValueChange={(value: any) =>
+                          setFormData((prev) => ({ ...prev, model: value }))
+                        }
                       >
                         <SelectTrigger className="bg-white/60">
                           <SelectValue />
@@ -424,7 +425,9 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                     <Label>Description</Label>
                     <Input
                       value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="Brief description of the agent's purpose"
                       className="bg-white/60"
                     />
@@ -434,7 +437,9 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                     <Label>System Prompt</Label>
                     <Textarea
                       value={formData.systemPrompt}
-                      onChange={(e) => setFormData(prev => ({ ...prev, systemPrompt: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))
+                      }
                       placeholder="Define the agent's role, personality, and behavior..."
                       className="h-32 bg-white/60"
                     />
@@ -443,11 +448,15 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Memory System</Label>
-                      <p className="text-xs text-gray-500">Enable conversation memory and context retention</p>
+                      <p className="text-xs text-gray-500">
+                        Enable conversation memory and context retention
+                      </p>
                     </div>
                     <Switch
                       checked={formData.memoryEnabled}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, memoryEnabled: checked }))}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({ ...prev, memoryEnabled: checked }))
+                      }
                     />
                   </div>
 
@@ -466,9 +475,10 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                             onClick={() => toggleTool(key)}
                             className={`
                               p-3 rounded-lg border cursor-pointer transition-all
-                              ${isSelected 
-                                ? 'bg-purple-50 border-purple-200 ring-2 ring-purple-300' 
-                                : 'bg-white/40 border-gray-200 hover:bg-white/60'
+                              ${
+                                isSelected
+                                  ? 'bg-purple-50 border-purple-200 ring-2 ring-purple-300'
+                                  : 'bg-white/40 border-gray-200 hover:bg-white/60'
                               }
                             `}
                           >
@@ -478,16 +488,15 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                                 <div className="font-medium text-sm">{tool.name}</div>
                                 <div className="text-xs text-gray-500">{key}</div>
                               </div>
-                              {isSelected && (
-                                <CheckCircle size={16} className="text-purple-500" />
-                              )}
+                              {isSelected && <CheckCircle size={16} className="text-purple-500" />}
                             </div>
                           </div>
                         )
                       })}
                     </div>
                     <p className="text-xs text-gray-500">
-                      Selected tools: {formData.tools.length} / {Object.keys(AVAILABLE_TOOLS).length}
+                      Selected tools: {formData.tools.length} /{' '}
+                      {Object.keys(AVAILABLE_TOOLS).length}
                     </p>
                   </div>
                 </CardContent>
@@ -501,9 +510,7 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           {selectedAgent.name}
-                          {selectedAgent.isActive && (
-                            <Crown size={16} className="text-green-500" />
-                          )}
+                          {selectedAgent.isActive && <Crown size={16} className="text-green-500" />}
                         </div>
                         <p className="text-sm font-normal text-gray-600">
                           {selectedAgent.description}
@@ -511,24 +518,24 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleCloneAgent(selectedAgent)}
                       >
                         <Copy size={14} className="mr-1" />
                         Clone
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => startEditing(selectedAgent)}
                       >
                         <Pencil size={14} className="mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleDeleteAgent(selectedAgent.id)}
                         className="text-red-600 hover:text-red-700"
@@ -576,7 +583,7 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                   <div className="space-y-3">
                     <Label>Enabled Tools</Label>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedAgent.tools.map(tool => {
+                      {selectedAgent.tools.map((tool) => {
                         const toolInfo = AVAILABLE_TOOLS[tool as keyof typeof AVAILABLE_TOOLS]
                         if (!toolInfo) return null
                         const Icon = toolInfo.icon
@@ -607,7 +614,9 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                       <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
                         <CheckCircle size={24} className="mx-auto mb-2 text-green-500" />
                         <p className="text-green-700 font-medium">This is your active agent</p>
-                        <p className="text-green-600 text-sm">All new conversations will use this agent</p>
+                        <p className="text-green-600 text-sm">
+                          All new conversations will use this agent
+                        </p>
                       </div>
                     )}
                   </div>
@@ -618,7 +627,9 @@ const AgentManagerOverlay: React.FC<AgentManagerOverlayProps> = ({
                 <div className="text-center">
                   <Robot size={48} className="mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No Agent Selected</h3>
-                  <p className="text-gray-500 mb-4">Select an agent to view details or create a new one</p>
+                  <p className="text-gray-500 mb-4">
+                    Select an agent to view details or create a new one
+                  </p>
                   <Button onClick={startCreating} className="bg-purple-600 hover:bg-purple-700">
                     <Plus size={16} className="mr-2" />
                     Create Your First Agent

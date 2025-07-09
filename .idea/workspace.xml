@@ -5,38 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60a81ba0-d770-411c-b3e3-ece9aecda4bf" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chroma-data/chroma/chroma.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/chroma-data/chroma/chroma.sqlite3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/services/chromaService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/services/chromaService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/services/ollama.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/services/ollama.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preload/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/preload/index.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preload/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/preload/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/App.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AIAssistant.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AdvancedMemoryPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AdvancedMemoryPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/MemoryHealthIndicator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/MemoryHealthIndicator.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/agents/AgentViewerPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/agents/AgentViewerPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/analytics/AnalyticsIntegration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/analytics/AnalyticsIntegration.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/analytics/ModelAnalyticsDashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/analytics/ModelAnalyticsDashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatCanvas.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatCanvas.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/AppLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ModernAIAssistant.tsx.backup" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ModernAIAssistant.tsx.backup" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/canvas/CodeCanvas.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/canvas/CodeCanvas.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatInterface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/ChatInterface.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/DeveloperMode.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/DeveloperMode.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/InputBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/InputBar.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/chat/components/MessageComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/chat/components/MessageComponent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/dev/FileCanvas.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/dev/FileCanvas.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/layout/AppHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/layout/AppHeader.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/layout/TopHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/layout/TopHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebarIntegration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/layout/LeftSidebarIntegration.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/memory/MemoryManagerPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/memory/MemoryManagerPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/modals/DeveloperModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/modals/DeveloperModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/modals/SettingsModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/modals/SettingsModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/components/overlays/AgentManagerOverlay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/overlays/AgentManagerOverlay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/overlays/OllamaDebugOverlay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/overlays/OllamaDebugOverlay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/overlays/SystemStatusOverlay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/overlays/SystemStatusOverlay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/sidebar/MemoryManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/sidebar/MemoryManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/sidebar/NetworkStatus.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/sidebar/NetworkStatus.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/ui/ripple.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/ui/ripple.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/components/workflow/WorkflowPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/components/workflow/WorkflowPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/renderer/src/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/hooks/useServices.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/hooks/useServices.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/renderer/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer/src/main.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/types/agents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/agents.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/types/chat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/chat.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/types/settings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/settings.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.node.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.node.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.web.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.web.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.web.tsbuildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.web.tsbuildinfo" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -78,7 +79,7 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/prettier&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;junie.project.settings&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;ts.external.directory.path&quot;: &quot;/Users/jibbr/Desktop/Wonder/PelicanOS/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -140,6 +141,9 @@
       <workItem from="1750940369663" duration="4129000" />
       <workItem from="1750945495372" duration="644000" />
       <workItem from="1751253825394" duration="2304000" />
+      <workItem from="1751628868478" duration="15000" />
+      <workItem from="1751691397209" duration="5992000" />
+      <workItem from="1751718305052" duration="6092000" />
     </task>
     <servers />
   </component>

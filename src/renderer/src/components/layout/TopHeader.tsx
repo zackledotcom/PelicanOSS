@@ -1,21 +1,13 @@
 import React from 'react'
-import { 
-  Cpu, 
-  Globe, 
-  WifiSlash, 
-  Database, 
-  Brain, 
-  Activity,
-  Gear
-} from 'phosphor-react'
+import { Cpu, Globe, WifiSlash, Database, Brain, Activity, Gear } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Pulsating } from '@/components/ui/pulsating'
@@ -40,8 +32,8 @@ const TopHeader: React.FC<TopHeaderProps> = ({ state, updateState }) => {
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
           <Cpu size={20} className="text-primary" />
-          <Select 
-            value={state.selectedModel} 
+          <Select
+            value={state.selectedModel}
             onValueChange={(model) => updateState({ selectedModel: model })}
           >
             <SelectTrigger className="w-48">
@@ -92,25 +84,23 @@ const TopHeader: React.FC<TopHeaderProps> = ({ state, updateState }) => {
             checked={state.trainingMode}
             onCheckedChange={(checked) => updateState({ trainingMode: checked })}
           />
-          {state.trainingMode && (
-            <Badge variant="secondary">Active</Badge>
-          )}
+          {state.trainingMode && <Badge variant="secondary">Active</Badge>}
         </div>
       </div>
 
       {/* Right Section - Debug Controls */}
       <div className="flex items-center space-x-2">
         <Button
-          variant={state.showOllamaDebug ? "default" : "outline"}
+          variant={state.showOllamaDebug ? 'default' : 'outline'}
           size="sm"
           onClick={() => updateState({ showOllamaDebug: !state.showOllamaDebug })}
         >
           <Activity size={16} className="mr-1" />
           Debug
         </Button>
-        
+
         <Button
-          variant={state.showSystemStatus ? "default" : "outline"}
+          variant={state.showSystemStatus ? 'default' : 'outline'}
           size="sm"
           onClick={() => updateState({ showSystemStatus: !state.showSystemStatus })}
         >

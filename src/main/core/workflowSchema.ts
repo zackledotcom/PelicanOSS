@@ -49,16 +49,18 @@ export const WorkflowExecutionSchema = z.object({
   endTime: z.string().optional(),
   currentStep: z.string().optional(),
   variables: z.record(z.any()),
-  stepResults: z.array(z.object({
-    stepId: z.string(),
-    status: z.enum(['pending', 'running', 'completed', 'failed', 'skipped']),
-    startTime: z.string(),
-    endTime: z.string().optional(),
-    input: z.any(),
-    output: z.any(),
-    error: z.string().optional(),
-    duration: z.number().optional()
-  })),
+  stepResults: z.array(
+    z.object({
+      stepId: z.string(),
+      status: z.enum(['pending', 'running', 'completed', 'failed', 'skipped']),
+      startTime: z.string(),
+      endTime: z.string().optional(),
+      input: z.any(),
+      output: z.any(),
+      error: z.string().optional(),
+      duration: z.number().optional()
+    })
+  ),
   error: z.string().optional(),
   triggeredBy: z.string()
 })
@@ -75,10 +77,12 @@ export const WORKFLOW_TEMPLATES = {
   reddit_auto_responder: {
     name: 'Reddit Auto-Responder',
     description: 'Automatically respond to Reddit DMs with AI-generated replies',
-    triggers: [{
-      type: 'event' as const,
-      event: 'reddit.dm_received'
-    }],
+    triggers: [
+      {
+        type: 'event' as const,
+        event: 'reddit.dm_received'
+      }
+    ],
     steps: [
       {
         id: 'check_user',
@@ -148,10 +152,12 @@ export const WORKFLOW_TEMPLATES = {
   content_moderation: {
     name: 'Content Moderation Pipeline',
     description: 'Multi-step content analysis and moderation workflow',
-    triggers: [{
-      type: 'event' as const,
-      event: 'content.received'
-    }],
+    triggers: [
+      {
+        type: 'event' as const,
+        event: 'content.received'
+      }
+    ],
     steps: [
       {
         id: 'analyze_sentiment',
@@ -209,10 +215,12 @@ export const WORKFLOW_TEMPLATES = {
   data_processing_pipeline: {
     name: 'Data Processing Pipeline',
     description: 'Extract, transform, and load data through multiple steps',
-    triggers: [{
-      type: 'schedule' as const,
-      schedule: '0 */6 * * *' // Every 6 hours
-    }],
+    triggers: [
+      {
+        type: 'schedule' as const,
+        schedule: '0 */6 * * *' // Every 6 hours
+      }
+    ],
     steps: [
       {
         id: 'extract_data',
@@ -272,7 +280,8 @@ export const WORKFLOW_TEMPLATES = {
         type: 'tool' as const,
         tool: 'system.notify',
         config: {
-          message: 'Data processing completed: ${steps.transform_data.output.length} items processed'
+          message:
+            'Data processing completed: ${steps.transform_data.output.length} items processed'
         }
       }
     ]

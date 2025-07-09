@@ -3,9 +3,18 @@ import path from 'path'
 import fs from 'fs/promises'
 import { z } from 'zod'
 import { trackPerformanceEvent, shouldCollectTelemetry } from '../utils/telemetryUtils'
+import { encrypt, decrypt } from '../utils/encryption'
 import type { Message, MemorySummary } from '../../types/chat'
 
+// Force IPv4 to avoid IPv6 connection issues
 const OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
+
+// Create axios instance with IPv4 preference
+const ollamaAxios = axios.create({
+  baseURL: OLLAMA_BASE_URL,
+  timeout: 30000,
+  family: 4 // Force IPv4
+})
 const SUMMARIZATION_MODEL = 'tinydolphin:latest' // Fast model for summarization
 const PROMPT_VERSION = '1.2'
 const AUDIT_LOG_PATH = path.resolve(__dirname, 'summarization_audit.log')
@@ -17,7 +26,7 @@ const MessageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system', 'error']),
   content: z.string(),
   id: z.string().optional(),
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
 
 /**
@@ -29,7 +38,7 @@ const MemorySummarySchema = z.object({
   topics: z.array(z.string()),
   keyFacts: z.array(z.string()),
   createdAt: z.string(),
-  messageCount: z.number().int().nonnegative(),
+  messageCount: z.number().int().nonnegative()
 })
 
 /**
@@ -38,7 +47,7 @@ const MemorySummarySchema = z.object({
 const SummarizationModelResponseSchema = z.object({
   summary: z.string(),
   keyFacts: z.array(z.string()),
-  topics: z.array(z.string()),
+  topics: z.array(z.string())
 })
 
 /**
@@ -102,10 +111,10 @@ function sanitizeContent(content: string): string {
  * @returns Array of top 5 topic strings
  */
 function extractTopics(messages: Message[]): string[] {
-  const content = messages.map(m => m.content).join(' ')
+  const content = messages.map((m) => m.content).join(' ')
   const words = content.toLowerCase().split(/\W+/)
   const excludedWords = new Set(['function', 'return', 'const', 'variable'])
-  const topicWords = words.filter(word => word.length > 4 && !excludedWords.has(word))
+  const topicWords = words.filter((word) => word.length > 4 && !excludedWords.has(word))
 
   const frequency = topicWords.reduce<Record<string, number>>((acc, word) => {
     acc[word] = (acc[word] || 0) + 1
@@ -126,14 +135,12 @@ function extractTopics(messages: Message[]): string[] {
  * @returns Prompt string for summarization model including version header
  */
 function createSummarizationPrompt(messages: Message[]): string {
-  const sanitizedMessages = messages.map(msg => ({
+  const sanitizedMessages = messages.map((msg) => ({
     ...msg,
-    content: sanitizeContent(msg.content), // Only PII removal, nothing else
+    content: sanitizeContent(msg.content) // Only PII removal, nothing else
   }))
 
-  const conversationText = sanitizedMessages
-    .map(msg => `${msg.role}: ${msg.content}`)
-    .join('\n')
+  const conversationText = sanitizedMessages.map((msg) => `${msg.role}: ${msg.content}`).join('\n')
 
   return `Prompt-Version: ${PROMPT_VERSION}
 
@@ -175,7 +182,11 @@ JSON Response:`
  *
  * @param params Object containing duration (ms), tokenCount (estimated), and success status
  */
-async function trackSummaryEvent(params: { duration: number; tokenCount: number; success: boolean }): Promise<void> {
+async function trackSummaryEvent(params: {
+  duration: number
+  tokenCount: number
+  success: boolean
+}): Promise<void> {
   try {
     // Check if telemetry collection is enabled using the centralized utility
     const shouldCollect = await shouldCollectTelemetry()
@@ -197,7 +208,7 @@ async function trackSummaryEvent(params: { duration: number; tokenCount: number;
  */
 async function getAvailableModels(): Promise<string[]> {
   try {
-    const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`)
+    const response = await ollamaAxios.get('/api/tags')
     if (Array.isArray(response.data.models)) {
       return response.data.models
         .map((m: any) => (m && typeof m.name === 'string' ? m.name : null))
@@ -254,11 +265,16 @@ export async function summarizeMessages(
       }
     })
   } catch (validationError) {
-    return { success: false, error: `Message validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}` }
+    return {
+      success: false,
+      error: `Message validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}`
+    }
   }
 
   // Filter user and assistant messages only
-  const userAndAssistantMessages = messages.filter(msg => msg.role === 'user' || msg.role === 'assistant')
+  const userAndAssistantMessages = messages.filter(
+    (msg) => msg.role === 'user' || msg.role === 'assistant'
+  )
 
   if (userAndAssistantMessages.length < 2) {
     return { success: false, error: 'Insufficient conversation for summarization' }
@@ -275,7 +291,10 @@ export async function summarizeMessages(
   const chosenModel = await getBestSummaryModel()
 
   // Estimate token count based on message content lengths / 4
-  const totalContentLength = userAndAssistantMessages.reduce((sum, msg) => sum + msg.content.length, 0)
+  const totalContentLength = userAndAssistantMessages.reduce(
+    (sum, msg) => sum + msg.content.length,
+    0
+  )
   const estimatedTokenCount = Math.ceil(totalContentLength / 4)
 
   while (attempt < maxRetries) {
@@ -284,8 +303,8 @@ export async function summarizeMessages(
       attempt++
       console.log(`🧠 Summarizing attempt ${attempt} with model ${chosenModel}...`)
 
-      const response = await axios.post(
-        `${OLLAMA_BASE_URL}/api/generate`,
+      const response = await ollamaAxios.post(
+        '/api/generate',
         {
           model: chosenModel,
           prompt,
@@ -294,8 +313,8 @@ export async function summarizeMessages(
             temperature: 0.3, // Lower temperature for more consistent summaries
             top_p: 0.8,
             top_k: 20,
-            num_predict: 300, // Limit response length
-          },
+            num_predict: 300 // Limit response length
+          }
         },
         { timeout: 30000 }
       )
@@ -330,13 +349,15 @@ export async function summarizeMessages(
         topics: parsed.data.topics,
         keyFacts: parsed.data.keyFacts,
         createdAt: timestamp,
-        messageCount: userAndAssistantMessages.length,
+        messageCount: userAndAssistantMessages.length
       }
 
       // Validate memory summary before returning
       const memSummaryValidation = MemorySummarySchema.safeParse(memorySummary)
       if (!memSummaryValidation.success) {
-        throw new Error(`Generated memory summary validation failed: ${memSummaryValidation.error.message}`)
+        throw new Error(
+          `Generated memory summary validation failed: ${memSummaryValidation.error.message}`
+        )
       }
 
       // Audit log success with encrypted prompt and response including prompt version
@@ -346,7 +367,7 @@ export async function summarizeMessages(
         user,
         response: JSON.stringify(parsed.data),
         timestamp,
-        promptVersion: PROMPT_VERSION,
+        promptVersion: PROMPT_VERSION
       })
 
       const duration = Date.now() - startTime
@@ -367,12 +388,12 @@ export async function summarizeMessages(
         user,
         error: error instanceof Error ? error.message : String(error),
         timestamp,
-        promptVersion: PROMPT_VERSION,
+        promptVersion: PROMPT_VERSION
       })
       // Exponential backoff delay before retrying
       if (attempt < maxRetries) {
         const delayMs = 1000 * 2 ** (attempt - 1)
-        await new Promise(resolve => setTimeout(resolve, delayMs))
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
       }
     }
   }
@@ -380,7 +401,7 @@ export async function summarizeMessages(
   // After retries exhausted, return failure
   return {
     success: false,
-    error: lastError instanceof Error ? lastError.message : 'Unknown summarization error',
+    error: lastError instanceof Error ? lastError.message : 'Unknown summarization error'
   }
 }
 
@@ -391,7 +412,7 @@ export async function summarizeMessages(
  */
 export async function validateSummarizationModel(model: string): Promise<boolean> {
   try {
-    const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`)
+    const response = await ollamaAxios.get('/api/tags')
     const availableModels = Array.isArray(response.data.models)
       ? response.data.models.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string')
       : []
@@ -434,13 +455,13 @@ export function enrichPromptWithMemory(
 
   // Use recent summaries for context - inject transparently without modification
   const contextSummaries = memorySummaries.slice(-3) // Last 3 summaries
-  const keyFacts = memorySummaries.flatMap(summary => summary.keyFacts).slice(-10) // Last 10 key facts
+  const keyFacts = memorySummaries.flatMap((summary) => summary.keyFacts).slice(-10) // Last 10 key facts
 
   let enrichedPrompt = userPrompt
 
   // Transparently inject memory context at the beginning
   if (contextSummaries.length > 0) {
-    const contextText = contextSummaries.map(summary => summary.summary).join('\n')
+    const contextText = contextSummaries.map((summary) => summary.summary).join('\n')
     enrichedPrompt = `[Previous conversation context: ${contextText}]\n\n${userPrompt}`
   }
 

@@ -23,7 +23,7 @@ class AvatarService {
     try {
       // Ensure avatars directory exists
       await fs.mkdir(this.avatarsDir, { recursive: true })
-      
+
       // Load existing avatar configuration
       await this.loadAvatarConfig()
     } catch (error) {
@@ -54,7 +54,7 @@ class AvatarService {
   private generateInitials(modelName: string): string {
     // Handle common model names
     const cleanName = modelName.replace(':latest', '').toLowerCase()
-    
+
     if (cleanName.includes('tinydolphin') || cleanName.includes('tiny-dolphin')) return 'TD'
     if (cleanName.includes('deepseek')) return 'DS'
     if (cleanName.includes('openchat')) return 'OC'
@@ -70,21 +70,21 @@ class AvatarService {
     if (cleanName.includes('wizard')) return 'WZ'
     if (cleanName.includes('orca')) return 'OR'
     if (cleanName.includes('vicuna')) return 'VC'
-    
+
     // Generate initials from model name
-    const words = cleanName.split(/[-_\s]+/).filter(word => word.length > 0)
+    const words = cleanName.split(/[-_\s]+/).filter((word) => word.length > 0)
     if (words.length >= 2) {
       return (words[0][0] + words[1][0]).toUpperCase()
     } else if (words.length === 1 && words[0].length >= 2) {
       return words[0].substring(0, 2).toUpperCase()
     }
-    
+
     return 'AI'
   }
 
   public getModelAvatar(modelName: string): ModelAvatar {
-    const existing = this.avatarsConfig.find(config => config.modelName === modelName)
-    
+    const existing = this.avatarsConfig.find((config) => config.modelName === modelName)
+
     if (existing) {
       return existing
     }
@@ -97,15 +97,19 @@ class AvatarService {
 
     this.avatarsConfig.push(newAvatar)
     this.saveAvatarConfig()
-    
+
     return newAvatar
   }
 
-  public async uploadAvatar(modelName: string, imageBuffer: Buffer, originalName: string): Promise<string> {
+  public async uploadAvatar(
+    modelName: string,
+    imageBuffer: Buffer,
+    originalName: string
+  ): Promise<string> {
     try {
       const fileExtension = path.extname(originalName).toLowerCase()
       const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
-      
+
       if (!allowedExtensions.includes(fileExtension)) {
         throw new Error('Invalid file type. Please use JPG, PNG, GIF, or WebP.')
       }
@@ -118,7 +122,7 @@ class AvatarService {
       await fs.writeFile(avatarPath, imageBuffer)
 
       // Update avatar config
-      const existingIndex = this.avatarsConfig.findIndex(config => config.modelName === modelName)
+      const existingIndex = this.avatarsConfig.findIndex((config) => config.modelName === modelName)
       const avatarConfig: ModelAvatar = {
         modelName,
         avatarPath,
@@ -143,7 +147,6 @@ class AvatarService {
 
       await this.saveAvatarConfig()
       return avatarPath
-
     } catch (error) {
       console.error('Failed to upload avatar:', error)
       throw error
@@ -152,11 +155,11 @@ class AvatarService {
 
   public async removeAvatar(modelName: string): Promise<void> {
     try {
-      const configIndex = this.avatarsConfig.findIndex(config => config.modelName === modelName)
-      
+      const configIndex = this.avatarsConfig.findIndex((config) => config.modelName === modelName)
+
       if (configIndex >= 0) {
         const config = this.avatarsConfig[configIndex]
-        
+
         // Remove file if it exists
         if (config.avatarPath) {
           try {
@@ -185,7 +188,7 @@ class AvatarService {
   }
 
   public getAvatarPath(modelName: string): string | null {
-    const config = this.avatarsConfig.find(c => c.modelName === modelName)
+    const config = this.avatarsConfig.find((c) => c.modelName === modelName)
     return config?.avatarPath || null
   }
 }

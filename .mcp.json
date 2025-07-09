@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "node",
+      "args": ["/Users/jibbr/mcp-servers/context7/dist/index.js"],
+      "env": {},
+      "disabled": false
+    },
+    "sequential-thinking": {
+      "command": "node",
+      "args": ["/Users/jibbr/mcp-servers/mcp-servers-official/src/sequentialthinking/dist/index.js"],
+      "env": {},
+      "disabled": false
+    },
+    "mcp-reasoner": {
+      "command": "node",
+      "args": ["/Users/jibbr/mcp-servers/mcp-reasoner/dist/index.js"],
+      "env": {},
+      "disabled": false
+    },
+    "firecrawl": {
+      "command": "node",
+      "args": ["/Users/jibbr/mcp-servers/firecrawl-mcp-server/dist/index.js"],
+      "env": {
+        "FIRECRAWL_API_KEY": "YOUR_FIRECRAWL_API_KEY_HERE"
+      },
+      "disabled": true
+    }
+  }
+}

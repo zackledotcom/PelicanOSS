@@ -1,0 +1,13 @@
+Follow-up questions for Gemini CLI integration into PelicanOS:
+
+1. Tool Use / Function Calling - You mentioned this as the biggest "wow factor". Can you provide a specific example of how this would work with the Gemini CLI? What's the syntax for defining and calling functions?
+
+2. Multimodal image input - What's the exact command syntax to pass an image file to Gemini CLI? How does the CLI handle different image formats?
+
+3. Request queue - Should I implement a simple FIFO queue or would you recommend a priority-based system where certain types of requests (like collaboration) get higher priority?
+
+4. Error handling - Could you provide specific examples of the stderr messages I should watch for? What does a rate limit error actually look like in the CLI output?
+
+5. Model listing - For the 'gemini models list' command, what does the output format look like? How should I parse it to present model options to users?
+
+6. Multi-AI collaboration context - In a 20-message conversation where we're now asking for code optimization, should Gemini see all 20 messages or just the current code and the optimization request?

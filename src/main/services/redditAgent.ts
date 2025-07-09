@@ -40,7 +40,8 @@ class RedditAgent {
     whitelistedUsers: [],
     autoReplyEnabled: false,
     model: 'llama2',
-    systemPrompt: 'You are a helpful Reddit assistant. Respond naturally and helpfully to direct messages. Keep responses concise and friendly.'
+    systemPrompt:
+      'You are a helpful Reddit assistant. Respond naturally and helpfully to direct messages. Keep responses concise and friendly.'
   }
 
   private stats: RedditAgentStats = {
@@ -68,7 +69,7 @@ class RedditAgent {
 
     this.config.enabled = true
     this.stats.currentlyRunning = true
-    
+
     // Start polling for DMs
     this.pollTimer = setInterval(() => {
       this.processDMs()
@@ -113,7 +114,7 @@ class RedditAgent {
 
     try {
       const result = await redditService.getUnreadDMs()
-      
+
       if (!result.success) {
         this.addError(`Failed to fetch DMs: ${result.error}`)
         return
@@ -135,10 +136,9 @@ class RedditAgent {
 
       // Clean up old reply tracking
       this.cleanupReplyTracker()
-
     } catch (error) {
       this.addError(`DM processing error: ${error.message}`)
-      
+
       await crashRecovery.logError(error as Error, {
         operation: 'reddit_agent_process_dms',
         component: 'service',
@@ -151,7 +151,7 @@ class RedditAgent {
   private async processDM(dm: RedditDM): Promise<void> {
     try {
       this.stats.totalDMsProcessed++
-      
+
       // Check blacklist
       if (this.config.blacklistedUsers.includes(dm.author)) {
         this.addActivity('ignored', dm.author, dm.subject, 'User blacklisted')
@@ -159,7 +159,10 @@ class RedditAgent {
       }
 
       // Check whitelist (if configured)
-      if (this.config.whitelistedUsers.length > 0 && !this.config.whitelistedUsers.includes(dm.author)) {
+      if (
+        this.config.whitelistedUsers.length > 0 &&
+        !this.config.whitelistedUsers.includes(dm.author)
+      ) {
         this.addActivity('ignored', dm.author, dm.subject, 'User not whitelisted')
         return
       }
@@ -176,7 +179,6 @@ class RedditAgent {
       if (this.config.autoReplyEnabled) {
         await this.generateAndSendReply(dm)
       }
-
     } catch (error) {
       this.addError(`Error processing DM from ${dm.author}: ${error.message}`)
     }
@@ -199,7 +201,7 @@ Please generate a helpful, natural response to this Reddit direct message.
         async (selectedModel) => {
           // Get memory context
           const memorySummaries = await getMemorySummaries()
-          
+
           // Enrich with memory if available
           const { result: enrichedPrompt } = await withMemoryEnrichment(
             async (prompt) => prompt,
@@ -226,7 +228,9 @@ Please generate a helpful, natural response to this Reddit direct message.
           })
 
           const data = await response.json()
-          return data.response || 'I apologize, but I was unable to generate a response at this time.'
+          return (
+            data.response || 'I apologize, but I was unable to generate a response at this time.'
+          )
         },
         {
           preferredModel: `ollama-${this.config.model}`,
@@ -237,20 +241,20 @@ Please generate a helpful, natural response to this Reddit direct message.
 
       // Send the reply
       const replyResult = await redditService.replyToDM(dm.id, aiResponse)
-      
+
       if (replyResult.success) {
         this.stats.totalRepliesSent++
         this.trackReply()
         this.addActivity('replied', dm.author, dm.subject)
-        
+
         telemetry.trackEvent({
           type: 'operation',
           category: 'reddit_agent',
           action: 'reply_sent',
-          metadata: { 
+          metadata: {
             recipient: dm.author,
             subject: dm.subject,
-            replyLength: aiResponse.length 
+            replyLength: aiResponse.length
           }
         })
 
@@ -258,7 +262,6 @@ Please generate a helpful, natural response to this Reddit direct message.
       } else {
         this.addError(`Failed to send reply to ${dm.author}: ${replyResult.error}`)
       }
-
     } catch (error) {
       this.addError(`Error generating reply for ${dm.author}: ${error.message}`)
     }
@@ -266,8 +269,8 @@ Please generate a helpful, natural response to this Reddit direct message.
 
   private canSendReply(): boolean {
     const now = Date.now()
-    const hourAgo = now - (60 * 60 * 1000)
-    
+    const hourAgo = now - 60 * 60 * 1000
+
     // Count replies in the last hour
     let repliesThisHour = 0
     for (const [timestamp, count] of this.replyTracker.entries()) {
@@ -286,9 +289,9 @@ Please generate a helpful, natural response to this Reddit direct message.
   }
 
   private cleanupReplyTracker(): void {
-    const hourAgo = Date.now() - (2 * 60 * 60 * 1000) // Keep 2 hours of data
+    const hourAgo = Date.now() - 2 * 60 * 60 * 1000 // Keep 2 hours of data
     const cutoffKey = Math.floor(hourAgo / (60 * 60 * 1000)).toString()
-    
+
     for (const key of this.replyTracker.keys()) {
       if (key < cutoffKey) {
         this.replyTracker.delete(key)
@@ -310,7 +313,12 @@ Please generate a helpful, natural response to this Reddit direct message.
     console.error('🤖 Reddit Agent Error:', error)
   }
 
-  private addActivity(action: 'received' | 'replied' | 'ignored', user: string, subject?: string, note?: string): void {
+  private addActivity(
+    action: 'received' | 'replied' | 'ignored',
+    user: string,
+    subject?: string,
+    note?: string
+  ): void {
     this.stats.recentActivity.push({
       timestamp: new Date().toISOString(),
       action,
@@ -328,7 +336,7 @@ Please generate a helpful, natural response to this Reddit direct message.
   // Configuration methods
   updateConfig(newConfig: Partial<RedditAgentConfig>): void {
     this.config = { ...this.config, ...newConfig }
-    
+
     // Restart polling if interval changed and agent is running
     if (newConfig.pollInterval && this.config.enabled) {
       this.stop()
@@ -362,7 +370,7 @@ Please generate a helpful, natural response to this Reddit direct message.
     }
 
     const result = await redditService.sendDM(recipient, subject, message)
-    
+
     if (result.success) {
       this.trackReply()
       this.addActivity('replied', recipient, subject)

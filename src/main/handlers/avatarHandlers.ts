@@ -13,16 +13,19 @@ export function registerAvatarHandlers() {
   })
 
   // Upload model avatar
-  ipcMain.handle('upload-model-avatar', async (event, modelName: string, imageBuffer: Uint8Array, originalName: string) => {
-    try {
-      const buffer = Buffer.from(imageBuffer)
-      const avatarPath = await avatarService.uploadAvatar(modelName, buffer, originalName)
-      return { success: true, avatarPath }
-    } catch (error) {
-      console.error('Failed to upload model avatar:', error)
-      throw error
+  ipcMain.handle(
+    'upload-model-avatar',
+    async (event, modelName: string, imageBuffer: Uint8Array, originalName: string) => {
+      try {
+        const buffer = Buffer.from(imageBuffer)
+        const avatarPath = await avatarService.uploadAvatar(modelName, buffer, originalName)
+        return { success: true, avatarPath }
+      } catch (error) {
+        console.error('Failed to upload model avatar:', error)
+        throw error
+      }
     }
-  })
+  )
 
   // Remove model avatar
   ipcMain.handle('remove-model-avatar', async (event, modelName: string) => {

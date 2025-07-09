@@ -20,7 +20,7 @@ export const useWorkflowService = () => {
         window.api.workflowGetTemplates(),
         window.api.workflowGetExecutions(undefined, 20)
       ])
-      
+
       setWorkflows(workflowsData)
       setStats(statsData)
       setTemplates(templatesData)
@@ -32,27 +32,33 @@ export const useWorkflowService = () => {
     }
   }, [])
 
-  const createWorkflow = useCallback(async (workflowData: any) => {
-    try {
-      const result = await window.api.workflowCreate(workflowData)
-      await loadData() // Refresh data
-      return result
-    } catch (error) {
-      console.error('Failed to create workflow:', error)
-      throw error
-    }
-  }, [loadData])
+  const createWorkflow = useCallback(
+    async (workflowData: any) => {
+      try {
+        const result = await window.api.workflowCreate(workflowData)
+        await loadData() // Refresh data
+        return result
+      } catch (error) {
+        console.error('Failed to create workflow:', error)
+        throw error
+      }
+    },
+    [loadData]
+  )
 
-  const createFromTemplate = useCallback(async (template: string, variables: any) => {
-    try {
-      const result = await window.api.workflowCreateFromTemplate(template, variables)
-      await loadData() // Refresh data
-      return result
-    } catch (error) {
-      console.error('Failed to create workflow from template:', error)
-      throw error
-    }
-  }, [loadData])
+  const createFromTemplate = useCallback(
+    async (template: string, variables: any) => {
+      try {
+        const result = await window.api.workflowCreateFromTemplate(template, variables)
+        await loadData() // Refresh data
+        return result
+      } catch (error) {
+        console.error('Failed to create workflow from template:', error)
+        throw error
+      }
+    },
+    [loadData]
+  )
 
   const triggerWorkflow = useCallback(async (workflowId: string, input: any) => {
     try {
@@ -63,26 +69,32 @@ export const useWorkflowService = () => {
     }
   }, [])
 
-  const deleteWorkflow = useCallback(async (id: string) => {
-    try {
-      await window.api.workflowDelete(id)
-      await loadData() // Refresh data
-    } catch (error) {
-      console.error('Failed to delete workflow:', error)
-      throw error
-    }
-  }, [loadData])
+  const deleteWorkflow = useCallback(
+    async (id: string) => {
+      try {
+        await window.api.workflowDelete(id)
+        await loadData() // Refresh data
+      } catch (error) {
+        console.error('Failed to delete workflow:', error)
+        throw error
+      }
+    },
+    [loadData]
+  )
 
-  const updateWorkflow = useCallback(async (id: string, updates: any) => {
-    try {
-      const result = await window.api.workflowUpdate(id, updates)
-      await loadData() // Refresh data
-      return result
-    } catch (error) {
-      console.error('Failed to update workflow:', error)
-      throw error
-    }
-  }, [loadData])
+  const updateWorkflow = useCallback(
+    async (id: string, updates: any) => {
+      try {
+        const result = await window.api.workflowUpdate(id, updates)
+        await loadData() // Refresh data
+        return result
+      } catch (error) {
+        console.error('Failed to update workflow:', error)
+        throw error
+      }
+    },
+    [loadData]
+  )
 
   // Load data on mount
   useEffect(() => {
@@ -200,18 +212,21 @@ export const useRedditService = () => {
     }
   }, [])
 
-  const authenticate = useCallback(async (credentials: any) => {
-    try {
-      const result = await window.api.redditAuthenticate(credentials)
-      if (result.success) {
-        await loadData() // Refresh data after authentication
+  const authenticate = useCallback(
+    async (credentials: any) => {
+      try {
+        const result = await window.api.redditAuthenticate(credentials)
+        if (result.success) {
+          await loadData() // Refresh data after authentication
+        }
+        return result
+      } catch (error) {
+        console.error('Failed to authenticate:', error)
+        throw error
       }
-      return result
-    } catch (error) {
-      console.error('Failed to authenticate:', error)
-      throw error
-    }
-  }, [loadData])
+    },
+    [loadData]
+  )
 
   const startAgent = useCallback(async () => {
     try {
@@ -235,18 +250,21 @@ export const useRedditService = () => {
     }
   }, [loadData])
 
-  const updateConfig = useCallback(async (newConfig: any) => {
-    try {
-      const result = await window.api.redditAgentUpdateConfig(newConfig)
-      if (result.success) {
-        await loadData() // Refresh data
+  const updateConfig = useCallback(
+    async (newConfig: any) => {
+      try {
+        const result = await window.api.redditAgentUpdateConfig(newConfig)
+        if (result.success) {
+          await loadData() // Refresh data
+        }
+        return result
+      } catch (error) {
+        console.error('Failed to update config:', error)
+        throw error
       }
-      return result
-    } catch (error) {
-      console.error('Failed to update config:', error)
-      throw error
-    }
-  }, [loadData])
+    },
+    [loadData]
+  )
 
   const disconnect = useCallback(async () => {
     try {

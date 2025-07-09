@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pulsating } from '@/components/ui/pulsating'
@@ -13,33 +19,33 @@ import { format } from 'date-fns'
 
 // Types (should match the backend)
 interface TuningDataset {
-  id: string;
-  name: string;
-  description: string;
-  examples: { input: string; output: string }[];
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  description: string
+  examples: { input: string; output: string }[]
+  createdAt: string
+  updatedAt: string
 }
 
 interface TuningJob {
-  id: string;
-  baseModel: string;
-  newModelName: string;
-  datasetId: string;
-  status: 'preparing' | 'running' | 'completed' | 'failed';
-  progress: number;
-  startedAt: string;
-  completedAt?: string;
-  error?: string;
+  id: string
+  baseModel: string
+  newModelName: string
+  datasetId: string
+  status: 'preparing' | 'running' | 'completed' | 'failed'
+  progress: number
+  startedAt: string
+  completedAt?: string
+  error?: string
   params: {
-    epochs: number;
-    learningRate: number;
-    batchSize: number;
-  };
+    epochs: number
+    learningRate: number
+    batchSize: number
+  }
 }
 
 interface ModelTunerProps {
-  className?: string;
+  className?: string
 }
 
 const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
@@ -49,7 +55,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
   const [jobs, setJobs] = useState<TuningJob[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  
+
   // Form state
   const [selectedModel, setSelectedModel] = useState('')
   const [selectedDataset, setSelectedDataset] = useState('')
@@ -57,39 +63,39 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
   const [epochs, setEpochs] = useState(3)
   const [learningRate, setLearningRate] = useState(0.0001)
   const [batchSize, setBatchSize] = useState(8)
-  
+
   // Load data on mount
   useEffect(() => {
     loadData()
   }, [])
-  
+
   // Refresh data periodically for jobs
   useEffect(() => {
     const interval = setInterval(() => {
       refreshJobs()
     }, 5000) // Refresh every 5 seconds
-    
+
     return () => clearInterval(interval)
   }, [])
-  
+
   // Load all data
   const loadData = async () => {
     setIsLoading(true)
     setError('')
-    
+
     try {
       // Load models
       const models = await window.api.getAvailableModelsForTuning()
       setAvailableModels(models)
-      
+
       if (models.length > 0 && !selectedModel) {
         setSelectedModel(models[0])
       }
-      
+
       // Load datasets
       const datasets = await window.api.getAllTuningDatasets()
       setDatasets(datasets)
-      
+
       // Load jobs
       const jobs = await window.api.getAllTuningJobs()
       setJobs(jobs)
@@ -100,7 +106,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
       setIsLoading(false)
     }
   }
-  
+
   // Refresh jobs only
   const refreshJobs = async () => {
     try {
@@ -111,24 +117,24 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
       // Don't show error for background refresh
     }
   }
-  
+
   // Start a new tuning job
   const startTuningJob = async () => {
     if (!selectedModel || !selectedDataset || !newModelName.trim()) {
       setError('Please fill out all required fields')
       return
     }
-    
+
     // Validate model name format
     const modelNameRegex = /^[a-zA-Z0-9_-]+$/
     if (!modelNameRegex.test(newModelName)) {
       setError('Model name can only contain letters, numbers, underscores, and hyphens')
       return
     }
-    
+
     setIsLoading(true)
     setError('')
-    
+
     try {
       const job = await window.api.startTuningJob({
         baseModel: selectedModel,
@@ -138,20 +144,22 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
         learningRate,
         batchSize
       })
-      
+
       // Add the new job to the list
-      setJobs(prev => [job, ...prev])
-      
+      setJobs((prev) => [job, ...prev])
+
       // Reset form
       setNewModelName('')
     } catch (error) {
       console.error('Failed to start tuning job:', error)
-      setError(`Failed to start tuning job: ${error instanceof Error ? error.message : String(error)}`)
+      setError(
+        `Failed to start tuning job: ${error instanceof Error ? error.message : String(error)}`
+      )
     } finally {
       setIsLoading(false)
     }
   }
-  
+
   // Cancel a running job
   const cancelJob = async (jobId: string) => {
     try {
@@ -162,18 +170,18 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
       setError(`Failed to cancel job: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
-  
+
   // Delete a completed or failed job
   const deleteJob = async (jobId: string) => {
     try {
       await window.api.deleteTuningJob(jobId)
-      setJobs(prev => prev.filter(job => job.id !== jobId))
+      setJobs((prev) => prev.filter((job) => job.id !== jobId))
     } catch (error) {
       console.error('Failed to delete job:', error)
       setError(`Failed to delete job: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
-  
+
   // Format job timestamp
   const formatTimestamp = (timestamp: string) => {
     try {
@@ -182,13 +190,13 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
       return timestamp
     }
   }
-  
+
   // Get dataset name from ID
   const getDatasetName = (id: string) => {
-    const dataset = datasets.find(d => d.id === id)
+    const dataset = datasets.find((d) => d.id === id)
     return dataset ? dataset.name : id
   }
-  
+
   return (
     <Card className="bg-gray-800/80 border-gray-700/50 backdrop-blur-md overflow-hidden">
       <CardHeader className="pb-2">
@@ -197,9 +205,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
           Model Tuner
           {isLoading && <Pulsating className="ml-2 text-purple-400" />}
         </CardTitle>
-        <CardDescription>
-          Fine-tune models with your custom datasets
-        </CardDescription>
+        <CardDescription>Fine-tune models with your custom datasets</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="tune" className="w-full">
@@ -207,31 +213,26 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
             <TabsTrigger value="tune">New Tuning Job</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="tune">
             <div className="py-2 space-y-4">
               {/* Error Message */}
               {error && (
-                <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">{error}</div>
               )}
-              
+
               {/* Tuning Form */}
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Base Model */}
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Base Model</label>
-                    <Select
-                      value={selectedModel}
-                      onValueChange={setSelectedModel}
-                    >
+                    <Select value={selectedModel} onValueChange={setSelectedModel}>
                       <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                         <SelectValue placeholder="Select base model" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableModels.map(model => (
+                        {availableModels.map((model) => (
                           <SelectItem key={model} value={model}>
                             {model}
                           </SelectItem>
@@ -239,19 +240,16 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   {/* Dataset */}
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Training Dataset</label>
-                    <Select
-                      value={selectedDataset}
-                      onValueChange={setSelectedDataset}
-                    >
+                    <Select value={selectedDataset} onValueChange={setSelectedDataset}>
                       <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                         <SelectValue placeholder="Select dataset" />
                       </SelectTrigger>
                       <SelectContent>
-                        {datasets.map(dataset => (
+                        {datasets.map((dataset) => (
                           <SelectItem key={dataset.id} value={dataset.id}>
                             {dataset.name} ({dataset.examples.length} examples)
                           </SelectItem>
@@ -265,7 +263,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* New Model Name */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">New Model Name</label>
@@ -279,11 +277,11 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                     Only use letters, numbers, underscores, and hyphens
                   </p>
                 </div>
-                
+
                 {/* Training Parameters */}
                 <div className="bg-gray-900/50 p-3 rounded space-y-4">
                   <h3 className="text-sm font-medium text-gray-300">Training Parameters</h3>
-                  
+
                   {/* Epochs */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
@@ -301,7 +299,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                       Higher values = better results but longer training time
                     </p>
                   </div>
-                  
+
                   {/* Learning Rate */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
@@ -316,7 +314,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                       onValueChange={([value]) => setLearningRate(value / 10000)}
                     />
                   </div>
-                  
+
                   {/* Batch Size */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
@@ -332,11 +330,17 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Actions */}
                 <Button
                   onClick={startTuningJob}
-                  disabled={isLoading || !selectedModel || !selectedDataset || !newModelName.trim() || datasets.length === 0}
+                  disabled={
+                    isLoading ||
+                    !selectedModel ||
+                    !selectedDataset ||
+                    !newModelName.trim() ||
+                    datasets.length === 0
+                  }
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Play size={16} className="mr-2" />
@@ -345,20 +349,23 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
               </div>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="jobs">
             <div className="py-2">
               <ScrollArea className="h-[400px] pr-4">
                 {jobs.length > 0 ? (
                   <div className="space-y-4">
-                    {jobs.map(job => (
-                      <div 
+                    {jobs.map((job) => (
+                      <div
                         key={job.id}
                         className={`bg-gray-900 rounded p-3 border ${
-                          job.status === 'completed' ? 'border-green-600/30' :
-                          job.status === 'failed' ? 'border-red-600/30' :
-                          job.status === 'running' ? 'border-blue-600/30' :
-                          'border-gray-700'
+                          job.status === 'completed'
+                            ? 'border-green-600/30'
+                            : job.status === 'failed'
+                              ? 'border-red-600/30'
+                              : job.status === 'running'
+                                ? 'border-blue-600/30'
+                                : 'border-gray-700'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-2">
@@ -368,21 +375,26 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                               Base: {job.baseModel} | Dataset: {getDatasetName(job.datasetId)}
                             </p>
                           </div>
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${
-                            job.status === 'completed' ? 'bg-green-900/30 text-green-400' :
-                            job.status === 'failed' ? 'bg-red-900/30 text-red-400' :
-                            job.status === 'running' ? 'bg-blue-900/30 text-blue-400' :
-                            'bg-gray-900/30 text-gray-400'
-                          }`}>
+                          <div
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              job.status === 'completed'
+                                ? 'bg-green-900/30 text-green-400'
+                                : job.status === 'failed'
+                                  ? 'bg-red-900/30 text-red-400'
+                                  : job.status === 'running'
+                                    ? 'bg-blue-900/30 text-blue-400'
+                                    : 'bg-gray-900/30 text-gray-400'
+                            }`}
+                          >
                             {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                           </div>
                         </div>
-                        
+
                         {/* Progress Bar */}
                         {job.status === 'running' || job.status === 'preparing' ? (
                           <div className="mb-2">
                             <div className="w-full bg-gray-700 rounded-full h-2 mb-1">
-                              <div 
+                              <div
                                 className="h-2 rounded-full bg-blue-500 transition-all duration-300"
                                 style={{ width: `${job.progress}%` }}
                               />
@@ -411,8 +423,8 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                                 <X size={16} className="text-red-400 mr-1" />
                               )}
                               <span className="text-xs text-gray-300">
-                                {job.status === 'completed' 
-                                  ? 'Training completed successfully' 
+                                {job.status === 'completed'
+                                  ? 'Training completed successfully'
                                   : job.error || 'Training failed'}
                               </span>
                             </div>
@@ -427,7 +439,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                             </Button>
                           </div>
                         )}
-                        
+
                         {/* Timestamps */}
                         <div className="text-xs text-gray-500">
                           Started: {formatTimestamp(job.startedAt)}
@@ -444,7 +456,7 @@ const ModelTuner: React.FC<ModelTunerProps> = ({ className }) => {
                   </div>
                 )}
               </ScrollArea>
-              
+
               <div className="mt-4 flex justify-end">
                 <Button
                   variant="outline"

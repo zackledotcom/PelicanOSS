@@ -32,14 +32,7 @@
     "enableAgentSafety": true,
     "allowDangerousOperations": false,
     "maxFileSize": 104857600,
-    "allowedFileTypes": [
-      "txt",
-      "md",
-      "json",
-      "js",
-      "ts",
-      "py"
-    ],
+    "allowedFileTypes": ["txt", "md", "json", "js", "ts", "py"],
     "enableInputValidation": true,
     "logSecurityEvents": true,
     "sessionTimeoutMs": 3600000

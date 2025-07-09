@@ -1,7 +1,7 @@
 // Export a function that registers all model tuning IPC handlers
 // This will be called from the main index.ts file after ipcMain is available
 
-import { 
+import {
   getAvailableModelsForTuning,
   getAllDatasets,
   getDataset,
@@ -47,154 +47,254 @@ function withErrorRecovery<T extends any[], R>(
 // Export function to register all model tuning handlers
 export function registerModelTuningHandlers(ipcMain: any) {
   // Datasets
-  ipcMain.handle('get-available-models-for-tuning', withErrorRecovery(async () => {
-    return await getAvailableModelsForTuning()
-  }, {
-    operation: 'get-available-models-for-tuning',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
-
-  ipcMain.handle('get-all-tuning-datasets', withErrorRecovery(async () => {
-    return await getAllDatasets()
-  }, {
-    operation: 'get-all-tuning-datasets',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
-
-  ipcMain.handle('get-tuning-dataset', withErrorRecovery(async (_, id: string) => {
-    return await getDataset(id)
-  }, {
-    operation: 'get-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
-
-  ipcMain.handle('create-tuning-dataset', withErrorRecovery(async (_, params: { 
-    name: string, 
-    description: string, 
-    examples?: TuningExample[] 
-  }) => {
-    return await createDataset(params.name, params.description, params.examples)
-  }, {
-    operation: 'create-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
-
-  ipcMain.handle('update-tuning-dataset', withErrorRecovery(async (_, params: {
-    id: string,
-    updates: Partial<TuningDataset>
-  }) => {
-    return await updateDataset(params.id, params.updates)
-  }, {
-    operation: 'update-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
-
-  ipcMain.handle('delete-tuning-dataset', withErrorRecovery(async (_, id: string) => {
-    return await deleteDataset(id)
-  }, {
-    operation: 'delete-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
-
-  ipcMain.handle('add-examples-to-dataset', withErrorRecovery(async (_, params: {
-    datasetId: string,
-    examples: TuningExample[]
-  }) => {
-    return await addExamplesToDataset(params.datasetId, params.examples)
-  }, {
-    operation: 'add-examples-to-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
-
-  ipcMain.handle('remove-examples-from-dataset', withErrorRecovery(async (_, params: {
-    datasetId: string,
-    indices: number[]
-  }) => {
-    return await removeExamplesFromDataset(params.datasetId, params.indices)
-  }, {
-    operation: 'remove-examples-from-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
-
-  // Jobs
-  ipcMain.handle('get-all-tuning-jobs', withErrorRecovery(async () => {
-    return await getAllJobs()
-  }, {
-    operation: 'get-all-tuning-jobs',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
-
-  ipcMain.handle('get-tuning-job', withErrorRecovery(async (_, id: string) => {
-    return await getJob(id)
-  }, {
-    operation: 'get-tuning-job',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
-
-  ipcMain.handle('start-tuning-job', withErrorRecovery(async (_, params: {
-    baseModel: string,
-    newModelName: string,
-    datasetId: string,
-    epochs: number,
-    learningRate: number,
-    batchSize: number
-  }) => {
-    return await startTuningJob(
-      params.baseModel, 
-      params.newModelName, 
-      params.datasetId, 
+  ipcMain.handle(
+    'get-available-models-for-tuning',
+    withErrorRecovery(
+      async () => {
+        return await getAvailableModelsForTuning()
+      },
       {
-        epochs: params.epochs,
-        learningRate: params.learningRate,
-        batchSize: params.batchSize
+        operation: 'get-available-models-for-tuning',
+        component: 'model-tuning',
+        severity: 'info'
       }
     )
-  }, {
-    operation: 'start-tuning-job',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
+  )
 
-  ipcMain.handle('cancel-tuning-job', withErrorRecovery(async (_, id: string) => {
-    return await cancelTuningJob(id)
-  }, {
-    operation: 'cancel-tuning-job',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
+  ipcMain.handle(
+    'get-all-tuning-datasets',
+    withErrorRecovery(
+      async () => {
+        return await getAllDatasets()
+      },
+      {
+        operation: 'get-all-tuning-datasets',
+        component: 'model-tuning',
+        severity: 'info'
+      }
+    )
+  )
 
-  ipcMain.handle('delete-tuning-job', withErrorRecovery(async (_, id: string) => {
-    return await deleteTuningJob(id)
-  }, {
-    operation: 'delete-tuning-job',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
+  ipcMain.handle(
+    'get-tuning-dataset',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await getDataset(id)
+      },
+      {
+        operation: 'get-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'info'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'create-tuning-dataset',
+    withErrorRecovery(
+      async (
+        _,
+        params: {
+          name: string
+          description: string
+          examples?: TuningExample[]
+        }
+      ) => {
+        return await createDataset(params.name, params.description, params.examples)
+      },
+      {
+        operation: 'create-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'update-tuning-dataset',
+    withErrorRecovery(
+      async (
+        _,
+        params: {
+          id: string
+          updates: Partial<TuningDataset>
+        }
+      ) => {
+        return await updateDataset(params.id, params.updates)
+      },
+      {
+        operation: 'update-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'delete-tuning-dataset',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await deleteDataset(id)
+      },
+      {
+        operation: 'delete-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'add-examples-to-dataset',
+    withErrorRecovery(
+      async (
+        _,
+        params: {
+          datasetId: string
+          examples: TuningExample[]
+        }
+      ) => {
+        return await addExamplesToDataset(params.datasetId, params.examples)
+      },
+      {
+        operation: 'add-examples-to-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'remove-examples-from-dataset',
+    withErrorRecovery(
+      async (
+        _,
+        params: {
+          datasetId: string
+          indices: number[]
+        }
+      ) => {
+        return await removeExamplesFromDataset(params.datasetId, params.indices)
+      },
+      {
+        operation: 'remove-examples-from-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  // Jobs
+  ipcMain.handle(
+    'get-all-tuning-jobs',
+    withErrorRecovery(
+      async () => {
+        return await getAllJobs()
+      },
+      {
+        operation: 'get-all-tuning-jobs',
+        component: 'model-tuning',
+        severity: 'info'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'get-tuning-job',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await getJob(id)
+      },
+      {
+        operation: 'get-tuning-job',
+        component: 'model-tuning',
+        severity: 'info'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'start-tuning-job',
+    withErrorRecovery(
+      async (
+        _,
+        params: {
+          baseModel: string
+          newModelName: string
+          datasetId: string
+          epochs: number
+          learningRate: number
+          batchSize: number
+        }
+      ) => {
+        return await startTuningJob(params.baseModel, params.newModelName, params.datasetId, {
+          epochs: params.epochs,
+          learningRate: params.learningRate,
+          batchSize: params.batchSize
+        })
+      },
+      {
+        operation: 'start-tuning-job',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'cancel-tuning-job',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await cancelTuningJob(id)
+      },
+      {
+        operation: 'cancel-tuning-job',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
+
+  ipcMain.handle(
+    'delete-tuning-job',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await deleteTuningJob(id)
+      },
+      {
+        operation: 'delete-tuning-job',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
 
   // Import/Export
-  ipcMain.handle('export-tuning-dataset', withErrorRecovery(async (_, id: string) => {
-    return await exportDataset(id)
-  }, {
-    operation: 'export-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'info'
-  }));
+  ipcMain.handle(
+    'export-tuning-dataset',
+    withErrorRecovery(
+      async (_, id: string) => {
+        return await exportDataset(id)
+      },
+      {
+        operation: 'export-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'info'
+      }
+    )
+  )
 
-  ipcMain.handle('import-tuning-dataset', withErrorRecovery(async (_, filePath: string) => {
-    return await importDataset(filePath)
-  }, {
-    operation: 'import-tuning-dataset',
-    component: 'model-tuning',
-    severity: 'warning'
-  }));
+  ipcMain.handle(
+    'import-tuning-dataset',
+    withErrorRecovery(
+      async (_, filePath: string) => {
+        return await importDataset(filePath)
+      },
+      {
+        operation: 'import-tuning-dataset',
+        component: 'model-tuning',
+        severity: 'warning'
+      }
+    )
+  )
 }

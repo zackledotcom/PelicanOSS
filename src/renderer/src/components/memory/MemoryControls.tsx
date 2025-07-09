@@ -40,8 +40,8 @@ export const MemoryControls: React.FC<MemoryControlsProps> = ({
           <div className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-purple-600" />
             <CardTitle className="text-lg">Memory & Context</CardTitle>
-            <Badge variant={options.enabled ? "default" : "secondary"} className="ml-2">
-              {options.enabled ? "Active" : "Disabled"}
+            <Badge variant={options.enabled ? 'default' : 'secondary'} className="ml-2">
+              {options.enabled ? 'Active' : 'Disabled'}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export const MemoryControls: React.FC<MemoryControlsProps> = ({
                 <span className="font-medium">Memory Active:</span>
                 <span className="text-purple-700 dark:text-purple-300">
                   Using up to {options.maxSummaries} summaries and {options.maxKeyFacts} key facts
-                  {options.smartFilter && " with smart filtering"}
+                  {options.smartFilter && ' with smart filtering'}
                 </span>
               </div>
             </div>

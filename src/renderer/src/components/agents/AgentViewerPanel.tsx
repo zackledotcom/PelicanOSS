@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Robot, 
-  Play, 
-  Pause, 
-  Gear,  // Changed from Settings
-  Trash, 
-  Copy, 
+import {
+  Robot,
+  Play,
+  Pause,
+  Gear, // Changed from Settings
+  Trash,
+  Copy,
   Eye,
   Code,
   Database,
@@ -14,15 +14,21 @@ import {
   CheckCircle,
   Warning,
   X,
-  Funnel,  // Changed from Filter
-  MagnifyingGlass,  // Changed from Search
+  Funnel, // Changed from Filter
+  MagnifyingGlass, // Changed from Search
   Plus
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
@@ -155,7 +161,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
         }
       }
     ]
-    
+
     setAgents(mockAgents)
     setFilteredAgents(mockAgents)
   }, [])
@@ -166,21 +172,22 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(agent =>
-        agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        agent.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+      filtered = filtered.filter(
+        (agent) =>
+          agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agent.skills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     }
 
     // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(agent => agent.status === statusFilter)
+      filtered = filtered.filter((agent) => agent.status === statusFilter)
     }
 
     // Model filter
     if (modelFilter !== 'all') {
-      filtered = filtered.filter(agent => agent.model === modelFilter)
+      filtered = filtered.filter((agent) => agent.model === modelFilter)
     }
 
     setFilteredAgents(filtered)
@@ -201,10 +208,14 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
 
   const getStatusColor = (status: Agent['status']) => {
     switch (status) {
-      case 'active': return 'bg-green-50 text-green-700 border-green-200'
-      case 'idle': return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case 'error': return 'bg-red-50 text-red-700 border-red-200'
-      case 'disabled': return 'bg-gray-50 text-gray-700 border-gray-200'
+      case 'active':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'idle':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'error':
+        return 'bg-red-50 text-red-700 border-red-200'
+      case 'disabled':
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -221,7 +232,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
     const diff = now.getTime() - date.getTime()
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
     const hours = Math.floor(diff / (1000 * 60 * 60))
-    
+
     if (days > 0) return `${days}d ago`
     if (hours > 0) return `${hours}h ago`
     return 'Recently'
@@ -243,9 +254,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
         const newStatus = agent.status === 'active' ? 'disabled' : 'active'
         onAgentToggle?.(agent.id, newStatus === 'active')
         // Update local state
-        setAgents(prev => prev.map(a => 
-          a.id === agent.id ? { ...a, status: newStatus } : a
-        ))
+        setAgents((prev) => prev.map((a) => (a.id === agent.id ? { ...a, status: newStatus } : a)))
         break
       case 'duplicate':
         // TODO: Implement agent duplication
@@ -253,19 +262,17 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
     }
   }
 
-  const uniqueModels = Array.from(new Set(agents.map(agent => agent.model)))
+  const uniqueModels = Array.from(new Set(agents.map((agent) => agent.model)))
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Agent Management</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage and monitor your AI agents
-          </p>
+          <p className="text-sm text-muted-foreground">Manage and monitor your AI agents</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Badge variant="outline">
             {filteredAgents.length} of {agents.length} agents
@@ -281,7 +288,10 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
-            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <MagnifyingGlass
+              size={16}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Search agents, skills, or descriptions..."
               value={searchQuery}
@@ -290,7 +300,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
             />
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-32">
@@ -304,14 +314,14 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
               <SelectItem value="disabled">Disabled</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={modelFilter} onValueChange={setModelFilter}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Models</SelectItem>
-              {uniqueModels.map(model => (
+              {uniqueModels.map((model) => (
                 <SelectItem key={model} value={model}>
                   {model.split(':')[0]}
                 </SelectItem>
@@ -329,19 +339,18 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
           <p className="text-sm text-muted-foreground mt-1">
             {searchQuery || statusFilter !== 'all' || modelFilter !== 'all'
               ? 'Try adjusting your filters'
-              : 'Create your first agent to get started'
-            }
+              : 'Create your first agent to get started'}
           </p>
         </div>
       ) : (
         <ScrollArea className="h-[600px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredAgents.map((agent) => (
-              <Card 
-                key={agent.id} 
+              <Card
+                key={agent.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:shadow-md",
-                  selectedAgent === agent.id && "ring-2 ring-primary"
+                  'cursor-pointer transition-all hover:shadow-md',
+                  selectedAgent === agent.id && 'ring-2 ring-primary'
                 )}
                 onClick={() => handleAgentAction('select', agent)}
               >
@@ -355,9 +364,9 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                         <CardTitle className="text-base">{agent.name}</CardTitle>
                         <div className="flex items-center space-x-2 mt-1">
                           {getStatusIcon(agent.status)}
-                          <Badge 
-                            variant="outline" 
-                            className={cn("text-xs", getStatusColor(agent.status))}
+                          <Badge
+                            variant="outline"
+                            className={cn('text-xs', getStatusColor(agent.status))}
                           >
                             {agent.status}
                           </Badge>
@@ -367,7 +376,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-1">
                       <Button
                         variant="ghost"
@@ -377,11 +386,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                           handleAgentAction('toggle', agent)
                         }}
                       >
-                        {agent.status === 'active' ? (
-                          <Pause size={14} />
-                        ) : (
-                          <Play size={14} />
-                        )}
+                        {agent.status === 'active' ? <Pause size={14} /> : <Play size={14} />}
                       </Button>
                       <Button
                         variant="ghost"
@@ -396,12 +401,10 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {agent.description}
-                  </p>
-                  
+                  <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
+
                   {/* Skills */}
                   <div>
                     <h4 className="text-xs font-medium text-muted-foreground mb-2">Skills</h4>
@@ -419,7 +422,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="text-center p-2 bg-muted/30 rounded">
@@ -435,7 +438,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
                       <div className="text-muted-foreground">Avg Time</div>
                     </div>
                   </div>
-                  
+
                   {/* Last Used */}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Last used {formatRelativeTime(agent.last_used)}</span>
@@ -449,7 +452,7 @@ const AgentViewerPanel: React.FC<AgentViewerPanelProps> = ({
       )}
 
       {/* Status Alert */}
-      {agents.some(agent => agent.status === 'error') && (
+      {agents.some((agent) => agent.status === 'error') && (
         <Alert>
           <Warning size={16} />
           <AlertDescription>

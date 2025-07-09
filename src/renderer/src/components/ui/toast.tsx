@@ -34,9 +34,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9)
     const newToast = { ...toast, id }
-    
-    setToasts(prev => [...prev, newToast])
-    
+
+    setToasts((prev) => [...prev, newToast])
+
     // Auto dismiss after duration
     if (toast.duration !== Infinity) {
       setTimeout(() => {
@@ -46,12 +46,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [])
 
   const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
-  const dismissToast = useCallback((id: string) => {
-    removeToast(id)
-  }, [removeToast])
+  const dismissToast = useCallback(
+    (id: string) => {
+      removeToast(id)
+    },
+    [removeToast]
+  )
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast, dismissToast }}>
@@ -113,30 +116,18 @@ const ToastComponent: React.FC<ToastComponentProps> = ({ toast, onDismiss }) => 
   return (
     <div
       className={cn(
-        "glass-card border-l-4 p-4 rounded-xl shadow-lg animate-in slide-in-from-top-2 fade-in duration-300",
+        'glass-card border-l-4 p-4 rounded-xl shadow-lg animate-in slide-in-from-top-2 fade-in duration-300',
         getBorderColor()
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">
-          {getIcon()}
-        </div>
+        <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
         <div className="flex-1 min-w-0">
           {toast.title && (
-            <div className="font-semibold text-foreground text-sm mb-1">
-              {toast.title}
-            </div>
+            <div className="font-semibold text-foreground text-sm mb-1">{toast.title}</div>
           )}
-          {toast.description && (
-            <div className="text-grey-dark text-sm">
-              {toast.description}
-            </div>
-          )}
-          {toast.action && (
-            <div className="mt-3">
-              {toast.action}
-            </div>
-          )}
+          {toast.description && <div className="text-grey-dark text-sm">{toast.description}</div>}
+          {toast.action && <div className="mt-3">{toast.action}</div>}
         </div>
         <button
           onClick={() => onDismiss(toast.id)}

@@ -7,15 +7,13 @@ import DatasetEditor from './DatasetEditor'
 import ModelTuner from './ModelTuner'
 
 interface TuningPanelProps {
-  className?: string;
+  className?: string
 }
 
-const TuningPanel: React.FC<TuningPanelProps> = ({ 
-  className 
-}) => {
+const TuningPanel: React.FC<TuningPanelProps> = ({ className }) => {
   // State for the selected dataset
   const [selectedDataset, setSelectedDataset] = useState<any>(null)
-  
+
   return (
     <FadeIn className={className}>
       <div className="p-4 space-y-6">
@@ -30,16 +28,16 @@ const TuningPanel: React.FC<TuningPanelProps> = ({
               Model Tuning
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="datasets">
-            <DatasetEditor 
+            <DatasetEditor
               selectedDataset={selectedDataset}
               onDatasetCreated={(dataset) => {
                 setSelectedDataset(dataset)
               }}
             />
           </TabsContent>
-          
+
           <TabsContent value="tuning">
             <ModelTuner />
           </TabsContent>

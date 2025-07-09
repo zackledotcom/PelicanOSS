@@ -1,8 +1,8 @@
 // Import the gemmaCoderService functions
-import { 
-  checkGemmaCoderAvailable, 
-  initializeGemmaCoder, 
-  generateCodeWithGemma 
+import {
+  checkGemmaCoderAvailable,
+  initializeGemmaCoder,
+  generateCodeWithGemma
 } from './services/gemmaCoderService'
 
 // Add this to the beginning of your ipcMain handler section
@@ -11,7 +11,7 @@ import {
 // Initialize the GemmaCoder model when app starts
 app.whenReady().then(async () => {
   // Your existing app.whenReady() code here...
-  
+
   // Try to initialize GemmaCoder model
   try {
     const isAvailable = await checkGemmaCoderAvailable()
@@ -27,22 +27,28 @@ app.whenReady().then(async () => {
 })
 
 // Add the IPC handler for code generation with Gemma
-ipcMain.handle('generate-code-with-gemma', withErrorRecovery(async (_, { task, language }) => {
-  if (!task || !language) {
-    throw new Error('Task and language are required')
-  }
-  
-  // Check if model is available
-  const isAvailable = await checkGemmaCoderAvailable()
-  if (!isAvailable) {
-    throw new Error('GemmaCoder model not available. Please create it with Ollama first.')
-  }
-  
-  // Generate code with optimized model
-  const code = await generateCodeWithGemma(task, language)
-  return code
-}, {
-  operation: 'generate-code-with-gemma',
-  component: 'gemma-coder',
-  severity: 'warning'
-}));
+ipcMain.handle(
+  'generate-code-with-gemma',
+  withErrorRecovery(
+    async (_, { task, language }) => {
+      if (!task || !language) {
+        throw new Error('Task and language are required')
+      }
+
+      // Check if model is available
+      const isAvailable = await checkGemmaCoderAvailable()
+      if (!isAvailable) {
+        throw new Error('GemmaCoder model not available. Please create it with Ollama first.')
+      }
+
+      // Generate code with optimized model
+      const code = await generateCodeWithGemma(task, language)
+      return code
+    },
+    {
+      operation: 'generate-code-with-gemma',
+      component: 'gemma-coder',
+      severity: 'warning'
+    }
+  )
+)

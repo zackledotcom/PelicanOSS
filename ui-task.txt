@@ -1,0 +1,10 @@
+Create a new React component: src/renderer/src/components/gemini/CodeAnalysisPanel.tsx
+
+This component should:
+1. Allow users to select a project directory
+2. Choose analysis type (bugs, performance, security, etc.)
+3. Display analysis results from Gemini CLI
+4. Show diff previews for suggested changes
+5. Allow users to approve/reject modifications
+
+Follow the existing component patterns in the project using TypeScript and Tailwind CSS.

@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
+import React, { useEffect, useRef } from 'react'
+import { cn } from '@/lib/utils'
 
 interface NumberTickerProps {
   value: number
-  direction?: "up" | "down"
+  direction?: 'up' | 'down'
   delay?: number
   className?: string
   decimalPlaces?: number
@@ -13,22 +13,20 @@ interface NumberTickerProps {
 
 export default function NumberTicker({
   value,
-  direction = "up",
+  direction = 'up',
   delay = 0,
   className,
   decimalPlaces = 0,
-  prefix = "",
-  suffix = ""
+  prefix = '',
+  suffix = ''
 }: NumberTickerProps) {
   const ref = useRef<HTMLSpanElement>(null)
-  const [displayValue, setDisplayValue] = React.useState(
-    direction === "down" ? value : 0
-  )
+  const [displayValue, setDisplayValue] = React.useState(direction === 'down' ? value : 0)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const startValue = direction === "down" ? value : 0
-      const endValue = direction === "down" ? 0 : value
+      const startValue = direction === 'down' ? value : 0
+      const endValue = direction === 'down' ? 0 : value
       const duration = 2000 // 2 seconds
       const startTime = Date.now()
 
@@ -39,9 +37,9 @@ export default function NumberTicker({
 
         // Easing function for smooth animation
         const easeOutCubic = 1 - Math.pow(1 - progress, 3)
-        
+
         const currentValue = startValue + (endValue - startValue) * easeOutCubic
-        
+
         setDisplayValue(parseFloat(currentValue.toFixed(decimalPlaces)))
 
         if (progress < 1) {
@@ -56,13 +54,7 @@ export default function NumberTicker({
   }, [value, direction, delay, decimalPlaces])
 
   return (
-    <span
-      ref={ref}
-      className={cn(
-        "inline-block tabular-nums tracking-wider font-mono",
-        className
-      )}
-    >
+    <span ref={ref} className={cn('inline-block tabular-nums tracking-wider font-mono', className)}>
       {prefix}
       {displayValue.toLocaleString(undefined, {
         minimumFractionDigits: decimalPlaces,

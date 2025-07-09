@@ -42,7 +42,7 @@ export const M1_CONFIGS: Record<string, M1OptimizationConfig> = {
       low_vram: true
     }
   },
-  'tinydolphin': {
+  tinydolphin: {
     modelName: 'tinydolphin:latest',
     maxMemoryMB: 1536,
     optimalParameters: {
@@ -89,7 +89,7 @@ async function getMemoryPressure(): Promise<number> {
       const freeMatch = stdout.match(/Pages free:\s+(\d+)/)
       const activeMatch = stdout.match(/Pages active:\s+(\d+)/)
       const inactiveMatch = stdout.match(/Pages inactive:\s+(\d+)/)
-      
+
       if (freeMatch && activeMatch && inactiveMatch) {
         const free = parseInt(freeMatch[1])
         const active = parseInt(activeMatch[1])
@@ -107,20 +107,20 @@ async function getMemoryPressure(): Promise<number> {
  */
 export function getM1OptimizedParams(modelName: string) {
   // Find matching configuration
-  const configKey = Object.keys(M1_CONFIGS).find(key => 
+  const configKey = Object.keys(M1_CONFIGS).find((key) =>
     modelName.toLowerCase().includes(key.toLowerCase().split(':')[0])
   )
-  
+
   if (configKey) {
     return M1_CONFIGS[configKey].optimalParameters
   }
-  
+
   // Safe defaults for unknown models on M1 8GB
   return {
     temperature: 0.3,
     top_p: 0.9,
     top_k: 40,
-    num_ctx: 1024,  // Conservative
+    num_ctx: 1024, // Conservative
     num_gpu: 1,
     num_thread: 4,
     mmap: true,
@@ -134,12 +134,12 @@ export function getM1OptimizedParams(modelName: string) {
  */
 export async function getAdaptiveM1Params(modelName: string) {
   const baseParams = getM1OptimizedParams(modelName)
-  
+
   try {
     const memoryFreePercent = await getMemoryPressure()
-    
+
     console.log(`🧠 Memory free: ${memoryFreePercent}%`)
-    
+
     if (memoryFreePercent < 30) {
       // High memory pressure - be very conservative
       console.log('⚠️ High memory pressure - using conservative settings')
@@ -165,7 +165,7 @@ export async function getAdaptiveM1Params(modelName: string) {
         num_ctx: Math.min(baseParams.num_ctx * 1.25, 3072)
       }
     }
-    
+
     // Normal pressure - use base params
     console.log('✅ Normal memory usage - using base settings')
     return baseParams
@@ -173,7 +173,7 @@ export async function getAdaptiveM1Params(modelName: string) {
     console.warn('Could not assess memory pressure, using conservative params:', error)
     return {
       ...baseParams,
-      num_ctx: Math.round(baseParams.num_ctx * 0.75)  // Be conservative on error
+      num_ctx: Math.round(baseParams.num_ctx * 0.75) // Be conservative on error
     }
   }
 }
@@ -188,14 +188,14 @@ export async function createM1OptimizedRequest(
 ) {
   const optimizedParams = await getAdaptiveM1Params(modelName)
   const finalParams = { ...optimizedParams, ...customParams }
-  
+
   console.log(`🚀 M1-optimized request for ${modelName}:`, {
     context_length: finalParams.num_ctx,
     memory_optimized: finalParams.low_vram,
     threads: finalParams.num_thread,
     temperature: finalParams.temperature
   })
-  
+
   return {
     model: modelName,
     prompt,
@@ -207,36 +207,40 @@ export async function createM1OptimizedRequest(
 /**
  * Check if model is suitable for M1 8GB
  */
-export function isModelSuitableForM1_8GB(modelName: string): { suitable: boolean; reason?: string } {
+export function isModelSuitableForM1_8GB(modelName: string): {
+  suitable: boolean
+  reason?: string
+} {
   const modelLower = modelName.toLowerCase()
-  
+
   // Known good models
   const goodModels = ['gemma2:2b', 'tinydolphin', 'phi3:mini', 'qwen2.5:1.5b']
-  if (goodModels.some(good => modelLower.includes(good.split(':')[0]))) {
+  if (goodModels.some((good) => modelLower.includes(good.split(':')[0]))) {
     return { suitable: true }
   }
-  
+
   // Check for size indicators
   if (modelLower.includes('1b') || modelLower.includes('1.1b') || modelLower.includes('1.3b')) {
     return { suitable: true }
   }
-  
+
   if (modelLower.includes('2b') || modelLower.includes('3b')) {
     return { suitable: true }
   }
-  
+
   // Likely too large
   if (modelLower.includes('7b') || modelLower.includes('8b') || modelLower.includes('13b')) {
-    return { 
-      suitable: false, 
-      reason: 'Model too large for 8GB RAM. Consider using gemma2:2b instead.' 
+    return {
+      suitable: false,
+      reason: 'Model too large for 8GB RAM. Consider using gemma2:2b instead.'
     }
   }
-  
+
   // Unknown size - recommend caution
-  return { 
-    suitable: false, 
-    reason: 'Unknown model size. For best performance on M1 8GB, use gemma2:2b, tinydolphin, or phi3:mini.' 
+  return {
+    suitable: false,
+    reason:
+      'Unknown model size. For best performance on M1 8GB, use gemma2:2b, tinydolphin, or phi3:mini.'
   }
 }
 

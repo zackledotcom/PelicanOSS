@@ -1,11 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  Robot, 
-  Wrench, 
-  Code, 
-  FileText, 
-  Warning 
-} from 'phosphor-react'
+import { Robot, Wrench, Code, FileText, Warning } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,10 +13,10 @@ interface AgentConfigEditorProps {
 
 /**
  * TODO: AgentConfigEditor - Scaffolded Component
- * 
+ *
  * This component is planned for Phase 2+ implementation.
  * Current state: UI shell with no live editing/validation
- * 
+ *
  * Planned Features:
  * - In-canvas JSON editor with syntax highlighting
  * - Real-time validation of agent configuration
@@ -57,12 +51,10 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
             </div>
             <div>
               <h3 className="font-medium">Agent Configuration Editor</h3>
-              <p className="text-sm text-muted-foreground">
-                Edit agent settings and capabilities
-              </p>
+              <p className="text-sm text-muted-foreground">Edit agent settings and capabilities</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Badge variant="outline" className="bg-orange-50 text-orange-700">
               TODO: Planned Feature
@@ -78,8 +70,8 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
             <div>
               <h4 className="font-medium text-yellow-800">Under Development</h4>
               <p className="text-sm text-yellow-700 mt-1">
-                This is a scaffolded component. Live editing and validation features 
-                will be implemented in Phase 2+. Current display is for UI structure only.
+                This is a scaffolded component. Live editing and validation features will be
+                implemented in Phase 2+. Current display is for UI structure only.
               </p>
             </div>
           </div>
@@ -122,24 +114,14 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="agent-name">Agent Name</Label>
-                <Input
-                  id="agent-name"
-                  value={mockAgentConfig.name}
-                  disabled
-                  className="mt-1"
-                />
+                <Input id="agent-name" value={mockAgentConfig.name} disabled className="mt-1" />
               </div>
               <div>
                 <Label htmlFor="agent-model">Model</Label>
-                <Input
-                  id="agent-model"
-                  value={mockAgentConfig.model}
-                  disabled
-                  className="mt-1"
-                />
+                <Input id="agent-model" value={mockAgentConfig.model} disabled className="mt-1" />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="agent-description">Description</Label>
               <Input
@@ -149,7 +131,7 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
                 className="mt-1"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="system-prompt">System Prompt</Label>
               <Textarea
@@ -159,7 +141,7 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
                 className="mt-1 min-h-[100px]"
               />
             </div>
-            
+
             <p className="text-sm text-muted-foreground italic">
               💡 TODO: Add live validation, auto-save, and template selection
             </p>
@@ -172,19 +154,18 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
               <h4 className="font-medium mb-2">Available Tools</h4>
               <div className="grid grid-cols-2 gap-2">
                 {mockAgentConfig.tools.map((tool) => (
-                  <div 
-                    key={tool} 
-                    className="p-2 bg-background rounded border border-border"
-                  >
+                  <div key={tool} className="p-2 bg-background rounded border border-border">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-mono">{tool}</span>
-                      <Badge variant="outline" className="text-xs">Enabled</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Enabled
+                      </Badge>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            
+
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
                 💡 <strong>Planned Features:</strong>
@@ -209,7 +190,7 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
                 className="mt-1 font-mono text-xs min-h-[200px]"
               />
             </div>
-            
+
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
                 💡 <strong>Planned Features:</strong>
@@ -230,14 +211,12 @@ const AgentConfigEditor: React.FC<AgentConfigEditorProps> = ({ agentId, classNam
           <Button variant="outline" disabled>
             Reset to Default
           </Button>
-          
+
           <div className="flex space-x-2">
             <Button variant="outline" disabled>
               Validate Config
             </Button>
-            <Button disabled>
-              Save Changes
-            </Button>
+            <Button disabled>Save Changes</Button>
           </div>
         </div>
       </div>

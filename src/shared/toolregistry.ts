@@ -1,5 +1,3 @@
-
-
 import { ToolRiskLevel } from '@/types/agents'
 
 export const TOOL_SECURITY_REGISTRY: Record<string, ToolRiskLevel> = {

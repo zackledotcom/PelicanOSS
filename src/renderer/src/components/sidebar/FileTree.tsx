@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { 
-  Folder, 
-  File, 
-  CaretRight, 
-  CaretDown, 
-  Upload, 
+import React, { useState, useCallback, useEffect } from 'react'
+import {
+  Folder,
+  File,
+  CaretRight,
+  CaretDown,
+  Upload,
   Plus,
   MagnifyingGlass,
   DotsThree
@@ -19,6 +19,7 @@ interface FileNode {
   id: string
   name: string
   type: 'file' | 'directory'
+  path: string
   size?: number
   modified?: Date
   children?: FileNode[]
@@ -30,6 +31,7 @@ interface FileTreeProps {
   onFileSelect: (file: FileNode) => void
   onFileUpload?: (files: FileList) => void
   onCreateFile?: (path: string, name: string) => void
+  onRefresh: () => void
   selectedFile?: string
   className?: string
 }
@@ -39,12 +41,98 @@ export default function FileTree({
   onFileSelect,
   onFileUpload,
   onCreateFile,
+  onRefresh,
   selectedFile,
   className
 }: FileTreeProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [searchTerm, setSearchTerm] = useState('')
   const [dragOver, setDragOver] = useState(false)
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, node: FileNode) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Send to main process for native context menu
+    if (window.api?.showContextMenu) {
+      window.api.showContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        filePath: node.path,
+        isDirectory: node.type === 'directory',
+        fileName: node.name
+      })
+    }
+  }, [])
+
+  // Listen for context menu commands
+  useEffect(() => {
+    if (!window.api?.onContextMenuCommand) return
+
+    const cleanup = window.api.onContextMenuCommand((command: string, data: any) => {
+      console.log('Context menu command:', command, data)
+      // Handle commands and refresh UI
+      if (['delete', 'new-file', 'new-folder', 'rename'].includes(command)) {
+        onRefresh()
+      }
+    })
+
+    return cleanup
+  }, [onRefresh])
+
+  const closeContextMenu = () => setContextMenu(null)
+
+  const handleCreate = async (type: 'file' | 'directory') => {
+    if (!contextMenu) return
+    const parentDir = contextMenu.node.type === 'directory' ? contextMenu.node.path : contextMenu.node.path.substring(0, contextMenu.node.path.lastIndexOf('/'))
+    const name = prompt(`Enter name for new ${type}:`)
+    if (name) {
+      const newPath = `${parentDir}/${name}`
+      if (type === 'file') {
+        await window.api.fsCreateFile(newPath)
+      } else {
+        await window.api.fsCreateDirectory(newPath)
+      }
+      onRefresh()
+    }
+    closeContextMenu()
+  }
+
+  const handleDelete = async () => {
+    if (contextMenu && confirm(`Are you sure you want to delete ${contextMenu.node.name}?`)) {
+      await window.api.fsDelete(contextMenu.node.path)
+      onRefresh()
+    }
+    closeContextMenu()
+  }
+
+  const handleRename = async () => {
+    if (!contextMenu) return
+    const newName = prompt('Enter new name:', contextMenu.node.name)
+    if (newName && newName !== contextMenu.node.name) {
+      const newPath = `${contextMenu.node.path.substring(0, contextMenu.node.path.lastIndexOf('/'))}/${newName}`
+      await window.api.fsRename(contextMenu.node.path, newPath)
+      onRefresh()
+    }
+    closeContextMenu()
+  }
+
+  const handleCopy = () => {
+    if (contextMenu) {
+      setClipboard({ path: contextMenu.node.path, type: 'copy' })
+    }
+    closeContextMenu()
+  }
+
+  const handlePaste = async () => {
+    if (clipboard && contextMenu) {
+      const destinationDir = contextMenu.node.type === 'directory' ? contextMenu.node.path : contextMenu.node.path.substring(0, contextMenu.node.path.lastIndexOf('/'))
+      const newPath = `${destinationDir}/${clipboard.path.substring(clipboard.path.lastIndexOf('/') + 1)}`
+      await window.api.fsCopy(clipboard.path, newPath)
+      onRefresh()
+    }
+    closeContextMenu()
+  }
 
   const toggleExpanded = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes)
@@ -68,7 +156,7 @@ export default function FileTree({
     if (!bytes) return ''
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
   }
 
   const FileTreeNode = ({ node, depth = 0 }: { node: FileNode; depth?: number }) => {
@@ -76,7 +164,7 @@ export default function FileTree({
     const isSelected = selectedFile === node.id
     const hasChildren = node.children && node.children.length > 0
 
-    const filteredChildren = node.children?.filter(child =>
+    const filteredChildren = node.children?.filter((child) =>
       child.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
@@ -84,10 +172,10 @@ export default function FileTree({
       <div>
         <div
           className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer transition-colors",
-            "hover:bg-muted/50",
-            isSelected && "bg-muted",
-            depth > 0 && "ml-4"
+            'flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer transition-colors',
+            'hover:bg-muted/50',
+            isSelected && 'bg-muted',
+            depth > 0 && 'ml-4'
           )}
           onClick={() => {
             if (node.type === 'directory') {
@@ -95,17 +183,17 @@ export default function FileTree({
             }
             onFileSelect(node)
           }}
+          onContextMenu={(e) => handleContextMenu(e, node)}
         >
           {/* Expand/collapse icon */}
           {node.type === 'directory' ? (
             <div className="w-4 h-4 flex items-center justify-center">
-              {hasChildren && (
-                isExpanded ? (
+              {hasChildren &&
+                (isExpanded ? (
                   <CaretDown className="w-3 h-3" />
                 ) : (
                   <CaretRight className="w-3 h-3" />
-                )
-              )}
+                ))}
             </div>
           ) : (
             <div className="w-4" />
@@ -127,9 +215,7 @@ export default function FileTree({
               <div className="text-xs text-muted-foreground">
                 {formatFileSize(node.size)}
                 {node.modified && (
-                  <span className="ml-2">
-                    {node.modified.toLocaleDateString()}
-                  </span>
+                  <span className="ml-2">{node.modified.toLocaleDateString()}</span>
                 )}
               </div>
             )}
@@ -161,19 +247,20 @@ export default function FileTree({
     )
   }
 
-  const filteredFiles = files.filter(file =>
+  const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
-    <Card 
-      className={cn("w-80 h-96", className)}
+    <Card
+      className={cn('w-80 h-96', className)}
       onDragOver={(e) => {
         e.preventDefault()
         setDragOver(true)
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
+      onClick={closeContextMenu}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -183,28 +270,18 @@ export default function FileTree({
           </CardTitle>
           <div className="flex gap-1">
             {onCreateFile && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                title="New file"
-              >
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" title="New file">
                 <Plus className="w-3 h-3" />
               </Button>
             )}
             {onFileUpload && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                title="Upload files"
-              >
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" title="Upload files">
                 <Upload className="w-3 h-3" />
               </Button>
             )}
           </div>
         </div>
-        
+
         {/* Search */}
         <div className="relative">
           <MagnifyingGlass className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
@@ -216,7 +293,7 @@ export default function FileTree({
           />
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         <ScrollArea className="h-80 px-3">
           <div className="space-y-1">
@@ -236,6 +313,20 @@ export default function FileTree({
           </div>
         )}
       </CardContent>
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={closeContextMenu}
+          onCreateFile={() => handleCreate('file')}
+          onCreateFolder={() => handleCreate('directory')}
+          onDelete={handleDelete}
+          onRename={handleRename}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
+          canPaste={!!clipboard}
+        />
+      )}
     </Card>
   )
 }

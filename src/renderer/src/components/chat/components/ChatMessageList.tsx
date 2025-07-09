@@ -1,15 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  User, 
-  Robot, 
-  ThumbsUp, 
-  ThumbsDown, 
-  Copy, 
-  Pencil, 
-  Check, 
-  X,
-  Warning
-} from 'phosphor-react'
+import { User, Robot, ThumbsUp, ThumbsDown, Copy, Pencil, Check, X, Warning } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -49,8 +39,14 @@ const TypingIndicator: React.FC = () => (
     </div>
     <div className="flex space-x-1">
       <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+      <div
+        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+        style={{ animationDelay: '0.1s' }}
+      />
+      <div
+        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+        style={{ animationDelay: '0.2s' }}
+      />
     </div>
     <span className="text-sm text-muted-foreground">AI is thinking...</span>
   </div>
@@ -80,45 +76,49 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCorrection, on
 
   const formatMessageContent = (content: string) => {
     // Basic markdown-like formatting
-    return content
-      // Bold
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Inline code
-      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
-      // Code blocks
-      .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted p-3 rounded-lg overflow-x-auto"><code>$1</code></pre>')
-      // Line breaks
-      .replace(/\n/g, '<br>')
+    return (
+      content
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Inline code
+        .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
+        // Code blocks
+        .replace(
+          /```([\s\S]*?)```/g,
+          '<pre class="bg-muted p-3 rounded-lg overflow-x-auto"><code>$1</code></pre>'
+        )
+        // Line breaks
+        .replace(/\n/g, '<br>')
+    )
   }
 
   const isUser = message.type === 'user'
   const isSystem = message.type === 'system'
 
   return (
-    <div 
+    <div
       className={cn(
-        "group relative p-4 hover:bg-muted/30 transition-colors",
-        isUser && "bg-primary/5"
+        'group relative p-4 hover:bg-muted/30 transition-colors',
+        isUser && 'bg-primary/5'
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
       <div className="flex space-x-3">
         {/* Avatar */}
-        <div className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-          isUser ? "bg-primary text-primary-foreground" : 
-          isSystem ? "bg-orange-100 text-orange-600" : "bg-secondary"
-        )}>
-          {isUser ? (
-            <User size={18} />
-          ) : isSystem ? (
-            <Warning size={18} />
-          ) : (
-            <Robot size={18} />
+        <div
+          className={cn(
+            'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+            isUser
+              ? 'bg-primary text-primary-foreground'
+              : isSystem
+                ? 'bg-orange-100 text-orange-600'
+                : 'bg-secondary'
           )}
+        >
+          {isUser ? <User size={18} /> : isSystem ? <Warning size={18} /> : <Robot size={18} />}
         </div>
 
         {/* Message Content */}
@@ -138,7 +138,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCorrection, on
               </Badge>
             )}
             <span className="text-xs text-muted-foreground">
-              {message.timestamp.toLocaleTimeString()}
+              {message.timestamp instanceof Date && !isNaN(message.timestamp.getTime()) 
+                ? message.timestamp.toLocaleTimeString() 
+                : 'Invalid time'}
             </span>
           </div>
 
@@ -162,7 +164,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCorrection, on
               </div>
             </div>
           ) : (
-            <div 
+            <div
               className="prose prose-sm max-w-none text-foreground"
               dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }}
             />
@@ -182,17 +184,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCorrection, on
             <Button size="sm" variant="ghost" onClick={handleCopyToClipboard}>
               <Copy size={14} />
             </Button>
-            
+
             {!isSystem && (
               <>
                 <Button size="sm" variant="ghost" onClick={() => setIsEditing(true)}>
                   <Pencil size={14} />
                 </Button>
-                
+
                 <Button size="sm" variant="ghost" onClick={() => onReaction(message.id, 'like')}>
                   <ThumbsUp size={14} />
                 </Button>
-                
+
                 <Button size="sm" variant="ghost" onClick={() => onReaction(message.id, 'dislike')}>
                   <ThumbsDown size={14} />
                 </Button>
@@ -205,12 +207,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCorrection, on
   )
 }
 
-const ChatMessageList: React.FC<ChatMessageListProps> = ({ 
-  messages, 
-  onMessageCorrection, 
-  onMessageReaction, 
+const ChatMessageList: React.FC<ChatMessageListProps> = ({
+  messages,
+  onMessageCorrection,
+  onMessageReaction,
   isThinking,
-  streamingMessage 
+  streamingMessage
 }) => {
   return (
     <div className="flex flex-col">

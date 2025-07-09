@@ -1,6 +1,6 @@
 /**
  * Input Validation System for PelicanOS
- * 
+ *
  * @author PelicanOS Security Team
  * @version 1.0.0
  */
@@ -20,10 +20,12 @@ export const ChatMessageSchema = z.object({
 export const SettingsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
   language: z.string().length(2).optional(),
-  telemetry: z.object({
-    enabled: z.boolean().optional(),
-    collectUsageStats: z.boolean().optional()
-  }).optional()
+  telemetry: z
+    .object({
+      enabled: z.boolean().optional(),
+      collectUsageStats: z.boolean().optional()
+    })
+    .optional()
 })
 
 export interface ValidationResult<T = any> {

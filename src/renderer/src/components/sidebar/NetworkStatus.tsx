@@ -28,17 +28,10 @@ export default function NetworkStatus({
             ) : (
               <WifiSlash size={16} className="text-red-500" />
             )}
-            <span className="text-sm font-medium">
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
+            <span className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</span>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleMode}
-            className="gap-2"
-          >
+
+          <Button variant="ghost" size="sm" onClick={onToggleMode} className="gap-2">
             {isCloudMode ? (
               <>
                 <Cloud size={14} />
@@ -54,15 +47,14 @@ export default function NetworkStatus({
         </div>
 
         {pingLatency && (
-          <div className="text-xs text-muted-foreground mt-2">
-            Ping: {pingLatency}ms
-          </div>
+          <div className="text-xs text-muted-foreground mt-2">Ping: {pingLatency}ms</div>
         )}
 
         {lastSync && isCloudMode && (
           <div className="text-xs text-muted-foreground mt-1">
-            Synced: {new Date().getTime() - lastSync.getTime() < 60000 
-              ? 'Just now' 
+            Synced:{' '}
+            {new Date().getTime() - lastSync.getTime() < 60000
+              ? 'Just now'
               : lastSync.toLocaleTimeString()}
           </div>
         )}

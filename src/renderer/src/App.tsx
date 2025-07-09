@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 
 // Core Chat Components
-import ChatInterface from './components/chat/ChatInterface'
-import LeftSidebar from './components/layout/LeftSidebar'
+import PremiumChatInterface from './components/chat/PremiumChatInterface'
+import LeftSidebar from './components/layout/EfficientSidebar'
+import CollaborationCanvas from './components/canvas/CollaborationCanvas'
 
 // Modals & Overlays
 import SettingsModal from './components/modals/SettingsModal'
@@ -10,11 +11,14 @@ import DeveloperModal from './components/modals/DeveloperModal'
 import SystemStatusOverlay from './components/overlays/SystemStatusOverlay'
 import AgentManagerOverlay from './components/overlays/AgentManagerOverlay'
 import AdvancedMemoryPanel from './components/AdvancedMemoryPanel'
+import CodeAnalysisPanel from './components/gemini/CodeAnalysisPanel'
 
 // Global Systems
 import { ToastProvider } from './components/ui/toast'
 
 import './globals.css'
+
+type AIProvider = 'ollama' | 'claude' | 'gemini'
 
 interface AppState {
   showLeftSidebar: boolean
@@ -23,8 +27,12 @@ interface AppState {
   showSystemStatus: boolean
   showAgentManager: boolean
   showAdvancedMemory: boolean
+  showCodeAnalysis: boolean
+  showCollaborationCanvas: boolean
   selectedModel: string
   theme: 'light' | 'dark' | 'system'
+  activeAI: AIProvider
+  activeThread?: string
 }
 
 // Simple error boundary
@@ -47,11 +55,13 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <h3 className="text-red-800 font-semibold">Component Error</h3>
-          <p className="text-red-600 text-sm mt-1">{this.state.error?.message}</p>
-        </div>
+      return (
+        this.props.fallback || (
+          <div className="p-4 bg-red-50 border border-red-200 rounded">
+            <h3 className="text-red-800 font-semibold">Component Error</h3>
+            <p className="text-red-600 text-sm mt-1">{this.state.error?.message || 'An unknown error occurred'}</p>
+          </div>
+        )
       )
     }
 
@@ -67,14 +77,18 @@ const App: React.FC = () => {
     showSystemStatus: false,
     showAgentManager: false,
     showAdvancedMemory: false,
+    showCodeAnalysis: false,
+    showCollaborationCanvas: false,
     selectedModel: 'tinydolphin:latest',
-    theme: 'system'
+    theme: 'system',
+    activeAI: 'ollama', // Default to Ollama
+    activeThread: undefined
   })
 
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
   const updateState = (updates: Partial<AppState>) => {
-    setState(prev => ({ ...prev, ...updates }))
+    setState((prev) => ({ ...prev, ...updates }))
   }
 
   const toggleSidebar = () => {
@@ -98,6 +112,51 @@ const App: React.FC = () => {
     }
   }
 
+  // Handle new chat action
+  const handleNewChat = () => {
+    console.log(`🆕 New ${state.activeAI} chat initiated`)
+    // Reset messages in the chat interface
+  }
+
+  // Handle AI provider change
+  const handleAIChange = (provider: AIProvider) => {
+    console.log(`🤖 Switching to ${provider}`)
+    
+    // Set appropriate default models for each provider
+    let defaultModel = state.selectedModel
+    if (provider === 'claude') {
+      defaultModel = 'claude-3-sonnet'
+    } else if (provider === 'gemini') {
+      defaultModel = 'gemini-pro'
+    } else if (provider === 'ollama') {
+      defaultModel = 'tinydolphin:latest'
+    }
+    
+    updateState({ 
+      activeAI: provider, 
+      activeThread: undefined,
+      selectedModel: defaultModel
+    })
+  }
+
+  // Handle thread change
+  const handleThreadChange = (threadId: string) => {
+    console.log(`💬 Switching to thread ${threadId}`)
+    updateState({ activeThread: threadId })
+  }
+
+  // Handle model change
+  const handleModelChange = (model: string) => {
+    console.log(`🔧 Changing model to ${model}`)
+    updateState({ selectedModel: model })
+  }
+
+  // Handle theme change
+  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+    console.log(`🎨 Changing theme to ${theme}`)
+    updateState({ theme })
+  }
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -111,56 +170,71 @@ const App: React.FC = () => {
     <ToastProvider>
       <div className="flex h-screen bg-white overflow-hidden">
         {/* Left Edge Hover Trigger */}
-        <div 
+        <div
           className={`absolute left-0 top-0 w-1 h-full z-50 ${!state.showLeftSidebar ? 'cursor-pointer' : ''}`}
           onMouseEnter={handleLeftEdgeHover}
           onMouseLeave={handleLeftEdgeLeave}
         />
 
-        {/* Left Sidebar */}
-        <div className={`
+        {/* Enhanced Sidebar */}
+        <div
+          className={`
           transition-all duration-300 ease-out 
           ${state.showLeftSidebar ? 'w-80' : 'w-0'} 
           bg-gray-50 border-r border-gray-200 overflow-hidden
-        `}>
+        `}
+        >
           {state.showLeftSidebar && (
             <ErrorBoundary fallback={<div className="p-4 text-red-600">Sidebar Error</div>}>
-              <LeftSidebar 
+              <LeftSidebar
                 onClose={() => updateState({ showLeftSidebar: false })}
                 onToggle={toggleSidebar}
                 isOpen={state.showLeftSidebar}
                 onOpenSettings={() => updateState({ showSettings: true })}
                 onOpenDeveloper={() => updateState({ showDeveloper: true })}
                 selectedModel={state.selectedModel}
-                onModelChange={(model) => updateState({ selectedModel: model })}
+                onModelChange={handleModelChange}
                 theme={state.theme}
-                onThemeChange={(theme) => updateState({ theme })}
+                onThemeChange={handleThemeChange}
+                activeAI={state.activeAI}
+                onAIChange={handleAIChange}
+                activeThread={state.activeThread}
+                onThreadChange={handleThreadChange}
+                onOpenCollaborationCanvas={() => updateState({ showCollaborationCanvas: true })}
               />
             </ErrorBoundary>
           )}
         </div>
 
-        {/* Main Chat Area - Full Width Focus */}
+        {/* Main Chat Area - Enhanced */}
         <main className="flex-1 flex flex-col min-w-0">
-          <ErrorBoundary fallback={<div className="flex-1 bg-red-50 flex items-center justify-center text-red-600">Content Error</div>}>
-            <ChatInterface 
+          <ErrorBoundary
+            fallback={
+              <div className="flex-1 bg-red-50 flex items-center justify-center text-red-600">
+                Chat Interface Error
+              </div>
+            }
+          >
+            <PremiumChatInterface
               selectedModel={state.selectedModel}
-              onModelChange={(model) => updateState({ selectedModel: model })}
+              onModelChange={handleModelChange}
               onOpenSettings={() => updateState({ showSettings: true })}
               onOpenDeveloper={() => updateState({ showDeveloper: true })}
               onOpenSystemStatus={() => updateState({ showSystemStatus: true })}
               onOpenAgentManager={() => updateState({ showAgentManager: true })}
               onOpenAdvancedMemory={() => updateState({ showAdvancedMemory: true })}
+              onOpenCodeAnalysis={() => updateState({ showCodeAnalysis: true })}
+              onOpenCollaborationCanvas={() => updateState({ showCollaborationCanvas: true })}
               onToggleSidebar={toggleSidebar}
               sidebarOpen={state.showLeftSidebar}
-              onSetSidebarOpen={(open) => updateState({ showLeftSidebar: open })}
-              showLeftSidebar={state.showLeftSidebar}
-              onToggleLeftSidebar={toggleSidebar}
+              onNewChat={handleNewChat}
+              activeAI={state.activeAI}
+              activeThread={state.activeThread}
             />
           </ErrorBoundary>
         </main>
 
-        {/* Modals */}
+        {/* Modals - Working */}
         {state.showSettings && (
           <ErrorBoundary fallback={<div>Settings Error</div>}>
             <SettingsModal onClose={() => updateState({ showSettings: false })} />
@@ -189,6 +263,19 @@ const App: React.FC = () => {
           <ErrorBoundary fallback={<div>Memory Panel Error</div>}>
             <AdvancedMemoryPanel onClose={() => updateState({ showAdvancedMemory: false })} />
           </ErrorBoundary>
+        )}
+
+        {state.showCodeAnalysis && (
+          <div className="absolute inset-0 bg-black/30 z-40 flex items-center justify-center">
+            <CodeAnalysisPanel onClose={() => updateState({ showCodeAnalysis: false })} />
+          </div>
+        )}
+
+        {state.showCollaborationCanvas && (
+          <CollaborationCanvas
+            isOpen={state.showCollaborationCanvas}
+            onClose={() => updateState({ showCollaborationCanvas: false })}
+          />
         )}
       </div>
     </ToastProvider>

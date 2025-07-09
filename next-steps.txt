@@ -1,0 +1,15 @@
+Next implementation steps needed:
+
+1. Update src/preload/index.ts to expose the new Gemini CLI IPC methods
+2. Create UI components for:
+   - Code analysis results
+   - Diff preview and approval
+   - Project selection interface
+
+Please start with updating the preload script to expose:
+- gemini-cli-analyze-project
+- gemini-cli-generate-modification  
+- gemini-cli-chat-with-context
+- gemini-cli-apply-diff
+
+Follow the existing preload patterns in the project.

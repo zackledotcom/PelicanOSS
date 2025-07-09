@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Play, 
-  Pause, 
-  ArrowCounterClockwise, 
-  FastForward, 
+import {
+  Play,
+  Pause,
+  ArrowCounterClockwise,
+  FastForward,
   Activity,
   Hash,
   Clock
@@ -39,7 +39,7 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
     rate: 0,
     startTime: Date.now()
   })
-  
+
   const [replayMode, setReplayMode] = useState(false)
   const [replaySpeed, setReplaySpeed] = useState(1)
   const [replayPosition, setReplayPosition] = useState(0)
@@ -51,8 +51,8 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
       const tokens = streamContent.split(/\s+/).length
       const elapsed = (Date.now() - tokenInfo.startTime) / 1000
       const rate = elapsed > 0 ? tokens / elapsed : 0
-      
-      setTokenInfo(prev => ({
+
+      setTokenInfo((prev) => ({
         ...prev,
         current: tokens,
         rate
@@ -74,7 +74,7 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
     } else if (streamContent) {
       // Streaming finished, update total
       const totalTokens = streamContent.split(/\s+/).length
-      setTokenInfo(prev => ({
+      setTokenInfo((prev) => ({
         ...prev,
         total: totalTokens
       }))
@@ -101,63 +101,45 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
 
   const getReplayContent = () => {
     if (!replayMode || !streamContent) return streamContent
-    
+
     const words = streamContent.split(' ')
     const targetIndex = Math.floor((replayPosition / 100) * words.length)
     return words.slice(0, targetIndex).join(' ')
   }
 
   return (
-    <div className={cn(
-      "border-t border-border bg-muted/30 backdrop-blur",
-      className
-    )}>
+    <div className={cn('border-t border-border bg-muted/30 backdrop-blur', className)}>
       <div className="p-3">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Activity size={16} className={cn(
-              isStreaming ? "text-green-500 animate-pulse" : "text-muted-foreground"
-            )} />
+            <Activity
+              size={16}
+              className={cn(isStreaming ? 'text-green-500 animate-pulse' : 'text-muted-foreground')}
+            />
             <span className="font-medium text-sm">Token Streaming</span>
             <Badge variant="outline" className="text-xs">
               {model}
             </Badge>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDebugInfo(!showDebugInfo)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowDebugInfo(!showDebugInfo)}>
               Debug
             </Button>
-            
+
             {!isStreaming && streamContent && (
               <div className="flex items-center space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReplayToggle}
-                >
+                <Button variant="ghost" size="sm" onClick={handleReplayToggle}>
                   {replayMode ? <Pause size={14} /> : <Play size={14} />}
                 </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReplaySpeedChange}
-                >
+
+                <Button variant="ghost" size="sm" onClick={handleReplaySpeedChange}>
                   <FastForward size={14} />
                   {replaySpeed}x
                 </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReplayPosition(0)}
-                >
+
+                <Button variant="ghost" size="sm" onClick={() => setReplayPosition(0)}>
                   <ArrowCounterClockwise size={14} />
                 </Button>
               </div>
@@ -174,17 +156,15 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
               <span className="text-muted-foreground">/ {tokenInfo.total}</span>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Activity size={14} className="text-muted-foreground" />
             <span>Rate: {formatTokenRate(tokenInfo.rate)}</span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Clock size={14} className="text-muted-foreground" />
-            <span>
-              Time: {((Date.now() - tokenInfo.startTime) / 1000).toFixed(1)}s
-            </span>
+            <span>Time: {((Date.now() - tokenInfo.startTime) / 1000).toFixed(1)}s</span>
           </div>
         </div>
 
@@ -203,9 +183,7 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
         {/* Stream Content Preview */}
         {(isStreaming || streamContent) && (
           <div className="bg-background rounded-lg p-3 border border-border">
-            <div className="text-sm font-mono text-muted-foreground mb-1">
-              Stream Preview:
-            </div>
+            <div className="text-sm font-mono text-muted-foreground mb-1">Stream Preview:</div>
             <div className="text-sm max-h-20 overflow-y-auto">
               {getReplayContent()}
               {isStreaming && <span className="animate-pulse">|</span>}
@@ -222,7 +200,7 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
               <div>Streaming: {isStreaming ? 'Yes' : 'No'}</div>
               <div>Content Length: {streamContent.length} chars</div>
               <div>Word Count: {streamContent.split(/\s+/).length}</div>
-              <div>Start Time: {new Date(tokenInfo.startTime).toLocaleTimeString()}</div>
+              <div>Start Time: {tokenInfo.startTime && new Date(tokenInfo.startTime) instanceof Date && !isNaN(new Date(tokenInfo.startTime).getTime()) ? new Date(tokenInfo.startTime).toLocaleTimeString() : 'Invalid time'}</div>
               <div>Replay Mode: {replayMode ? 'On' : 'Off'}</div>
             </div>
           </div>
@@ -232,7 +210,8 @@ const TokenStreamingDisplay: React.FC<TokenStreamingDisplayProps> = ({
         {!isStreaming && streamContent && (
           <div className="mt-3 p-2 bg-orange-50 rounded-lg border border-orange-200">
             <div className="text-sm text-orange-800">
-              💡 <strong>Correction Replay:</strong> Edit the message above to replay token generation with corrections
+              💡 <strong>Correction Replay:</strong> Edit the message above to replay token
+              generation with corrections
             </div>
           </div>
         )}

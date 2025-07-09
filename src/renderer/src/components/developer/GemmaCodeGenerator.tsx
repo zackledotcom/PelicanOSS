@@ -3,38 +3,41 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Play, Lightning, ArrowsClockwise, Code } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Pulsating } from '@/components/ui/pulsating'
 
 interface GemmaCodeGeneratorProps {
-  className?: string;
-  onCodeGenerated?: (code: string, language: string) => void;
+  className?: string
+  onCodeGenerated?: (code: string, language: string) => void
 }
 
-const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({
-  className,
-  onCodeGenerated
-}) => {
+const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({ className, onCodeGenerated }) => {
   const [task, setTask] = useState('')
   const [language, setLanguage] = useState('javascript')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedCode, setGeneratedCode] = useState('')
   const [error, setError] = useState('')
-  
+
   const handleGenerate = async () => {
     if (!task.trim()) return
-    
+
     setIsGenerating(true)
     setGeneratedCode('')
     setError('')
-    
+
     try {
       // Call the backend service
       const response = await window.api.invoke('generate-code-with-gemma', {
         task,
         language
       })
-      
+
       setGeneratedCode(response)
       onCodeGenerated?.(response, language)
     } catch (error) {
@@ -44,7 +47,7 @@ const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({
       setIsGenerating(false)
     }
   }
-  
+
   return (
     <Card className="bg-gray-800/80 border-gray-700/50 backdrop-blur-md overflow-hidden">
       <CardHeader className="pb-2">
@@ -68,14 +71,11 @@ const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({
               className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 resize-none h-24"
             />
           </div>
-          
+
           <div className="flex gap-4 items-center">
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">Language</label>
-              <Select
-                value={language}
-                onValueChange={setLanguage}
-              >
+              <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -90,7 +90,7 @@ const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || !task.trim()}
@@ -109,13 +109,9 @@ const GemmaCodeGenerator: React.FC<GemmaCodeGeneratorProps> = ({
               )}
             </Button>
           </div>
-          
-          {error && (
-            <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">
-              {error}
-            </div>
-          )}
-          
+
+          {error && <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">{error}</div>}
+
           {generatedCode && (
             <div className="mt-4">
               <div className="flex justify-between items-center mb-2">

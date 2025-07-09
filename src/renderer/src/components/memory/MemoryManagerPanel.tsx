@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Brain, 
-  Plus, 
-  MagnifyingGlass as Search,  // Fixed: Search → MagnifyingGlass
-  Funnel as Filter,  // Fixed: Filter → Funnel
-  Trash, 
-  PencilSimple as Edit,  // Fixed: Edit → PencilSimple
+import {
+  Brain,
+  Plus,
+  MagnifyingGlass as Search, // Fixed: Search → MagnifyingGlass
+  Funnel as Filter, // Fixed: Filter → Funnel
+  Trash,
+  PencilSimple as Edit, // Fixed: Edit → PencilSimple
   Eye,
   Clock,
   Hash,
   Tag,
   BookOpen,
   Database,
-  Warning as AlertTriangle,  // Fixed: AlertTriangle → Warning
+  Warning as AlertTriangle, // Fixed: AlertTriangle → Warning
   CheckCircle,
   X,
   Calendar,
-  ChartBar as BarChart  // Fixed: BarChart → ChartBar
+  ChartBar as BarChart // Fixed: BarChart → ChartBar
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,10 +24,22 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -72,6 +84,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
   const [memoryChunks, setMemoryChunks] = useState<MemoryChunk[]>([])
   const [filteredChunks, setFilteredChunks] = useState<MemoryChunk[]>([])
   const [memoryStats, setMemoryStats] = useState<MemoryStats | null>(null)
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [sourceFilter, setSourceFilter] = useState<string>('all')
   const [topicFilter, setTopicFilter] = useState<string>('all')
@@ -89,13 +102,41 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
     tags: [] as string[]
   })
 
-  // Mock data - replace with real API calls
+  // Load real memory data from backend
+  useEffect(() => {
+    loadMemoryData()
+  }, [])
+
+  const loadMemoryData = async () => {
+    setLoading(true)
+    try {
+      // BACKEND EXISTS - activate these calls
+      const chunks = await window.api.getMemoryChunks()
+      setMemoryChunks(chunks)
+      setFilteredChunks(chunks)
+
+      const stats = await window.api.getMemoryStats()
+      setMemoryStats(stats)
+
+      console.log('✅ Loaded memory data:', chunks.length, 'chunks')
+    } catch (error) {
+      console.error('❌ Failed to load memory data:', error)
+      // Fallback to empty state
+      setMemoryChunks([])
+      setFilteredChunks([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load mock data for demo
   useEffect(() => {
     const mockChunks: MemoryChunk[] = [
       {
         id: 'mem-001',
         summary: 'React component architecture discussion',
-        content: 'Detailed conversation about implementing React components with TypeScript, focusing on proper typing and state management patterns.',
+        content:
+          'Detailed conversation about implementing React components with TypeScript, focusing on proper typing and state management patterns.',
         topics: ['React', 'TypeScript', 'Components', 'State Management'],
         keyFacts: [
           'Use TypeScript interfaces for prop types',
@@ -117,7 +158,8 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
       {
         id: 'mem-002',
         summary: 'API integration best practices',
-        content: 'Documentation and examples for integrating external APIs with error handling, retry logic, and proper authentication.',
+        content:
+          'Documentation and examples for integrating external APIs with error handling, retry logic, and proper authentication.',
         topics: ['API', 'Integration', 'Error Handling', 'Authentication'],
         keyFacts: [
           'Always implement retry logic with exponential backoff',
@@ -138,7 +180,8 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
       {
         id: 'mem-003',
         summary: 'Database optimization techniques',
-        content: 'Collection of database optimization strategies including indexing, query optimization, and performance monitoring.',
+        content:
+          'Collection of database optimization strategies including indexing, query optimization, and performance monitoring.',
         topics: ['Database', 'Performance', 'Optimization', 'Indexing'],
         keyFacts: [
           'Index frequently queried columns',
@@ -158,7 +201,8 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
       {
         id: 'mem-004',
         summary: 'UI/UX design principles',
-        content: 'Core principles for designing user interfaces including accessibility, usability, and visual hierarchy.',
+        content:
+          'Core principles for designing user interfaces including accessibility, usability, and visual hierarchy.',
         topics: ['UI', 'UX', 'Design', 'Accessibility'],
         keyFacts: [
           'Follow WCAG accessibility guidelines',
@@ -180,8 +224,9 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
     const mockStats: MemoryStats = {
       total_chunks: mockChunks.length,
       total_size: mockChunks.reduce((sum, chunk) => sum + chunk.metadata.size, 0),
-      avg_relevance: mockChunks.reduce((sum, chunk) => sum + chunk.relevance_score, 0) / mockChunks.length,
-      most_accessed: mockChunks.reduce((prev, current) => 
+      avg_relevance:
+        mockChunks.reduce((sum, chunk) => sum + chunk.relevance_score, 0) / mockChunks.length,
+      most_accessed: mockChunks.reduce((prev, current) =>
         current.access_count > prev.access_count ? current : prev
       ),
       recent_activity: [
@@ -203,23 +248,24 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(chunk =>
-        chunk.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chunk.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chunk.topics.some(topic => topic.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        chunk.keyFacts.some(fact => fact.toLowerCase().includes(searchQuery.toLowerCase()))
+      filtered = filtered.filter(
+        (chunk) =>
+          chunk.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          chunk.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          chunk.topics.some((topic) => topic.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          chunk.keyFacts.some((fact) => fact.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     }
 
     // Source filter
     if (sourceFilter !== 'all') {
-      filtered = filtered.filter(chunk => chunk.source === sourceFilter)
+      filtered = filtered.filter((chunk) => chunk.source === sourceFilter)
     }
 
     // Topic filter
     if (topicFilter !== 'all') {
-      filtered = filtered.filter(chunk => 
-        chunk.topics.some(topic => topic.toLowerCase() === topicFilter.toLowerCase())
+      filtered = filtered.filter((chunk) =>
+        chunk.topics.some((topic) => topic.toLowerCase() === topicFilter.toLowerCase())
       )
     }
 
@@ -232,7 +278,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
     const diff = now.getTime() - date.getTime()
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
     const hours = Math.floor(diff / (1000 * 60 * 60))
-    
+
     if (days > 0) return `${days}d ago`
     if (hours > 0) return `${hours}h ago`
     return 'Recently'
@@ -242,21 +288,25 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
     const units = ['B', 'KB', 'MB', 'GB']
     let size = bytes
     let unitIndex = 0
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024
       unitIndex++
     }
-    
+
     return `${size.toFixed(1)}${units[unitIndex]}`
   }
 
   const getSourceIcon = (source: MemoryChunk['source']) => {
     switch (source) {
-      case 'chat': return <Brain size={14} className="text-blue-500" />
-      case 'file': return <BookOpen size={14} className="text-green-500" />
-      case 'manual': return <Edit size={14} className="text-purple-500" />
-      case 'import': return <Database size={14} className="text-orange-500" />
+      case 'chat':
+        return <Brain size={14} className="text-blue-500" />
+      case 'file':
+        return <BookOpen size={14} className="text-green-500" />
+      case 'manual':
+        return <Edit size={14} className="text-purple-500" />
+      case 'import':
+        return <Database size={14} className="text-orange-500" />
     }
   }
 
@@ -285,9 +335,9 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
         }
       }
 
-      setMemoryChunks(prev => [newChunk, ...prev])
+      setMemoryChunks((prev) => [newChunk, ...prev])
       setIsCreateDialogOpen(false)
-      
+
       // Reset form
       setNewMemory({
         summary: '',
@@ -296,7 +346,6 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
         keyFacts: [],
         tags: []
       })
-
     } catch (error) {
       console.error('Failed to create memory:', error)
     }
@@ -319,20 +368,19 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
         }
       }
 
-      setMemoryChunks(prev => prev.map(chunk =>
-        chunk.id === editingChunk.id ? updatedChunk : chunk
-      ))
-      
+      setMemoryChunks((prev) =>
+        prev.map((chunk) => (chunk.id === editingChunk.id ? updatedChunk : chunk))
+      )
+
       setIsEditDialogOpen(false)
       setEditingChunk(null)
-
     } catch (error) {
       console.error('Failed to update memory:', error)
     }
   }
 
   const handleDeleteMemory = (chunkId: string) => {
-    setMemoryChunks(prev => prev.filter(chunk => chunk.id !== chunkId))
+    setMemoryChunks((prev) => prev.filter((chunk) => chunk.id !== chunkId))
   }
 
   const openEditDialog = (chunk: MemoryChunk) => {
@@ -347,10 +395,10 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
     setIsEditDialogOpen(true)
   }
 
-  const allTopics = Array.from(new Set(memoryChunks.flatMap(chunk => chunk.topics)))
+  const allTopics = Array.from(new Set(memoryChunks.flatMap((chunk) => chunk.topics)))
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -362,7 +410,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
             Manage AI memory chunks and knowledge base
           </p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -387,7 +435,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -399,19 +447,21 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <BarChart size={16} className="text-muted-foreground" />
                 <div>
-                  <div className="text-2xl font-bold">{(memoryStats.avg_relevance * 100).toFixed(0)}%</div>
+                  <div className="text-2xl font-bold">
+                    {(memoryStats.avg_relevance * 100).toFixed(0)}%
+                  </div>
                   <div className="text-xs text-muted-foreground">Avg Relevance</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -430,7 +480,10 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Search memories, topics, or key facts..."
               value={searchQuery}
@@ -439,7 +492,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
             />
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
             <SelectTrigger className="w-32">
@@ -453,14 +506,14 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
               <SelectItem value="import">Import</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={topicFilter} onValueChange={setTopicFilter}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Topics</SelectItem>
-              {allTopics.map(topic => (
+              {allTopics.map((topic) => (
                 <SelectItem key={topic} value={topic}>
                   {topic}
                 </SelectItem>
@@ -478,8 +531,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
           <p className="text-sm text-muted-foreground mt-1">
             {searchQuery || sourceFilter !== 'all' || topicFilter !== 'all'
               ? 'Try adjusting your filters'
-              : 'Create your first memory entry'
-            }
+              : 'Create your first memory entry'}
           </p>
         </div>
       ) : (
@@ -493,31 +545,21 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                       <div className="flex items-center space-x-2 mb-2">
                         {getSourceIcon(chunk.source)}
                         <CardTitle className="text-base">{chunk.summary}</CardTitle>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={getRelevanceColor(chunk.relevance_score)}
                         >
                           {(chunk.relevance_score * 100).toFixed(0)}%
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {chunk.content}
-                      </p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{chunk.content}</p>
                     </div>
-                    
+
                     <div className="flex space-x-1 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedChunk(chunk)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedChunk(chunk)}>
                         <Eye size={14} />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(chunk)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(chunk)}>
                         <Edit size={14} />
                       </Button>
                       <Button
@@ -530,7 +572,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-3">
                   {/* Topics */}
                   <div className="flex flex-wrap gap-1">
@@ -541,7 +583,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                       </Badge>
                     ))}
                   </div>
-                  
+
                   {/* Key Facts */}
                   {chunk.keyFacts.length > 0 && (
                     <div>
@@ -549,7 +591,10 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                       <ul className="text-xs space-y-1">
                         {chunk.keyFacts.slice(0, 2).map((fact, index) => (
                           <li key={index} className="flex items-start space-x-1">
-                            <CheckCircle size={10} className="text-green-500 mt-0.5 flex-shrink-0" />
+                            <CheckCircle
+                              size={10}
+                              className="text-green-500 mt-0.5 flex-shrink-0"
+                            />
                             <span className="text-muted-foreground">{fact}</span>
                           </li>
                         ))}
@@ -561,7 +606,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                       </ul>
                     </div>
                   )}
-                  
+
                   {/* Metadata */}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <div className="flex items-center space-x-3">
@@ -581,78 +626,88 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
       {/* Create/Edit Memory Dialog */}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {isCreateDialogOpen ? 'Create New Memory' : 'Edit Memory'}
-          </DialogTitle>
+          <DialogTitle>{isCreateDialogOpen ? 'Create New Memory' : 'Edit Memory'}</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div>
             <Label htmlFor="memory-summary">Summary</Label>
             <Input
               id="memory-summary"
               value={newMemory.summary}
-              onChange={(e) => setNewMemory(prev => ({ ...prev, summary: e.target.value }))}
+              onChange={(e) => setNewMemory((prev) => ({ ...prev, summary: e.target.value }))}
               placeholder="Brief description of the memory"
               className="mt-1"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="memory-content">Content</Label>
             <Textarea
               id="memory-content"
               value={newMemory.content}
-              onChange={(e) => setNewMemory(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(e) => setNewMemory((prev) => ({ ...prev, content: e.target.value }))}
               placeholder="Detailed content of the memory"
               className="mt-1 min-h-[120px]"
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Topics (comma-separated)</Label>
               <Input
                 value={newMemory.topics.join(', ')}
-                onChange={(e) => setNewMemory(prev => ({ 
-                  ...prev, 
-                  topics: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                }))}
+                onChange={(e) =>
+                  setNewMemory((prev) => ({
+                    ...prev,
+                    topics: e.target.value
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                  }))
+                }
                 placeholder="React, TypeScript, Components"
                 className="mt-1"
               />
             </div>
-            
+
             <div>
               <Label>Tags (comma-separated)</Label>
               <Input
                 value={newMemory.tags.join(', ')}
-                onChange={(e) => setNewMemory(prev => ({ 
-                  ...prev, 
-                  tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                }))}
+                onChange={(e) =>
+                  setNewMemory((prev) => ({
+                    ...prev,
+                    tags: e.target.value
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                  }))
+                }
                 placeholder="development, frontend, guide"
                 className="mt-1"
               />
             </div>
           </div>
-          
+
           <div>
             <Label>Key Facts (one per line)</Label>
             <Textarea
               value={newMemory.keyFacts.join('\n')}
-              onChange={(e) => setNewMemory(prev => ({ 
-                ...prev, 
-                keyFacts: e.target.value.split('\n').filter(Boolean)
-              }))}
+              onChange={(e) =>
+                setNewMemory((prev) => ({
+                  ...prev,
+                  keyFacts: e.target.value.split('\n').filter(Boolean)
+                }))
+              }
               placeholder="Important facts or takeaways (one per line)"
               className="mt-1 min-h-[80px]"
             />
           </div>
-          
+
           <div className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setIsCreateDialogOpen(false)
                 setIsEditDialogOpen(false)
@@ -661,7 +716,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={isCreateDialogOpen ? handleCreateMemory : handleEditMemory}
               disabled={!newMemory.summary || !newMemory.content}
             >
@@ -681,22 +736,20 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                 <span>{selectedChunk.summary}</span>
               </DialogTitle>
             </DialogHeader>
-            
+
             <Tabs defaultValue="content" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="metadata">Metadata</TabsTrigger>
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="content" className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-2">Full Content</h4>
-                  <div className="p-4 bg-muted/30 rounded-lg text-sm">
-                    {selectedChunk.content}
-                  </div>
+                  <div className="p-4 bg-muted/30 rounded-lg text-sm">{selectedChunk.content}</div>
                 </div>
-                
+
                 {selectedChunk.keyFacts.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Key Facts</h4>
@@ -711,7 +764,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                   </div>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="metadata" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -724,14 +777,18 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                   </div>
                   <div>
                     <span className="font-medium">Created:</span>
-                    <span className="ml-2">{new Date(selectedChunk.created_at).toLocaleString()}</span>
+                    <span className="ml-2">
+                      {new Date(selectedChunk.created_at).toLocaleString()}
+                    </span>
                   </div>
                   <div>
                     <span className="font-medium">Last Accessed:</span>
-                    <span className="ml-2">{new Date(selectedChunk.last_accessed).toLocaleString()}</span>
+                    <span className="ml-2">
+                      {new Date(selectedChunk.last_accessed).toLocaleString()}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Topics</h4>
                   <div className="flex flex-wrap gap-1">
@@ -742,7 +799,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                     ))}
                   </div>
                 </div>
-                
+
                 {selectedChunk.metadata.tags && (
                   <div>
                     <h4 className="font-medium mb-2">Tags</h4>
@@ -756,7 +813,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                   </div>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="stats" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Card>
@@ -767,7 +824,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-4">
                       <div className="text-center">
@@ -779,7 +836,7 @@ const MemoryManagerPanel: React.FC<MemoryManagerPanelProps> = ({ className }) =>
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Relevance Breakdown</h4>
                   <div className="space-y-2">

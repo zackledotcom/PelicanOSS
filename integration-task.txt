@@ -1,0 +1,8 @@
+Now create integration to add the CodeAnalysisPanel to the main PelicanOS interface.
+
+Please:
+1. Update the main App.tsx to include a Gemini CLI section
+2. Add navigation/menu item for the new code analysis feature
+3. Show how to integrate it with the existing layout
+
+Make it accessible from the main interface so users can start using Gemini CLI code analysis.

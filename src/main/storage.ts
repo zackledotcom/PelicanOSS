@@ -74,7 +74,7 @@ function getDefaultChatHistory(): { version: string; messages: Message[] } {
 // Default memory store
 function getDefaultMemoryStore(): MemoryStore {
   const now = new Date()
-  const expiresAt = new Date(now.getTime() + (DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000))
+  const expiresAt = new Date(now.getTime() + DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
   return {
     version: STORAGE_VERSION,
@@ -90,7 +90,7 @@ function getDefaultMemoryStore(): MemoryStore {
 // Validation functions
 // Validation functions - handle legacy settings gracefully
 function isValidSettings(data: any): data is AppSettings {
-  const hasBasicFields = (
+  const hasBasicFields =
     typeof data === 'object' &&
     data !== null &&
     typeof data.version === 'string' &&
@@ -99,37 +99,35 @@ function isValidSettings(data: any): data is AppSettings {
     typeof data.modelName === 'string' &&
     typeof data.chromaEndpoint === 'string' &&
     typeof data.ollamaPromptPreset === 'string'
-  )
 
   // Handle legacy settings without memory field
   if (hasBasicFields && !data.memory) {
     return true // Will be upgraded below
   }
 
-  const hasValidMemory = (
+  const hasValidMemory =
     typeof data.memory === 'object' &&
     data.memory !== null &&
     typeof data.memory.enabled === 'boolean' &&
     typeof data.memory.retentionDays === 'number' &&
     typeof data.memory.autoSummarizeThreshold === 'number' &&
     typeof data.memory.showInAdvancedPanel === 'boolean'
-  )
 
   // Validate telemetry settings if present
-  const hasValidTelemetry = !data.telemetry || (
-    typeof data.telemetry === 'object' &&
-    data.telemetry !== null &&
-    typeof data.telemetry.enabled === 'boolean' &&
-    typeof data.telemetry.collectUsageStats === 'boolean' &&
-    typeof data.telemetry.collectErrorReports === 'boolean' &&
-    typeof data.telemetry.collectFeatureUsage === 'boolean'
-  )
+  const hasValidTelemetry =
+    !data.telemetry ||
+    (typeof data.telemetry === 'object' &&
+      data.telemetry !== null &&
+      typeof data.telemetry.enabled === 'boolean' &&
+      typeof data.telemetry.collectUsageStats === 'boolean' &&
+      typeof data.telemetry.collectErrorReports === 'boolean' &&
+      typeof data.telemetry.collectFeatureUsage === 'boolean')
 
   return hasBasicFields && hasValidMemory && hasValidTelemetry
 }
 
 function isValidMessage(data: any): data is Message {
-  const hasRequiredFields = (
+  const hasRequiredFields =
     typeof data === 'object' &&
     data !== null &&
     typeof data.id === 'string' &&
@@ -138,13 +136,21 @@ function isValidMessage(data: any): data is Message {
     typeof data.content === 'string' &&
     typeof data.timestamp === 'string' &&
     !isNaN(Date.parse(data.timestamp))
-  )
 
   // Optional fields validation
   if (hasRequiredFields) {
     if (data.reasoning !== undefined && typeof data.reasoning !== 'string') return false
-    if (data.confidence !== undefined && (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)) return false
-    if (data.clarifications !== undefined && (!Array.isArray(data.clarifications) || !data.clarifications.every((c: any) => typeof c === 'string'))) return false
+    if (
+      data.confidence !== undefined &&
+      (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)
+    )
+      return false
+    if (
+      data.clarifications !== undefined &&
+      (!Array.isArray(data.clarifications) ||
+        !data.clarifications.every((c: any) => typeof c === 'string'))
+    )
+      return false
   }
 
   return hasRequiredFields
@@ -161,7 +167,7 @@ function isValidChatHistory(data: any): data is { version: string; messages: Mes
 }
 
 function isValidMemorySummary(data: any): data is MemorySummary {
-  const hasRequiredFields = (
+  const hasRequiredFields =
     typeof data === 'object' &&
     data !== null &&
     typeof data.id === 'string' &&
@@ -173,12 +179,15 @@ function isValidMemorySummary(data: any): data is MemorySummary {
     typeof data.createdAt === 'string' &&
     !isNaN(Date.parse(data.createdAt)) &&
     typeof data.messageCount === 'number'
-  )
 
   // Optional fields validation
   if (hasRequiredFields) {
     if (data.reasoningTrace !== undefined && typeof data.reasoningTrace !== 'string') return false
-    if (data.confidence !== undefined && (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)) return false
+    if (
+      data.confidence !== undefined &&
+      (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 100)
+    )
+      return false
   }
 
   return hasRequiredFields
@@ -399,7 +408,9 @@ export async function saveMemoryStore(memoryStore: MemoryStore): Promise<void> {
 
     // Trim summaries to max limit
     if (memoryWithVersion.summaries.length > memoryWithVersion.maxSummaries) {
-      memoryWithVersion.summaries = memoryWithVersion.summaries.slice(-memoryWithVersion.maxSummaries)
+      memoryWithVersion.summaries = memoryWithVersion.summaries.slice(
+        -memoryWithVersion.maxSummaries
+      )
     }
 
     await writeFile(memoryPath, JSON.stringify(memoryWithVersion, null, 2), 'utf-8')
@@ -440,14 +451,17 @@ export async function clearMemoryStore(): Promise<void> {
   }
 }
 
-export async function updateMemorySettings(enabled: boolean, retentionDays?: number): Promise<void> {
+export async function updateMemorySettings(
+  enabled: boolean,
+  retentionDays?: number
+): Promise<void> {
   try {
     const memoryStore = await loadMemoryStore()
     memoryStore.enabled = enabled
 
     if (retentionDays) {
       const now = new Date()
-      const expiresAt = new Date(now.getTime() + (retentionDays * 24 * 60 * 60 * 1000))
+      const expiresAt = new Date(now.getTime() + retentionDays * 24 * 60 * 60 * 1000)
       memoryStore.expiresAt = expiresAt.toISOString()
     }
 

@@ -1,0 +1,3 @@
+Please update src/main/index.ts to import and register the new geminiCliHandlers.
+
+Add the import and call registerGeminiCliHandlers(ipcMain) in the appropriate place following the existing pattern.

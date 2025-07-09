@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import ModelAvatar from '@/components/ui/model-avatar';
+import React, { useState, useEffect } from 'react'
+import ModelAvatar from '@/components/ui/model-avatar'
 
-const DEFAULT_WIDTH = 260;
+const DEFAULT_WIDTH = 260
 
 interface ModelData {
   value: string
@@ -26,82 +26,84 @@ interface ModelCardProps {
 const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
   // Early return if no model provided
   if (!model) {
-    return null;
+    return null
   }
-  
-  const [cardWidth, setCardWidth] = useState(400);
-  const [isResizing, setIsResizing] = useState(false);
+
+  const [cardWidth, setCardWidth] = useState(400)
+  const [isResizing, setIsResizing] = useState(false)
 
   // Cleanup resize listeners on unmount
   useEffect(() => {
     return () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, []);
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [])
 
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        onClose()
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose])
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-    
-    const startX = e.clientX;
-    const startWidth = cardWidth;
+    e.preventDefault()
+    e.stopPropagation()
+    setIsResizing(true)
+
+    const startX = e.clientX
+    const startWidth = cardWidth
 
     const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - startX;
-      const newWidth = Math.max(350, Math.min(800, startWidth + deltaX));
-      setCardWidth(newWidth);
-    };
+      const deltaX = e.clientX - startX
+      const newWidth = Math.max(350, Math.min(800, startWidth + deltaX))
+      setCardWidth(newWidth)
+    }
 
     const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
 
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
 
   if (!isOpen) return null
 
   return (
-    <div 
+    <div
       className="fixed bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center"
-      style={{ 
-        left: '256px', 
+      style={{
+        left: '256px',
         top: '0',
-        right: '0', 
+        right: '0',
         bottom: '0'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          onClose()
         }
       }}
     >
       {/* Pokemon Card Container - Centered in chat area */}
-      <div className="relative h-[550px] rounded-3xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-all duration-500 z-[10000]" style={{ width: cardWidth }}>
-
+      <div
+        className="relative h-[550px] rounded-3xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-all duration-500 z-[10000]"
+        style={{ width: cardWidth }}
+      >
         {/* ULTRA HOLOGRAPHIC Background - Slower animations */}
         <div className="absolute inset-0">
           {/* Base holographic layer */}
@@ -125,7 +127,6 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
 
         {/* Glass Card Overlay */}
         <div className="relative h-full bg-white/20 backdrop-blur-xl border-2 border-white/50 shadow-inner">
-
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -137,11 +138,17 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
           {/* Header */}
           <div className="p-6 pb-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-base font-bold text-gray-800 bg-white/30 px-3 py-2 rounded-full backdrop-blur-sm border border-white/40">AI MODEL</span>
-              <span className="text-base text-gray-700 bg-white/30 px-3 py-2 rounded-full backdrop-blur-sm border border-white/40">Level {model.label.match(/\d+[A-Z]/)?.[0] || '1B'}</span>
+              <span className="text-base font-bold text-gray-800 bg-white/30 px-3 py-2 rounded-full backdrop-blur-sm border border-white/40">
+                AI MODEL
+              </span>
+              <span className="text-base text-gray-700 bg-white/30 px-3 py-2 rounded-full backdrop-blur-sm border border-white/40">
+                Level {model.label.match(/\d+[A-Z]/)?.[0] || '1B'}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900 drop-shadow-lg">{model.label.split(' ')[0]}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 drop-shadow-lg">
+                {model.label.split(' ')[0]}
+              </h1>
               <div className="flex items-center gap-2 bg-white/30 px-4 py-2 rounded-full backdrop-blur-sm border border-white/40">
                 <span className="text-xl font-bold text-gray-900">Fast</span>
                 <span className="text-xl">⚡</span>
@@ -167,10 +174,10 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                   alt="TinyDolphin"
                   className="w-40 h-40 object-contain filter drop-shadow-2xl transform rotate-12 hover:rotate-0 transition-transform duration-500"
                   onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.style.display = 'none';
-                    const fallback = target.nextElementSibling as HTMLElement;
-                    if (fallback) fallback.style.display = 'block';
+                    const target = e.currentTarget as HTMLImageElement
+                    target.style.display = 'none'
+                    const fallback = target.nextElementSibling as HTMLElement
+                    if (fallback) fallback.style.display = 'block'
                   }}
                 />
                 <div className="text-9xl filter drop-shadow-2xl transform rotate-12 hidden">
@@ -186,7 +193,9 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
 
             {/* Pokemon Info */}
             <div className="text-center mt-3 text-base text-gray-700 bg-white/30 rounded-full py-2 backdrop-blur-sm border border-white/40">
-              <span>NO. 001 AI Pokémon HT: {model.label.match(/\d+[A-Z]/)?.[0]} WT: {model.trainingData}</span>
+              <span>
+                NO. 001 AI Pokémon HT: {model.label.match(/\d+[A-Z]/)?.[0]} WT: {model.trainingData}
+              </span>
             </div>
           </div>
 
@@ -198,7 +207,9 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                 </div>
                 Ability: Quick Response
               </h3>
-              <p className="text-sm text-gray-800">All queries are processed with lightning speed for instant results.</p>
+              <p className="text-sm text-gray-800">
+                All queries are processed with lightning speed for instant results.
+              </p>
             </div>
           </div>
 
@@ -208,15 +219,20 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    {[1,2,3,4].map(i => (
-                      <div key={i} className="w-4 h-4 bg-gradient-to-r from-orange-400 to-red-500 rounded-full shadow-lg animate-pulse"></div>
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="w-4 h-4 bg-gradient-to-r from-orange-400 to-red-500 rounded-full shadow-lg animate-pulse"
+                      ></div>
                     ))}
                   </div>
                   <span className="font-bold text-gray-900">Quick Generate</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-900">{model.accuracy}</span>
               </div>
-              <p className="text-sm text-gray-800">Process any coding or text task instantly with high accuracy.</p>
+              <p className="text-sm text-gray-800">
+                Process any coding or text task instantly with high accuracy.
+              </p>
             </div>
           </div>
 
@@ -250,7 +266,10 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                   </h4>
                   <div className="space-y-1">
                     {(model.strengths || []).slice(0, 2).map((strength, i) => (
-                      <div key={i} className="text-xs bg-green-100/60 backdrop-blur-sm text-green-800 px-2 py-1 rounded-full border border-green-200/50">
+                      <div
+                        key={i}
+                        className="text-xs bg-green-100/60 backdrop-blur-sm text-green-800 px-2 py-1 rounded-full border border-green-200/50"
+                      >
                         {strength}
                       </div>
                     ))}
@@ -262,7 +281,10 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
                   </h4>
                   <div className="space-y-1">
                     {(model.weaknesses || []).slice(0, 2).map((weakness, i) => (
-                      <div key={i} className="text-xs bg-red-100/60 backdrop-blur-sm text-red-800 px-2 py-1 rounded-full border border-red-200/50">
+                      <div
+                        key={i}
+                        className="text-xs bg-red-100/60 backdrop-blur-sm text-red-800 px-2 py-1 rounded-full border border-red-200/50"
+                      >
                         {weakness}
                       </div>
                     ))}
@@ -276,7 +298,9 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, isOpen, onClose }) => {
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="text-center bg-white/20 backdrop-blur-lg rounded-xl py-2 border border-white/30">
               <div className="text-xs text-gray-600 mb-1">Illus. AI Training Data</div>
-              <div className="text-xs text-gray-500">©2024 PelicanOS • {model.character}/001 ★</div>
+              <div className="text-xs text-gray-500">
+                ©2024 PelicanOS • {model.character}/001 ★
+              </div>
             </div>
           </div>
         </div>

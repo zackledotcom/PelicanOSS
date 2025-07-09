@@ -13,34 +13,34 @@ const OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
 
 // Types for tuning
 export interface TuningExample {
-  input: string;
-  output: string;
+  input: string
+  output: string
 }
 
 export interface TuningDataset {
-  id: string;
-  name: string;
-  description: string;
-  examples: TuningExample[];
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  description: string
+  examples: TuningExample[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface TuningJob {
-  id: string;
-  baseModel: string;
-  newModelName: string;
-  datasetId: string;
-  status: 'preparing' | 'running' | 'completed' | 'failed';
-  progress: number;
-  startedAt: string;
-  completedAt?: string;
-  error?: string;
+  id: string
+  baseModel: string
+  newModelName: string
+  datasetId: string
+  status: 'preparing' | 'running' | 'completed' | 'failed'
+  progress: number
+  startedAt: string
+  completedAt?: string
+  error?: string
   params: {
-    epochs: number;
-    learningRate: number;
-    batchSize: number;
-  };
+    epochs: number
+    learningRate: number
+    batchSize: number
+  }
 }
 
 /**
@@ -89,13 +89,13 @@ async function ensureDatasetsDirectory(): Promise<void> {
 export async function getAllDatasets(): Promise<TuningDataset[]> {
   await ensureDatasetsDirectory()
   const datasetsPath = getDatasetsPath()
-  
+
   try {
     const files = await fs.readdir(datasetsPath)
-    const datasetFiles = files.filter(file => file.endsWith('.json'))
-    
+    const datasetFiles = files.filter((file) => file.endsWith('.json'))
+
     const datasets: TuningDataset[] = []
-    
+
     for (const file of datasetFiles) {
       try {
         const content = await fs.readFile(path.join(datasetsPath, file), 'utf8')
@@ -105,7 +105,7 @@ export async function getAllDatasets(): Promise<TuningDataset[]> {
         console.error(`Error reading dataset ${file}:`, error)
       }
     }
-    
+
     return datasets
   } catch (error) {
     console.error('Failed to get datasets:', error)
@@ -120,7 +120,7 @@ export async function getDataset(id: string): Promise<TuningDataset | null> {
   await ensureDatasetsDirectory()
   const datasetsPath = getDatasetsPath()
   const datasetPath = path.join(datasetsPath, `${id}.json`)
-  
+
   try {
     const content = await fs.readFile(datasetPath, 'utf8')
     return JSON.parse(content) as TuningDataset
@@ -140,10 +140,10 @@ export async function createDataset(
 ): Promise<TuningDataset> {
   await ensureDatasetsDirectory()
   const datasetsPath = getDatasetsPath()
-  
+
   const id = `dataset_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
   const now = new Date().toISOString()
-  
+
   const dataset: TuningDataset = {
     id,
     name,
@@ -152,10 +152,10 @@ export async function createDataset(
     createdAt: now,
     updatedAt: now
   }
-  
+
   const datasetPath = path.join(datasetsPath, `${id}.json`)
   await fs.writeFile(datasetPath, JSON.stringify(dataset, null, 2), 'utf8')
-  
+
   return dataset
 }
 
@@ -170,18 +170,18 @@ export async function updateDataset(
   if (!dataset) {
     return null
   }
-  
+
   const updatedDataset: TuningDataset = {
     ...dataset,
     ...updates,
     id, // Ensure ID doesn't change
     updatedAt: new Date().toISOString()
   }
-  
+
   const datasetsPath = getDatasetsPath()
   const datasetPath = path.join(datasetsPath, `${id}.json`)
   await fs.writeFile(datasetPath, JSON.stringify(updatedDataset, null, 2), 'utf8')
-  
+
   return updatedDataset
 }
 
@@ -191,7 +191,7 @@ export async function updateDataset(
 export async function deleteDataset(id: string): Promise<boolean> {
   const datasetsPath = getDatasetsPath()
   const datasetPath = path.join(datasetsPath, `${id}.json`)
-  
+
   try {
     await fs.unlink(datasetPath)
     return true
@@ -212,11 +212,11 @@ export async function addExamplesToDataset(
   if (!dataset) {
     return null
   }
-  
+
   const updatedExamples = [...dataset.examples, ...examples]
-  
-  return await updateDataset(datasetId, { 
-    examples: updatedExamples 
+
+  return await updateDataset(datasetId, {
+    examples: updatedExamples
   })
 }
 
@@ -231,11 +231,11 @@ export async function removeExamplesFromDataset(
   if (!dataset) {
     return null
   }
-  
+
   const updatedExamples = dataset.examples.filter((_, index) => !indices.includes(index))
-  
-  return await updateDataset(datasetId, { 
-    examples: updatedExamples 
+
+  return await updateDataset(datasetId, {
+    examples: updatedExamples
   })
 }
 
@@ -266,13 +266,13 @@ async function ensureJobsDirectory(): Promise<void> {
 export async function getAllJobs(): Promise<TuningJob[]> {
   await ensureJobsDirectory()
   const jobsPath = getJobsPath()
-  
+
   try {
     const files = await fs.readdir(jobsPath)
-    const jobFiles = files.filter(file => file.endsWith('.json'))
-    
+    const jobFiles = files.filter((file) => file.endsWith('.json'))
+
     const jobs: TuningJob[] = []
-    
+
     for (const file of jobFiles) {
       try {
         const content = await fs.readFile(path.join(jobsPath, file), 'utf8')
@@ -282,7 +282,7 @@ export async function getAllJobs(): Promise<TuningJob[]> {
         console.error(`Error reading job ${file}:`, error)
       }
     }
-    
+
     return jobs
   } catch (error) {
     console.error('Failed to get jobs:', error)
@@ -297,7 +297,7 @@ export async function getJob(id: string): Promise<TuningJob | null> {
   await ensureJobsDirectory()
   const jobsPath = getJobsPath()
   const jobPath = path.join(jobsPath, `${id}.json`)
-  
+
   try {
     const content = await fs.readFile(jobPath, 'utf8')
     return JSON.parse(content) as TuningJob
@@ -311,38 +311,38 @@ export async function getJob(id: string): Promise<TuningJob | null> {
  * Update a job's status and progress
  */
 async function updateJobStatus(
-  id: string, 
-  status: TuningJob['status'], 
-  progress: number, 
+  id: string,
+  status: TuningJob['status'],
+  progress: number,
   error?: string
 ): Promise<TuningJob | null> {
   const job = await getJob(id)
   if (!job) {
     return null
   }
-  
-  const updates: Partial<TuningJob> = { 
-    status, 
+
+  const updates: Partial<TuningJob> = {
+    status,
     progress
   }
-  
+
   if (error) {
     updates.error = error
   }
-  
+
   if (status === 'completed' || status === 'failed') {
     updates.completedAt = new Date().toISOString()
   }
-  
+
   const updatedJob: TuningJob = {
     ...job,
     ...updates
   }
-  
+
   const jobsPath = getJobsPath()
   const jobPath = path.join(jobsPath, `${id}.json`)
   await fs.writeFile(jobPath, JSON.stringify(updatedJob, null, 2), 'utf8')
-  
+
   return updatedJob
 }
 
@@ -359,17 +359,18 @@ async function createModelfileForTuning(
   if (!dataset) {
     throw new Error(`Dataset ${datasetId} not found`)
   }
-  
+
   // Create temporary directory for modelfile
   const tmpDir = path.join(app.getPath('temp'), 'pelicanos-tuning')
   await fs.mkdir(tmpDir, { recursive: true })
-  
+
   // Create modelfile
   const modelfilePath = path.join(tmpDir, `modelfile_${datasetId}`)
-  
+
   // Format the examples for training
-  const formattedExamples = dataset.examples.map(ex => {
-    return `
+  const formattedExamples = dataset.examples
+    .map((ex) => {
+      return `
 <prompt>
 ${ex.input}
 </prompt>
@@ -378,8 +379,9 @@ ${ex.input}
 ${ex.output}
 </response>
 `
-  }).join('\n')
-  
+    })
+    .join('\n')
+
   // Create the modelfile content
   const modelfileContent = `
 FROM ${baseModel}
@@ -391,9 +393,9 @@ PARAMETER learning_rate ${learningRate}
 # Training data
 TRAIN ${formattedExamples}
 `
-  
+
   await fs.writeFile(modelfilePath, modelfileContent, 'utf8')
-  
+
   return modelfilePath
 }
 
@@ -405,28 +407,28 @@ export async function startTuningJob(
   newModelName: string,
   datasetId: string,
   params: {
-    epochs: number;
-    learningRate: number;
-    batchSize: number;
+    epochs: number
+    learningRate: number
+    batchSize: number
   }
 ): Promise<TuningJob> {
   await ensureJobsDirectory()
-  
+
   // Validate inputs
   if (!baseModel || !newModelName || !datasetId) {
     throw new Error('Base model, new model name, and dataset ID are required')
   }
-  
+
   // Check if dataset exists
   const dataset = await getDataset(datasetId)
   if (!dataset) {
     throw new Error(`Dataset ${datasetId} not found`)
   }
-  
+
   // Create job ID and record
   const id = `job_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
   const now = new Date().toISOString()
-  
+
   const job: TuningJob = {
     id,
     baseModel,
@@ -437,18 +439,18 @@ export async function startTuningJob(
     startedAt: now,
     params
   }
-  
+
   // Save job record
   const jobsPath = getJobsPath()
   const jobPath = path.join(jobsPath, `${id}.json`)
   await fs.writeFile(jobPath, JSON.stringify(job, null, 2), 'utf8')
-  
+
   // Start the tuning process asynchronously
-  runTuningProcess(job).catch(error => {
+  runTuningProcess(job).catch((error) => {
     console.error(`Tuning job ${id} failed:`, error)
     updateJobStatus(id, 'failed', 0, error.message || 'Unknown error')
   })
-  
+
   return job
 }
 
@@ -461,7 +463,7 @@ async function runTuningProcess(job: TuningJob): Promise<void> {
   try {
     // Update job status
     await updateJobStatus(job.id, 'running', 5)
-    
+
     // Create modelfile
     const modelfilePath = await createModelfileForTuning(
       job.baseModel,
@@ -469,33 +471,33 @@ async function runTuningProcess(job: TuningJob): Promise<void> {
       job.params.epochs,
       job.params.learningRate
     )
-    
+
     // Update progress
     await updateJobStatus(job.id, 'running', 10)
-    
+
     // In a real implementation, you'd call Ollama or run a fine-tuning script
     // This is a simplified example that simulates the process
-    
+
     // Simulate the fine-tuning process with progress updates
     for (let progress = 10; progress < 95; progress += 5) {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await updateJobStatus(job.id, 'running', progress)
     }
-    
+
     // Simulate creating the final model
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
     // Create a modelfile for the final model
     const finalModelfilePath = path.join(path.dirname(modelfilePath), `modelfile_final_${job.id}`)
     await fs.writeFile(finalModelfilePath, `FROM ${job.baseModel}`, 'utf8')
-    
+
     // In a real implementation, you'd use Ollama's API to create the model
     // This is a simplified example that simulates the process
     // await executeCommand(`ollama create ${job.newModelName} -f ${finalModelfilePath}`)
-    
+
     // Update job status to completed
     await updateJobStatus(job.id, 'completed', 100)
-    
+
     // Clean up temporary files
     try {
       await fs.unlink(modelfilePath)
@@ -515,18 +517,18 @@ async function runTuningProcess(job: TuningJob): Promise<void> {
 function executeCommand(command: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const process = spawn('sh', ['-c', command])
-    
+
     let stdout = ''
     let stderr = ''
-    
+
     process.stdout.on('data', (data) => {
       stdout += data.toString()
     })
-    
+
     process.stderr.on('data', (data) => {
       stderr += data.toString()
     })
-    
+
     process.on('close', (code) => {
       if (code === 0) {
         resolve({ stdout, stderr })
@@ -545,11 +547,11 @@ export async function cancelTuningJob(id: string): Promise<boolean> {
   if (!job || job.status !== 'running') {
     return false
   }
-  
+
   // In a real implementation, you'd kill the tuning process
   // For now, just update the status
   await updateJobStatus(id, 'failed', job.progress, 'Job cancelled by user')
-  
+
   return true
 }
 
@@ -559,7 +561,7 @@ export async function cancelTuningJob(id: string): Promise<boolean> {
 export async function deleteTuningJob(id: string): Promise<boolean> {
   const jobsPath = getJobsPath()
   const jobPath = path.join(jobsPath, `${id}.json`)
-  
+
   try {
     await fs.unlink(jobPath)
     return true
@@ -577,12 +579,12 @@ export async function exportDataset(id: string): Promise<string> {
   if (!dataset) {
     throw new Error(`Dataset ${id} not found`)
   }
-  
+
   const downloadsPath = app.getPath('downloads')
   const exportPath = path.join(downloadsPath, `${dataset.name.replace(/\s+/g, '_')}_${id}.json`)
-  
+
   await fs.writeFile(exportPath, JSON.stringify(dataset, null, 2), 'utf8')
-  
+
   return exportPath
 }
 
@@ -592,18 +594,18 @@ export async function exportDataset(id: string): Promise<string> {
 export async function importDataset(filePath: string): Promise<TuningDataset> {
   const content = await fs.readFile(filePath, 'utf8')
   let data: any
-  
+
   try {
     data = JSON.parse(content)
   } catch (error) {
     throw new Error('Invalid JSON file')
   }
-  
+
   // Validate dataset structure
   if (!data.name || !Array.isArray(data.examples)) {
     throw new Error('Invalid dataset format')
   }
-  
+
   // Create a new dataset with the imported data
   return await createDataset(
     data.name,

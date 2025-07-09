@@ -21,7 +21,7 @@ const generateMockMessages = () => {
       tags: ['python', 'algorithms']
     },
     {
-      id: 'msg-2', 
+      id: 'msg-2',
       type: 'ai' as const,
       content: `Here's a Python function to calculate Fibonacci numbers:
 
@@ -49,10 +49,11 @@ The recursive version is simple but inefficient for large numbers. The iterative
       timestamp: new Date(Date.now() - 280000),
       position: { x: 400, y: 50 },
       tags: ['python', 'code', 'response'],
-      attachments: [{
-        type: 'code' as const,
-        name: 'fibonacci.py',
-        content: `def fibonacci(n):
+      attachments: [
+        {
+          type: 'code' as const,
+          name: 'fibonacci.py',
+          content: `def fibonacci(n):
     if n <= 1:
         return n
     return fibonacci(n-1) + fibonacci(n-2)
@@ -67,9 +68,10 @@ def fibonacci_iterative(n):
     return b
 
 print(fibonacci_iterative(10))`,
-        language: 'python',
-        executable: true
-      }],
+          language: 'python',
+          executable: true
+        }
+      ],
       connections: ['msg-1']
     },
     {
@@ -169,10 +171,11 @@ This component provides an interactive interface to calculate Fibonacci numbers 
       timestamp: new Date(Date.now() - 200000),
       position: { x: 400, y: 300 },
       tags: ['react', 'component', 'code'],
-      attachments: [{
-        type: 'code' as const,
-        name: 'FibonacciCalculator.jsx',
-        content: `import React, { useState } from 'react';
+      attachments: [
+        {
+          type: 'code' as const,
+          name: 'FibonacciCalculator.jsx',
+          content: `import React, { useState } from 'react';
 
 const FibonacciCalculator = () => {
   const [input, setInput] = useState('');
@@ -249,9 +252,10 @@ const FibonacciCalculator = () => {
 };
 
 export default FibonacciCalculator;`,
-        language: 'jsx',
-        executable: true
-      }],
+          language: 'jsx',
+          executable: true
+        }
+      ],
       connections: ['msg-3', 'msg-2']
     },
     {
@@ -270,7 +274,7 @@ const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
   // TODO: Replace mock data with real chat history and system metrics
   // const [messages, setMessages] = useState<Message[]>([])
   // const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null)
-  
+
   // For now, keep using mock data until backend services are implemented
   const [messages, setMessages] = useState(() => generateMockMessages())
   const services = useAllServices()
@@ -284,9 +288,9 @@ const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
   // Mock system stats updates
   useEffect(() => {
     if (!isOpen) return
-    
+
     const interval = setInterval(() => {
-      setSystemStats(prev => ({
+      setSystemStats((prev) => ({
         cpu: Math.max(10, Math.min(90, prev.cpu + (Math.random() - 0.5) * 10)),
         memory: Math.max(20, Math.min(95, prev.memory + (Math.random() - 0.5) * 5)),
         gpu: Math.max(0, Math.min(100, prev.gpu + (Math.random() - 0.5) * 15)),
@@ -305,19 +309,17 @@ const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
   ]
 
   const handleUpdateMessage = (id: string, updates: any) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === id ? { ...msg, ...updates } : msg
-    ))
+    setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, ...updates } : msg)))
   }
 
   const handleDeleteMessage = (id: string) => {
-    setMessages(prev => prev.filter(msg => msg.id !== id))
+    setMessages((prev) => prev.filter((msg) => msg.id !== id))
   }
 
   const handleCorrectMessage = (id: string, newContent: string) => {
-    setMessages(prev => prev.map(msg =>
-      msg.id === id ? { ...msg, content: newContent } : msg
-    ))
+    setMessages((prev) =>
+      prev.map((msg) => (msg.id === id ? { ...msg, content: newContent } : msg))
+    )
   }
 
   const handleAddMessage = (message: any) => {
@@ -326,7 +328,7 @@ const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
       id: `msg-${Date.now()}`,
       timestamp: new Date()
     }
-    setMessages(prev => [...prev, newMessage])
+    setMessages((prev) => [...prev, newMessage])
   }
 
   if (!isOpen) return null

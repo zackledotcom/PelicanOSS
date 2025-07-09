@@ -1,10 +1,10 @@
 import React from 'react'
-import { 
-  Robot, 
-  Play, 
-  Pause, 
-  Square, 
-  Activity, 
+import {
+  Robot,
+  Play,
+  Pause,
+  Square,
+  Activity,
   WarningCircle,
   CheckCircle,
   FileText
@@ -42,19 +42,39 @@ export default function WorkerManager({
 }: WorkerManagerProps) {
   const getStatusIcon = (status: Worker['status']) => {
     switch (status) {
-      case 'running': return <CheckCircle className="w-3 h-3 text-green-500" />
-      case 'idle': return <Activity className="w-3 h-3 text-blue-500" />
-      case 'error': return <WarningCircle className="w-3 h-3 text-red-500" />
-      case 'stopped': return <Square className="w-3 h-3 text-gray-500" />
+      case 'running':
+        return <CheckCircle className="w-3 h-3 text-green-500" />
+      case 'idle':
+        return <Activity className="w-3 h-3 text-blue-500" />
+      case 'error':
+        return <WarningCircle className="w-3 h-3 text-red-500" />
+      case 'stopped':
+        return <Square className="w-3 h-3 text-gray-500" />
     }
   }
 
   const getStatusBadge = (status: Worker['status']) => {
     switch (status) {
-      case 'running': return <Badge className="text-xs">Running</Badge>
-      case 'idle': return <Badge variant="secondary" className="text-xs">Idle</Badge>
-      case 'error': return <Badge variant="destructive" className="text-xs">Error</Badge>
-      case 'stopped': return <Badge variant="outline" className="text-xs">Stopped</Badge>
+      case 'running':
+        return <Badge className="text-xs">Running</Badge>
+      case 'idle':
+        return (
+          <Badge variant="secondary" className="text-xs">
+            Idle
+          </Badge>
+        )
+      case 'error':
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Error
+          </Badge>
+        )
+      case 'stopped':
+        return (
+          <Badge variant="outline" className="text-xs">
+            Stopped
+          </Badge>
+        )
     }
   }
 
@@ -68,17 +88,20 @@ export default function WorkerManager({
 
   const getTypeIcon = (type: Worker['type']) => {
     switch (type) {
-      case 'agent': return <Robot className="w-4 h-4" />
-      case 'service': return <Activity className="w-4 h-4" />
-      case 'task': return <CheckCircle className="w-4 h-4" />
+      case 'agent':
+        return <Robot className="w-4 h-4" />
+      case 'service':
+        return <Activity className="w-4 h-4" />
+      case 'task':
+        return <CheckCircle className="w-4 h-4" />
     }
   }
 
-  const runningWorkers = workers.filter(w => w.status === 'running').length
-  const errorWorkers = workers.filter(w => w.status === 'error').length
+  const runningWorkers = workers.filter((w) => w.status === 'running').length
+  const errorWorkers = workers.filter((w) => w.status === 'error').length
 
   return (
-    <Card className={cn("w-80 h-96", className)}>
+    <Card className={cn('w-80 h-96', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -97,7 +120,7 @@ export default function WorkerManager({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         <ScrollArea className="h-80 px-3">
           <div className="space-y-2">
@@ -109,9 +132,7 @@ export default function WorkerManager({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="text-muted-foreground">
-                      {getTypeIcon(worker.type)}
-                    </div>
+                    <div className="text-muted-foreground">{getTypeIcon(worker.type)}</div>
                     <span className="font-medium text-sm">{worker.name}</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -126,11 +147,9 @@ export default function WorkerManager({
                     <span>Type: {worker.type}</span>
                     <span>Uptime: {formatUptime(worker.uptime)}</span>
                   </div>
-                  
+
                   {worker.lastActivity && (
-                    <div>
-                      Last activity: {worker.lastActivity.toLocaleTimeString()}
-                    </div>
+                    <div>Last activity: {worker.lastActivity.toLocaleTimeString()}</div>
                   )}
                 </div>
 
@@ -157,7 +176,7 @@ export default function WorkerManager({
                       Start
                     </Button>
                   )}
-                  
+
                   <Button
                     size="sm"
                     variant="ghost"

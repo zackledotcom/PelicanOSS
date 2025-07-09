@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
-import { 
-  Code, 
-  Upload, 
-  Download, 
-  Play, 
-  Trash, 
-  FileCode,
-  Plus,
-  Gear
-} from 'phosphor-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Code, Upload, Download, Play, Trash, FileCode, Plus, Gear } from 'phosphor-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -60,18 +57,33 @@ export default function PluginUploader({
 
   const getStatusBadge = (status: Plugin['status']) => {
     switch (status) {
-      case 'active': return <Badge className="text-xs">Active</Badge>
-      case 'inactive': return <Badge variant="secondary" className="text-xs">Inactive</Badge>
-      case 'error': return <Badge variant="destructive" className="text-xs">Error</Badge>
+      case 'active':
+        return <Badge className="text-xs">Active</Badge>
+      case 'inactive':
+        return (
+          <Badge variant="secondary" className="text-xs">
+            Inactive
+          </Badge>
+        )
+      case 'error':
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Error
+          </Badge>
+        )
     }
   }
 
   const getTypeIcon = (type: Plugin['type']) => {
     switch (type) {
-      case 'tool': return <Gear className="w-4 h-4" />
-      case 'agent': return <Code className="w-4 h-4" />
-      case 'integration': return <Upload className="w-4 h-4" />
-      case 'workflow': return <Play className="w-4 h-4" />
+      case 'tool':
+        return <Gear className="w-4 h-4" />
+      case 'agent':
+        return <Code className="w-4 h-4" />
+      case 'integration':
+        return <Upload className="w-4 h-4" />
+      case 'workflow':
+        return <Play className="w-4 h-4" />
     }
   }
 
@@ -95,12 +107,12 @@ export default function PluginUploader({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className={cn("gap-2", className)}>
+        <Button variant="outline" className={cn('gap-2', className)}>
           <Upload className="w-4 h-4" />
           Plugins
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -126,8 +138,8 @@ export default function PluginUploader({
                       <Card
                         key={plugin.id}
                         className={cn(
-                          "cursor-pointer transition-colors mb-2",
-                          selectedPlugin?.id === plugin.id && "border-primary"
+                          'cursor-pointer transition-colors mb-2',
+                          selectedPlugin?.id === plugin.id && 'border-primary'
                         )}
                         onClick={() => setSelectedPlugin(plugin)}
                       >
@@ -192,7 +204,7 @@ export default function PluginUploader({
                           >
                             {selectedPlugin.status === 'active' ? 'Disable' : 'Enable'}
                           </Button>
-                          
+
                           <Button
                             size="sm"
                             variant="outline"
@@ -200,7 +212,7 @@ export default function PluginUploader({
                           >
                             Test
                           </Button>
-                          
+
                           <Button
                             size="sm"
                             variant="ghost"
@@ -240,16 +252,20 @@ export default function PluginUploader({
                       <label className="text-sm font-medium">Name</label>
                       <Input
                         value={newPlugin.name}
-                        onChange={(e) => setNewPlugin(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setNewPlugin((prev) => ({ ...prev, name: e.target.value }))
+                        }
                         placeholder="Plugin name"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="text-sm font-medium">Version</label>
                       <Input
                         value={newPlugin.version}
-                        onChange={(e) => setNewPlugin(prev => ({ ...prev, version: e.target.value }))}
+                        onChange={(e) =>
+                          setNewPlugin((prev) => ({ ...prev, version: e.target.value }))
+                        }
                         placeholder="1.0.0"
                       />
                     </div>
@@ -259,7 +275,9 @@ export default function PluginUploader({
                     <label className="text-sm font-medium">Author</label>
                     <Input
                       value={newPlugin.author}
-                      onChange={(e) => setNewPlugin(prev => ({ ...prev, author: e.target.value }))}
+                      onChange={(e) =>
+                        setNewPlugin((prev) => ({ ...prev, author: e.target.value }))
+                      }
                       placeholder="Your name"
                     />
                   </div>
@@ -268,7 +286,9 @@ export default function PluginUploader({
                     <label className="text-sm font-medium">Description</label>
                     <Textarea
                       value={newPlugin.description}
-                      onChange={(e) => setNewPlugin(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setNewPlugin((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="What does this plugin do?"
                       rows={2}
                     />
@@ -278,7 +298,7 @@ export default function PluginUploader({
                     <label className="text-sm font-medium">Code</label>
                     <Textarea
                       value={newPlugin.code}
-                      onChange={(e) => setNewPlugin(prev => ({ ...prev, code: e.target.value }))}
+                      onChange={(e) => setNewPlugin((prev) => ({ ...prev, code: e.target.value }))}
                       placeholder="// Plugin code here..."
                       className="font-mono text-xs"
                       rows={12}

@@ -4,11 +4,21 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   ollamaUrl: string
   chromaUrl: string
+  memory: MemorySettings
+  telemetry: TelemetrySettings
   memorySettings: MemorySettings
   telemetryEnabled: boolean
   debugMode: boolean
   autoSave: boolean
   version: string
+}
+
+export interface TelemetrySettings {
+  enabled: boolean
+  collectUsage: boolean
+  collectErrors: boolean
+  collectPerformance: boolean
+  anonymizeData: boolean
 }
 
 export interface ModelSettings {

@@ -5,12 +5,12 @@ import { Input } from '../ui/input'
 import { Switch } from '../ui/switch'
 import { Badge } from '../ui/badge'
 import { ScrollArea } from '../ui/scroll-area'
-import { 
-  Robot, 
-  ChatCircle, 
-  Gear, 
-  Play, 
-  Square, 
+import {
+  Robot,
+  ChatCircle,
+  Gear,
+  Play,
+  Square,
   ArrowsClockwise,
   PaperPlaneTilt,
   Activity,
@@ -46,7 +46,7 @@ export const RedditBotPanel: React.FC = () => {
       const status = await window.api.redditGetStatus()
       setConnected(status.connected)
       setAgentRunning(status.agentRunning)
-      
+
       if (status.connected) {
         const [configData, statsData] = await Promise.all([
           window.api.redditAgentGetConfig(),
@@ -113,8 +113,8 @@ export const RedditBotPanel: React.FC = () => {
               Reddit DM Bot
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant={connected ? "default" : "secondary"}>
-                {connected ? "Connected" : "Disconnected"}
+              <Badge variant={connected ? 'default' : 'secondary'}>
+                {connected ? 'Connected' : 'Disconnected'}
               </Badge>
               {agentRunning && (
                 <Badge variant="default" className="bg-green-600">
@@ -133,19 +133,19 @@ export const RedditBotPanel: React.FC = () => {
             <div className="space-y-4">
               <Input
                 value={credentials.clientId}
-                onChange={(e) => setCredentials({...credentials, clientId: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, clientId: e.target.value })}
                 placeholder="Reddit Client ID"
               />
               <Input
                 type="password"
                 value={credentials.clientSecret}
-                onChange={(e) => setCredentials({...credentials, clientSecret: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, clientSecret: e.target.value })}
                 placeholder="Reddit Client Secret"
               />
               <Input
                 type="password"
                 value={credentials.refreshToken}
-                onChange={(e) => setCredentials({...credentials, refreshToken: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, refreshToken: e.target.value })}
                 placeholder="Reddit Refresh Token"
               />
               <Button onClick={handleAuthenticate} disabled={loading} className="w-full">
@@ -157,16 +157,18 @@ export const RedditBotPanel: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Auto-Reply Agent</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically respond to DMs
-                  </p>
+                  <p className="text-sm text-muted-foreground">Automatically respond to DMs</p>
                 </div>
-                <Button 
-                  onClick={handleAgentToggle} 
+                <Button
+                  onClick={handleAgentToggle}
                   disabled={loading}
-                  variant={agentRunning ? "destructive" : "default"}
+                  variant={agentRunning ? 'destructive' : 'default'}
                 >
-                  {agentRunning ? <Square className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+                  {agentRunning ? (
+                    <Square className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Play className="h-4 w-4 mr-2" />
+                  )}
                   {agentRunning ? 'Stop' : 'Start'}
                 </Button>
               </div>
@@ -178,19 +180,19 @@ export const RedditBotPanel: React.FC = () => {
                     <div className="text-xs text-muted-foreground">Processed</div>
                     <div className="font-semibold">{stats.totalDMsProcessed}</div>
                   </div>
-                  
+
                   <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded">
                     <PaperPlaneTilt className="h-5 w-5 mx-auto mb-1 text-green-600" />
                     <div className="text-xs text-muted-foreground">Sent</div>
                     <div className="font-semibold">{stats.totalRepliesSent}</div>
                   </div>
-                  
+
                   <div className="text-center p-3 bg-purple-50 dark:bg-purple-950 rounded">
                     <Activity className="h-5 w-5 mx-auto mb-1 text-purple-600" />
                     <div className="text-xs text-muted-foreground">Running</div>
                     <div className="font-semibold">{stats.currentlyRunning ? 'Yes' : 'No'}</div>
                   </div>
-                  
+
                   <div className="text-center p-3 bg-red-50 dark:bg-red-950 rounded">
                     <Warning className="h-5 w-5 mx-auto mb-1 text-red-600" />
                     <div className="text-xs text-muted-foreground">Errors</div>

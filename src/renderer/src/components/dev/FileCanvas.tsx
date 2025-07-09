@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { 
-  Code, 
-  FileText, 
-  FolderOpen, 
-  MagnifyingGlass, 
-  SlidersHorizontal as SplitHorizontal,  // Fixed: SplitHorizontal → SlidersHorizontal 
+import {
+  Code,
+  FileText,
+  FolderOpen,
+  MagnifyingGlass,
+  SlidersHorizontal as SplitHorizontal, // Fixed: SplitHorizontal → SlidersHorizontal
   X,
   FloppyDisk,
   Play,
@@ -50,18 +50,24 @@ export default function FileCanvas({
   const [splitView, setSplitView] = useState(false)
   const [secondaryFile, setSecondaryFile] = useState<string | null>(null)
 
-  const activeFileData = files.find(f => f.id === activeFile)
-  const secondaryFileData = files.find(f => f.id === secondaryFile)
+  const activeFileData = files.find((f) => f.id === activeFile)
+  const secondaryFileData = files.find((f) => f.id === secondaryFile)
 
   const getLanguageColor = (language: string) => {
     switch (language.toLowerCase()) {
       case 'javascript':
-      case 'typescript': return 'bg-yellow-500'
-      case 'python': return 'bg-blue-500'
-      case 'html': return 'bg-orange-500'
-      case 'css': return 'bg-blue-600'
-      case 'json': return 'bg-green-500'
-      default: return 'bg-gray-500'
+      case 'typescript':
+        return 'bg-yellow-500'
+      case 'python':
+        return 'bg-blue-500'
+      case 'html':
+        return 'bg-orange-500'
+      case 'css':
+        return 'bg-blue-600'
+      case 'json':
+        return 'bg-green-500'
+      default:
+        return 'bg-gray-500'
     }
   }
 
@@ -73,15 +79,15 @@ export default function FileCanvas({
           <FileText className="w-4 h-4" />
           <span className="text-sm font-medium">{file.name}</span>
           {file.modified && (
-            <Badge variant="secondary" className="text-xs">Modified</Badge>
+            <Badge variant="secondary" className="text-xs">
+              Modified
+            </Badge>
           )}
-          <Badge 
-            className={cn("text-xs text-white", getLanguageColor(file.language))}
-          >
+          <Badge className={cn('text-xs text-white', getLanguageColor(file.language))}>
             {file.language}
           </Badge>
         </div>
-        
+
         <div className="flex gap-1">
           <Button
             size="sm"
@@ -92,7 +98,7 @@ export default function FileCanvas({
           >
             <FloppyDisk className="w-3 h-3" />
           </Button>
-          
+
           <Button
             size="sm"
             variant="ghost"
@@ -102,7 +108,7 @@ export default function FileCanvas({
           >
             <Play className="w-3 h-3" />
           </Button>
-          
+
           <Button
             size="sm"
             variant="ghost"
@@ -132,36 +138,31 @@ export default function FileCanvas({
   )
 
   return (
-    <Card className={cn("h-96", className)}>
+    <Card className={cn('h-96', className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Code className="w-4 h-4" />
             File Canvas
           </CardTitle>
-          
+
           <div className="flex gap-1">
             <Button
               size="sm"
-              variant={splitView ? "default" : "ghost"}
+              variant={splitView ? 'default' : 'ghost'}
               onClick={() => setSplitView(!splitView)}
               className="h-6 px-2"
               title="Split view"
             >
               <SplitHorizontal className="w-3 h-3" />
             </Button>
-            
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 px-2"
-              title="Open terminal"
-            >
+
+            <Button size="sm" variant="ghost" className="h-6 px-2" title="Open terminal">
               <Terminal className="w-3 h-3" />
             </Button>
           </div>
         </div>
-        
+
         {/* Search */}
         <div className="relative">
           <MagnifyingGlass className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
@@ -173,7 +174,7 @@ export default function FileCanvas({
           />
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0 flex flex-col h-80">
         {/* File tabs */}
         {files.length > 0 && (
@@ -182,7 +183,7 @@ export default function FileCanvas({
               <Button
                 key={file.id}
                 size="sm"
-                variant={activeFile === file.id ? "default" : "ghost"}
+                variant={activeFile === file.id ? 'default' : 'ghost'}
                 onClick={() => setActiveFile(file.id)}
                 className="h-6 px-2 text-xs whitespace-nowrap"
               >
@@ -208,11 +209,11 @@ export default function FileCanvas({
             <>
               {/* Primary editor */}
               {activeFileData && (
-                <div className={cn("flex-1", splitView && "border-r")}>
+                <div className={cn('flex-1', splitView && 'border-r')}>
                   <FileEditor file={activeFileData} />
                 </div>
               )}
-              
+
               {/* Secondary editor (split view) */}
               {splitView && (
                 <div className="flex-1">
@@ -243,11 +244,11 @@ export default function FileCanvas({
               </>
             )}
           </div>
-          
+
           <div className="flex gap-2">
             <span>{files.length} files open</span>
-            {files.filter(f => f.modified).length > 0 && (
-              <span>{files.filter(f => f.modified).length} unsaved</span>
+            {files.filter((f) => f.modified).length > 0 && (
+              <span>{files.filter((f) => f.modified).length} unsaved</span>
             )}
           </div>
         </div>

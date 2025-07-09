@@ -63,7 +63,7 @@ bash
 Copy
 Edit
 pnpm test
-Review any .test.ts(x) or /__tests__/ files for test coverage.
+Review any .test.ts(x) or /**tests**/ files for test coverage.
 
 If unclear:
 
@@ -115,7 +115,6 @@ Use backdrop-blur, translucent white overlays, 1–2px borders, Apple-like polis
 No commented-out/dead code, no leftover legacy (Vue/Heroicons/etc)
 
 Accessible: All interactive elements must have keyboard navigation and accessible labels
-
 
 1. Delete Only What Is Clearly Unused or Explicitly Listed.
 

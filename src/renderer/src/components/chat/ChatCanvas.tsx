@@ -6,14 +6,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '../ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Textarea } from '../ui/textarea'
 import {
   User,
@@ -27,11 +22,11 @@ import {
   FileText,
   Image as ImageIcon,
   Paperclip,
-  Highlighter,  // Fixed: Use Highlighter (it should exist)
+  Highlighter, // Fixed: Use Highlighter (it should exist)
   Check,
   X,
   Plus,
-  GridFour  // Changed from GridNine
+  GridFour // Changed from GridNine
 } from 'phosphor-react'
 
 interface Message {
@@ -78,16 +73,16 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
   const handleCanvasDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const files = Array.from(e.dataTransfer.files)
     const rect = canvasRef.current?.getBoundingClientRect()
-    
+
     if (files.length > 0 && rect) {
       const dropPosition = {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
       }
-      
+
       // Create a new message with attachments
       const newMessage: Message = {
         id: `file-${Date.now()}`,
@@ -95,13 +90,13 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
         content: `Uploaded ${files.length} file(s)`,
         timestamp: new Date(),
         position: dropPosition,
-        attachments: files.map(file => ({
+        attachments: files.map((file) => ({
           type: file.type.startsWith('image/') ? 'image' : 'file',
           name: file.name,
           url: URL.createObjectURL(file)
         }))
       }
-      
+
       console.log('Files dropped:', files, 'at position:', dropPosition)
     }
   }, [])
@@ -114,42 +109,45 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     })
-    
+
     e.dataTransfer.effectAllowed = 'move'
   }, [])
 
   // Handle message drag end
-  const handleMessageDragEnd = useCallback((e: React.DragEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (rect && draggedMessage) {
-      let newX = e.clientX - rect.left - dragOffset.x
-      let newY = e.clientY - rect.top - dragOffset.y
-      
-      // Snap to grid if in grid mode
-      if (canvasMode === 'grid') {
-        const gridSize = 20
-        newX = Math.round(newX / gridSize) * gridSize
-        newY = Math.round(newY / gridSize) * gridSize
+  const handleMessageDragEnd = useCallback(
+    (e: React.DragEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (rect && draggedMessage) {
+        let newX = e.clientX - rect.left - dragOffset.x
+        let newY = e.clientY - rect.top - dragOffset.y
+
+        // Snap to grid if in grid mode
+        if (canvasMode === 'grid') {
+          const gridSize = 20
+          newX = Math.round(newX / gridSize) * gridSize
+          newY = Math.round(newY / gridSize) * gridSize
+        }
+
+        // Keep within canvas bounds
+        newX = Math.max(0, Math.min(newX, rect.width - 300))
+        newY = Math.max(0, Math.min(newY, rect.height - 200))
+
+        onUpdateMessage(draggedMessage, { position: { x: newX, y: newY } })
       }
-      
-      // Keep within canvas bounds
-      newX = Math.max(0, Math.min(newX, rect.width - 300))
-      newY = Math.max(0, Math.min(newY, rect.height - 200))
-      
-      onUpdateMessage(draggedMessage, { position: { x: newX, y: newY } })
-    }
-    
-    setDraggedMessage(null)
-    setDragOffset({ x: 0, y: 0 })
-  }, [draggedMessage, dragOffset, onUpdateMessage, canvasMode])
+
+      setDraggedMessage(null)
+      setDragOffset({ x: 0, y: 0 })
+    },
+    [draggedMessage, dragOffset, onUpdateMessage, canvasMode]
+  )
 
   // Toggle message selection
   const toggleMessageSelection = useCallback((messageId: string, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation()
     }
-    
-    setSelectedMessages(prev => {
+
+    setSelectedMessages((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(messageId)) {
         newSet.delete(messageId)
@@ -204,26 +202,27 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
         }
       }
     })
-    
-    arranged.forEach(message => {
+
+    arranged.forEach((message) => {
       onUpdateMessage(message.id, { position: message.position })
     })
   }, [messages, onUpdateMessage])
 
   // Render message card
-  const renderMessage = useCallback((message: Message) => {
-    const isSelected = selectedMessages.has(message.id)
-    const isDragging = draggedMessage === message.id
-    const isEditing = isEditingMessage === message.id
+  const renderMessage = useCallback(
+    (message: Message) => {
+      const isSelected = selectedMessages.has(message.id)
+      const isDragging = draggedMessage === message.id
+      const isEditing = isEditingMessage === message.id
 
-    return (
-      <Card
-        key={message.id}
-        draggable
-        onDragStart={(e) => handleMessageDragStart(e, message.id)}
-        onDragEnd={handleMessageDragEnd}
-        onClick={(e) => toggleMessageSelection(message.id, e)}
-        className={`
+      return (
+        <Card
+          key={message.id}
+          draggable
+          onDragStart={(e) => handleMessageDragStart(e, message.id)}
+          onDragEnd={handleMessageDragEnd}
+          onClick={(e) => toggleMessageSelection(message.id, e)}
+          className={`
           absolute min-w-[300px] max-w-[500px] p-4 cursor-move transition-all duration-200
           bg-white/90 backdrop-blur-md border shadow-lg hover:shadow-xl
           ${message.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/90' : ''}
@@ -233,166 +232,164 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
           ${message.type === 'user' ? 'border-l-4 border-l-blue-500' : 'border-l-4 border-l-green-500'}
           rounded-xl
         `}
-        style={{
-          left: message.position?.x || 50,
-          top: message.position?.y || 50,
-          zIndex: isSelected ? 20 : isDragging ? 30 : 10
-        }}
-      >
-        {/* Message Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
-              message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
-            }`}>
-              {message.type === 'user' ? (
-                <User size={16} className="text-white" />
-              ) : (
-                <Robot size={16} className="text-white" />
-              )}
-            </div>
-            <div>
-              <div className="font-medium text-sm">
-                {message.type === 'user' ? 'You' : 'AI Assistant'}
+          style={{
+            left: message.position?.x || 50,
+            top: message.position?.y || 50,
+            zIndex: isSelected ? 20 : isDragging ? 30 : 10
+          }}
+        >
+          {/* Message Header */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
+                  message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
+                }`}
+              >
+                {message.type === 'user' ? (
+                  <User size={16} className="text-white" />
+                ) : (
+                  <Robot size={16} className="text-white" />
+                )}
               </div>
-              <div className="text-xs text-gray-500">
-                {message.timestamp.toLocaleTimeString()}
-              </div>
-            </div>
-          </div>
-
-          {/* Message Actions */}
-          <div className="flex items-center gap-1">
-            {message.isPinned && (
-              <PushPin size={16} className="text-yellow-500" />
-            )}
-            {message.isHighlighted && (
-              <Highlighter size={16} className="text-blue-500" />
-            )}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/60">
-                  <DotsThree size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white/95 backdrop-blur-sm border border-white/20">
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    startEditing(message.id, message.content)
-                  }}
-                >
-                  <Pencil size={14} className="mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    copyMessage(message.content)
-                  }}
-                >
-                  <Copy size={14} className="mr-2" />
-                  Copy
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdateMessage(message.id, { isPinned: !message.isPinned })
-                  }}
-                >
-                  <PushPin size={14} className="mr-2" />
-                  {message.isPinned ? 'Unpin' : 'Pin'}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdateMessage(message.id, { isHighlighted: !message.isHighlighted })
-                  }}
-                >
-                  <Highlighter size={14} className="mr-2" />
-                  {message.isHighlighted ? 'Remove Highlight' : 'Highlight'}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDeleteMessage(message.id)
-                  }}
-                >
-                  <Trash size={14} className="mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Message Content */}
-        {isEditing ? (
-          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[100px] bg-white/80 border-white/20"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={saveEdit} className="bg-green-600 hover:bg-green-700">
-                <Check size={14} className="mr-1" />
-                Save
-              </Button>
-              <Button size="sm" variant="outline" onClick={cancelEdit} className="bg-white/60">
-                <X size={14} className="mr-1" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </div>
-            
-            {/* Attachments */}
-            {message.attachments && message.attachments.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-gray-600">Attachments:</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {message.attachments.map((attachment, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-2 bg-white/60 rounded border border-white/20 text-xs"
-                    >
-                      {attachment.type === 'image' ? (
-                        <ImageIcon size={14} className="text-blue-500" />
-                      ) : (
-                        <FileText size={14} className="text-gray-500" />
-                      )}
-                      <span className="truncate flex-1">{attachment.name}</span>
-                    </div>
-                  ))}
+              <div>
+                <div className="font-medium text-sm">
+                  {message.type === 'user' ? 'You' : 'AI Assistant'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {message.timestamp instanceof Date && !isNaN(message.timestamp.getTime()) ? message.timestamp.toLocaleTimeString() : 'Invalid time'}
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Message Actions */}
+            <div className="flex items-center gap-1">
+              {message.isPinned && <PushPin size={16} className="text-yellow-500" />}
+              {message.isHighlighted && <Highlighter size={16} className="text-blue-500" />}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/60">
+                    <DotsThree size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white/95 backdrop-blur-sm border border-white/20">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startEditing(message.id, message.content)
+                    }}
+                  >
+                    <Pencil size={14} className="mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      copyMessage(message.content)
+                    }}
+                  >
+                    <Copy size={14} className="mr-2" />
+                    Copy
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdateMessage(message.id, { isPinned: !message.isPinned })
+                    }}
+                  >
+                    <PushPin size={14} className="mr-2" />
+                    {message.isPinned ? 'Unpin' : 'Pin'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdateMessage(message.id, { isHighlighted: !message.isHighlighted })
+                    }}
+                  >
+                    <Highlighter size={14} className="mr-2" />
+                    {message.isHighlighted ? 'Remove Highlight' : 'Highlight'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDeleteMessage(message.id)
+                    }}
+                  >
+                    <Trash size={14} className="mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        )}
-      </Card>
-    )
-  }, [
-    selectedMessages,
-    draggedMessage,
-    isEditingMessage,
-    editContent,
-    handleMessageDragStart,
-    handleMessageDragEnd,
-    toggleMessageSelection,
-    startEditing,
-    saveEdit,
-    cancelEdit,
-    copyMessage,
-    onUpdateMessage,
-    onDeleteMessage
-  ])
+
+          {/* Message Content */}
+          {isEditing ? (
+            <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[100px] bg-white/80 border-white/20"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={saveEdit} className="bg-green-600 hover:bg-green-700">
+                  <Check size={14} className="mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="outline" onClick={cancelEdit} className="bg-white/60">
+                  <X size={14} className="mr-1" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
+
+              {/* Attachments */}
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-600">Attachments:</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {message.attachments.map((attachment, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-white/60 rounded border border-white/20 text-xs"
+                      >
+                        {attachment.type === 'image' ? (
+                          <ImageIcon size={14} className="text-blue-500" />
+                        ) : (
+                          <FileText size={14} className="text-gray-500" />
+                        )}
+                        <span className="truncate flex-1">{attachment.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
+      )
+    },
+    [
+      selectedMessages,
+      draggedMessage,
+      isEditingMessage,
+      editContent,
+      handleMessageDragStart,
+      handleMessageDragEnd,
+      toggleMessageSelection,
+      startEditing,
+      saveEdit,
+      cancelEdit,
+      copyMessage,
+      onUpdateMessage,
+      onDeleteMessage
+    ]
+  )
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
@@ -401,7 +398,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
         <Badge variant="outline" className="bg-white/80 backdrop-blur-sm">
           {selectedMessages.size} selected
         </Badge>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -410,7 +407,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
         >
           <GridFour size={16} className={canvasMode === 'grid' ? 'text-blue-500' : ''} />
         </Button>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -420,7 +417,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
           <ArrowsOut size={16} />
           Arrange
         </Button>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -457,7 +454,7 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
 
         {/* Render Messages */}
         {messages.map(renderMessage)}
-        
+
         {/* Selection Area */}
         {selectedMessages.size > 1 && (
           <div className="absolute bottom-4 left-4 p-3 bg-white/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg">
@@ -471,11 +468,11 @@ const ChatCanvas: React.FC<ChatCanvasProps> = ({
               <Button size="sm" variant="outline" className="bg-white/60">
                 Export
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => {
-                  selectedMessages.forEach(id => onDeleteMessage(id))
+                  selectedMessages.forEach((id) => onDeleteMessage(id))
                   setSelectedMessages(new Set())
                 }}
                 className="bg-white/60 text-red-600 hover:text-red-700"

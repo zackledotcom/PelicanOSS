@@ -1,9 +1,9 @@
 import React from 'react'
-import { 
-  Gear, 
-  Cpu, 
-  HardDrive, 
-  Export, 
+import {
+  Gear,
+  Cpu,
+  HardDrive,
+  Export,
   GraduationCap,
   Activity,
   Database,
@@ -35,7 +35,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
   }
 
   return (
-    <aside className={cn("bg-background flex flex-col", className)}>
+    <aside className={cn('bg-background flex flex-col', className)}>
       {/* Icon-Only Top Section */}
       <div className="p-4 border-b border-border">
         <div className="flex flex-col space-y-3">
@@ -46,9 +46,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
           </Button>
 
           {/* System Status Toggle */}
-          <Button 
-            variant={state.showSystemStatus ? "default" : "ghost"} 
-            size="sm" 
+          <Button
+            variant={state.showSystemStatus ? 'default' : 'ghost'}
+            size="sm"
             className="w-full justify-start"
             onClick={() => updateState({ showSystemStatus: !state.showSystemStatus })}
           >
@@ -69,9 +69,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
           </Button>
 
           {/* Training Mode */}
-          <Button 
-            variant={state.trainingMode ? "default" : "ghost"} 
-            size="sm" 
+          <Button
+            variant={state.trainingMode ? 'default' : 'ghost'}
+            size="sm"
             className="w-full justify-start"
           >
             <GraduationCap size={18} className="mr-3" />
@@ -87,7 +87,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
             <Activity size={16} className="mr-2" />
             System Status
           </h3>
-          
+
           <div className="space-y-3">
             {/* CPU */}
             <div>
@@ -123,7 +123,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
                 <span>{systemMetrics.gpu}%</span>
               </div>
               <Progress value={systemMetrics.gpu} className="h-2" />
-              <Badge variant="outline" className="text-xs mt-1">Placeholder</Badge>
+              <Badge variant="outline" className="text-xs mt-1">
+                Placeholder
+              </Badge>
             </div>
 
             {/* Threshold Warnings */}
@@ -132,7 +134,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
                 CPU Warning: {systemMetrics.cpu}%
               </Badge>
             )}
-            
+
             {systemMetrics.memory > 80 && (
               <Badge variant="destructive" className="text-xs">
                 Memory Warning: {systemMetrics.memory}%
@@ -148,7 +150,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
           <ChartBar size={16} className="mr-2" />
           Performance
         </h3>
-        
+
         <div className="text-center py-8 text-muted-foreground">
           <ChartBar size={32} className="mx-auto mb-2 opacity-50" />
           <p className="text-sm">Performance graphs</p>
@@ -159,7 +161,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
       {/* Service Status */}
       <div className="p-4">
         <h3 className="font-medium mb-3">Services</h3>
-        
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -170,7 +172,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ className, state, updateSta
               Connected
             </Badge>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Brain size={14} />

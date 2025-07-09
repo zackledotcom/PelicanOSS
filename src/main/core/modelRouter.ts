@@ -117,22 +117,22 @@ class ModelRouter {
 
   private async updateHealthStatus() {
     const now = Date.now()
-    
+
     for (const [name, model] of this.models.entries()) {
       const cached = this.healthCache.get(name)
-      
+
       // Skip if checked recently (within 30 seconds)
-      if (cached && (now - cached.lastCheck) < 30000) {
+      if (cached && now - cached.lastCheck < 30000) {
         continue
       }
 
       try {
         const healthy = await model.healthCheck()
         this.healthCache.set(name, { healthy, lastCheck: now })
-        
+
         if (model.available !== healthy) {
           model.available = healthy
-          
+
           telemetry.trackEvent({
             type: 'system_event',
             category: 'model_router',
@@ -144,7 +144,7 @@ class ModelRouter {
       } catch (error) {
         this.healthCache.set(name, { healthy: false, lastCheck: now })
         model.available = false
-        
+
         await crashRecovery.logError(error as Error, {
           operation: 'model_health_check',
           component: 'service',
@@ -172,7 +172,7 @@ class ModelRouter {
     try {
       // Get candidate models
       let candidates = this.getCandidateModels(options)
-      
+
       // Try preferred model first
       if (options.preferredModel) {
         const preferred = this.models.get(options.preferredModel)
@@ -180,7 +180,13 @@ class ModelRouter {
           const result = await this.attemptModel(preferred, options)
           if (result.success) {
             routingPath.push(preferred.name)
-            return this.createSuccessResult(preferred, routingPath, startTime, totalAttempts + 1, fallbackUsed)
+            return this.createSuccessResult(
+              preferred,
+              routingPath,
+              startTime,
+              totalAttempts + 1,
+              fallbackUsed
+            )
           }
           totalAttempts++
           routingPath.push(`${preferred.name}-failed`)
@@ -189,16 +195,22 @@ class ModelRouter {
 
       // Try candidates in priority order
       const maxRetries = options.maxRetries || 3
-      
+
       for (const model of candidates) {
         if (totalAttempts >= maxRetries) break
-        
+
         const result = await this.attemptModel(model, options)
         totalAttempts++
         routingPath.push(result.success ? model.name : `${model.name}-failed`)
-        
+
         if (result.success) {
-          return this.createSuccessResult(model, routingPath, startTime, totalAttempts, fallbackUsed)
+          return this.createSuccessResult(
+            model,
+            routingPath,
+            startTime,
+            totalAttempts,
+            fallbackUsed
+          )
         }
       }
 
@@ -209,7 +221,7 @@ class ModelRouter {
           fallbackUsed = true
           routingPath.push('offline-fallback')
           totalAttempts++
-          
+
           telemetry.trackEvent({
             type: 'operation',
             category: 'model_router',
@@ -217,13 +229,18 @@ class ModelRouter {
             metadata: { originalOptions: options }
           })
 
-          return this.createSuccessResult(offlineModel, routingPath, startTime, totalAttempts, fallbackUsed)
+          return this.createSuccessResult(
+            offlineModel,
+            routingPath,
+            startTime,
+            totalAttempts,
+            fallbackUsed
+          )
         }
       }
 
       // All models failed
       throw new Error('No available models found')
-      
     } catch (error) {
       await crashRecovery.logError(error as Error, {
         operation: 'model_routing',
@@ -246,8 +263,8 @@ class ModelRouter {
 
   private getCandidateModels(options: RoutingOptions): ModelConfig[] {
     return Array.from(this.models.values())
-      .filter(model => this.isModelSuitable(model, options))
-      .filter(model => model.available)
+      .filter((model) => this.isModelSuitable(model, options))
+      .filter((model) => model.available)
       .sort((a, b) => b.priority - a.priority)
   }
 
@@ -269,14 +286,17 @@ class ModelRouter {
     return true
   }
 
-  private async attemptModel(model: ModelConfig, options: RoutingOptions): Promise<{ success: boolean; error?: Error }> {
+  private async attemptModel(
+    model: ModelConfig,
+    options: RoutingOptions
+  ): Promise<{ success: boolean; error?: Error }> {
     const timeout = options.timeout || 30000
-    
+
     try {
       // Quick health check
       const healthy = await Promise.race([
         model.healthCheck(),
-        new Promise<boolean>((_, reject) => 
+        new Promise<boolean>((_, reject) =>
           setTimeout(() => reject(new Error('Health check timeout')), 5000)
         )
       ])
@@ -290,19 +310,18 @@ class ModelRouter {
       this.healthCache.set(model.name, { healthy: true, lastCheck: Date.now() })
 
       return { success: true }
-      
     } catch (error) {
       model.available = false
       this.healthCache.set(model.name, { healthy: false, lastCheck: Date.now() })
-      
+
       return { success: false, error: error as Error }
     }
   }
 
   private createSuccessResult(
-    model: ModelConfig, 
-    routingPath: string[], 
-    startTime: number, 
+    model: ModelConfig,
+    routingPath: string[],
+    startTime: number,
     totalAttempts: number,
     fallbackUsed: boolean
   ): RoutingResult {
@@ -338,12 +357,12 @@ class ModelRouter {
   }
 
   getAvailableModels(): ModelConfig[] {
-    return Array.from(this.models.values()).filter(m => m.available)
+    return Array.from(this.models.values()).filter((m) => m.available)
   }
 
   getModelStatus(): Record<string, any> {
     const status: Record<string, any> = {}
-    
+
     for (const [name, model] of this.models.entries()) {
       const health = this.healthCache.get(name)
       status[name] = {
@@ -360,7 +379,7 @@ class ModelRouter {
       models: status,
       recentRouting: this.routingHistory.slice(-10),
       totalModels: this.models.size,
-      availableModels: Array.from(this.models.values()).filter(m => m.available).length
+      availableModels: Array.from(this.models.values()).filter((m) => m.available).length
     }
   }
 
@@ -378,10 +397,10 @@ export async function withModelRouting<T>(
   options: RoutingOptions = {}
 ): Promise<{ result: T; routing: RoutingResult }> {
   const routing = await modelRouter.routeRequest(options)
-  
+
   try {
     const result = await operation(routing.selectedModel)
-    
+
     telemetry.trackEvent({
       type: 'operation',
       category: 'model_operation',
@@ -397,7 +416,7 @@ export async function withModelRouting<T>(
       component: 'service',
       severity: 'medium',
       timestamp: new Date().toISOString(),
-      metadata: { 
+      metadata: {
         selectedModel: routing.selectedModel.name,
         routingPath: routing.routingPath
       }

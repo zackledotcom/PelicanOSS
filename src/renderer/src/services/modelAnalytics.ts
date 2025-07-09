@@ -95,17 +95,19 @@ class MemoryAnalyticsStorage implements AnalyticsStorage {
     this.metrics.push(metrics)
   }
 
-  async getAnalytics(modelId: string, timeRange: { start: Date; end: Date }): Promise<ModelAnalytics> {
-    const filteredMetrics = this.metrics.filter(m =>
-      m.modelId === modelId &&
-      m.timestamp >= timeRange.start &&
-      m.timestamp <= timeRange.end
+  async getAnalytics(
+    modelId: string,
+    timeRange: { start: Date; end: Date }
+  ): Promise<ModelAnalytics> {
+    const filteredMetrics = this.metrics.filter(
+      (m) => m.modelId === modelId && m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
     )
 
-    const sessions = new Set(filteredMetrics.map(m => m.conversationId))
+    const sessions = new Set(filteredMetrics.map((m) => m.conversationId))
     const totalMessages = filteredMetrics.length
-    const avgResponseTime = filteredMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalMessages
-    const successRate = filteredMetrics.filter(m => m.taskSuccess).length / totalMessages
+    const avgResponseTime =
+      filteredMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalMessages
+    const successRate = filteredMetrics.filter((m) => m.taskSuccess).length / totalMessages
     const totalTokens = filteredMetrics.reduce((sum, m) => sum + m.totalTokens, 0)
 
     return {
@@ -121,20 +123,23 @@ class MemoryAnalyticsStorage implements AnalyticsStorage {
   }
 
   async cleanup(before: Date): Promise<void> {
-    this.events = this.events.filter(e => e.timestamp >= before)
-    this.metrics = this.metrics.filter(m => m.timestamp >= before)
+    this.events = this.events.filter((e) => e.timestamp >= before)
+    this.metrics = this.metrics.filter((m) => m.timestamp >= before)
   }
 
   private generateDailyMetrics(metrics: ModelMetrics[]) {
-    const dailyMap = new Map<string, {
-      sessions: Set<string>
-      messages: number
-      responseTimes: number[]
-      successes: number
-      totalTokens: number
-    }>()
+    const dailyMap = new Map<
+      string,
+      {
+        sessions: Set<string>
+        messages: number
+        responseTimes: number[]
+        successes: number
+        totalTokens: number
+      }
+    >()
 
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       const dateKey = metric.timestamp.toISOString().split('T')[0]
 
       if (!dailyMap.has(dateKey)) {
@@ -159,7 +164,8 @@ class MemoryAnalyticsStorage implements AnalyticsStorage {
       date,
       sessions: data.sessions.size,
       messages: data.messages,
-      avgResponseTime: data.responseTimes.reduce((sum, rt) => sum + rt, 0) / data.responseTimes.length,
+      avgResponseTime:
+        data.responseTimes.reduce((sum, rt) => sum + rt, 0) / data.responseTimes.length,
       successRate: data.successes / data.messages,
       totalTokens: data.totalTokens
     }))
@@ -290,12 +296,7 @@ class ModelAnalyticsService {
     }
   }
 
-  async trackError(data: {
-    modelId: string
-    sessionId: string
-    error: string
-    context?: any
-  }) {
+  async trackError(data: { modelId: string; sessionId: string; error: string; context?: any }) {
     await this.storage.saveEvent({
       type: 'error_occurred',
       timestamp: new Date(),
@@ -363,7 +364,11 @@ class ModelAnalyticsService {
   // Session Management
   // ===============================
 
-  private async startSession(sessionId: string, modelId: string, userType: 'new' | 'returning' | 'power' = 'returning') {
+  private async startSession(
+    sessionId: string,
+    modelId: string,
+    userType: 'new' | 'returning' | 'power' = 'returning'
+  ) {
     const session: SessionData = {
       sessionId,
       modelId,
@@ -403,9 +408,10 @@ class ModelAnalyticsService {
           totalTokens: session.totalTokens,
           errors: session.errors,
           retries: session.retries,
-          averageRating: session.ratings.length > 0
-            ? session.ratings.reduce((sum, r) => sum + r, 0) / session.ratings.length
-            : null
+          averageRating:
+            session.ratings.length > 0
+              ? session.ratings.reduce((sum, r) => sum + r, 0) / session.ratings.length
+              : null
         }
       })
 
@@ -417,7 +423,10 @@ class ModelAnalyticsService {
   // Analytics Retrieval
   // ===============================
 
-  async getModelAnalytics(modelId: string, timeRange?: { start: Date; end: Date }): Promise<ModelAnalytics> {
+  async getModelAnalytics(
+    modelId: string,
+    timeRange?: { start: Date; end: Date }
+  ): Promise<ModelAnalytics> {
     const defaultTimeRange = {
       start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       end: new Date()
@@ -426,7 +435,10 @@ class ModelAnalyticsService {
     return this.storage.getAnalytics(modelId, timeRange || defaultTimeRange)
   }
 
-  async getComparativeAnalytics(modelIds: string[], timeRange?: { start: Date; end: Date }): Promise<Record<string, ModelAnalytics>> {
+  async getComparativeAnalytics(
+    modelIds: string[],
+    timeRange?: { start: Date; end: Date }
+  ): Promise<Record<string, ModelAnalytics>> {
     const result: Record<string, ModelAnalytics> = {}
 
     for (const modelId of modelIds) {
@@ -436,7 +448,11 @@ class ModelAnalyticsService {
     return result
   }
 
-  async exportAnalytics(modelId: string, format: 'json' | 'csv' = 'json', timeRange?: { start: Date; end: Date }) {
+  async exportAnalytics(
+    modelId: string,
+    format: 'json' | 'csv' = 'json',
+    timeRange?: { start: Date; end: Date }
+  ) {
     const analytics = await this.getModelAnalytics(modelId, timeRange)
 
     if (format === 'json') {
@@ -445,8 +461,9 @@ class ModelAnalyticsService {
       // Convert to CSV format
       const csvLines = [
         'Date,Sessions,Messages,Avg Response Time,Success Rate,Total Tokens',
-        ...analytics.dailyMetrics.map(d =>
-          `${d.date},${d.sessions},${d.messages},${d.avgResponseTime},${d.successRate},${d.totalTokens}`
+        ...analytics.dailyMetrics.map(
+          (d) =>
+            `${d.date},${d.sessions},${d.messages},${d.avgResponseTime},${d.successRate},${d.totalTokens}`
         )
       ]
       return csvLines.join('\n')
@@ -504,7 +521,7 @@ class ModelAnalyticsService {
   // Get average response time for a model
   getAverageResponseTime(modelId?: string): number {
     if (!modelId) return 1247 // Default mock value
-    
+
     // This would calculate real average from stored metrics
     // For now, return a mock value
     return Math.floor(Math.random() * 2000) + 500
@@ -535,24 +552,33 @@ export const useAnalyticsTracking = () => {
     success: boolean
     error?: string
   }) => {
-    // Track message sent
-    await analyticsService.trackMessageSent({
-      modelId: data.modelId,
-      sessionId: data.sessionId,
-      promptTokens: estimateTokens(data.prompt),
-      userType: 'returning', // Would be determined from user data
-      taskType: classifyTask(data.prompt)
-    })
+    try {
+      // Track message sent
+      await analyticsService.trackMessageSent({
+        modelId: data.modelId,
+        sessionId: data.sessionId,
+        promptTokens: estimateTokens(data.prompt),
+        userType: 'returning', // Would be determined from user data
+        taskType: classifyTask(data.prompt)
+      })
 
-    // Track response received
-    await analyticsService.trackMessageReceived({
-      modelId: data.modelId,
-      sessionId: data.sessionId,
-      responseTime: data.responseTime,
-      completionTokens: estimateTokens(data.response),
-      success: data.success,
-      error: data.error
-    })
+      // Track response received - with error handling
+      if (analyticsService.trackMessageReceived) {
+        await analyticsService.trackMessageReceived({
+          modelId: data.modelId,
+          sessionId: data.sessionId,
+          responseTime: data.responseTime,
+          completionTokens: estimateTokens(data.response),
+          success: data.success,
+          error: data.error
+        })
+      } else {
+        console.warn('trackMessageReceived method not available on analytics service')
+      }
+    } catch (error) {
+      console.error('Analytics tracking failed:', error)
+      // Don't throw - analytics shouldn't break the chat flow
+    }
   }
 
   const trackUserRating = async (data: {
@@ -588,7 +614,7 @@ export const useAnalyticsTracking = () => {
     getAnalytics,
     endSession,
     getAverageResponseTime: (modelId: string) => analyticsService.getAverageResponseTime(modelId),
-    trackResponse: (modelId: string, responseTime: number, messageLength: number) => 
+    trackResponse: (modelId: string, responseTime: number, messageLength: number) =>
       analyticsService.trackResponse(modelId, responseTime, messageLength)
   }
 }
@@ -602,13 +628,29 @@ function estimateTokens(text: string): number {
 function classifyTask(prompt: string): 'chat' | 'code' | 'analysis' | 'creative' | 'debug' {
   const lowerPrompt = prompt.toLowerCase()
 
-  if (lowerPrompt.includes('code') || lowerPrompt.includes('function') || lowerPrompt.includes('debug')) {
+  if (
+    lowerPrompt.includes('code') ||
+    lowerPrompt.includes('function') ||
+    lowerPrompt.includes('debug')
+  ) {
     return 'code'
-  } else if (lowerPrompt.includes('analyze') || lowerPrompt.includes('data') || lowerPrompt.includes('chart')) {
+  } else if (
+    lowerPrompt.includes('analyze') ||
+    lowerPrompt.includes('data') ||
+    lowerPrompt.includes('chart')
+  ) {
     return 'analysis'
-  } else if (lowerPrompt.includes('write') || lowerPrompt.includes('story') || lowerPrompt.includes('creative')) {
+  } else if (
+    lowerPrompt.includes('write') ||
+    lowerPrompt.includes('story') ||
+    lowerPrompt.includes('creative')
+  ) {
     return 'creative'
-  } else if (lowerPrompt.includes('error') || lowerPrompt.includes('fix') || lowerPrompt.includes('problem')) {
+  } else if (
+    lowerPrompt.includes('error') ||
+    lowerPrompt.includes('fix') ||
+    lowerPrompt.includes('problem')
+  ) {
     return 'debug'
   } else {
     return 'chat'

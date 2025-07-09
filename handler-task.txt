@@ -1,0 +1,14 @@
+Gemini CLI Implementation Task:
+
+Create src/main/handlers/geminiCliHandlers.ts
+
+This file should:
+1. Import the GeminiCliService 
+2. Create IPC handlers following existing patterns in src/main/handlers/
+3. Expose methods like:
+   - gemini-cli-analyze-project
+   - gemini-cli-generate-modification  
+   - gemini-cli-chat-with-context
+   - gemini-cli-apply-diff
+
+Follow the patterns from chatHandlers.ts and other existing handlers.

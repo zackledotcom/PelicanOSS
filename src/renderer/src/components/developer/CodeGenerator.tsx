@@ -3,18 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Play, Lightning, ArrowsClockwise, Code } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Pulsating } from '@/components/ui/pulsating'
 
 interface CodeGeneratorProps {
-  className?: string;
-  onCodeGenerated?: (code: string, language: string) => void;
+  className?: string
+  onCodeGenerated?: (code: string, language: string) => void
 }
 
-const CodeGenerator: React.FC<CodeGeneratorProps> = ({
-  className,
-  onCodeGenerated
-}) => {
+const CodeGenerator: React.FC<CodeGeneratorProps> = ({ className, onCodeGenerated }) => {
   const [task, setTask] = useState('')
   const [language, setLanguage] = useState('javascript')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -23,7 +26,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [isLoadingModels, setIsLoadingModels] = useState(false)
-  
+
   // Load available models when component mounts
   useEffect(() => {
     const loadModels = async () => {
@@ -31,7 +34,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
       try {
         const models = await window.api.invoke('get-available-models')
         setAvailableModels(models)
-        
+
         // Get best code model suggestion
         const bestModel = await window.api.invoke('select-best-code-model')
         setSelectedModel(bestModel)
@@ -41,17 +44,17 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
         setIsLoadingModels(false)
       }
     }
-    
+
     loadModels()
   }, [])
-  
+
   const handleGenerate = async () => {
     if (!task.trim()) return
-    
+
     setIsGenerating(true)
     setGeneratedCode('')
     setError('')
-    
+
     try {
       // Call the backend service
       const response = await window.api.invoke('generate-code', {
@@ -59,7 +62,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
         language,
         modelName: selectedModel
       })
-      
+
       setGeneratedCode(response)
       onCodeGenerated?.(response, language)
     } catch (error) {
@@ -69,7 +72,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
       setIsGenerating(false)
     }
   }
-  
+
   return (
     <Card className="bg-gray-800/80 border-gray-700/50 backdrop-blur-md overflow-hidden">
       <CardHeader className="pb-2">
@@ -77,9 +80,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
           <Code size={20} className="text-blue-400" />
           Code Generator
           <div className="ml-auto flex items-center">
-            {isGenerating && (
-              <Pulsating className="text-blue-400" />
-            )}
+            {isGenerating && <Pulsating className="text-blue-400" />}
           </div>
         </CardTitle>
       </CardHeader>
@@ -94,14 +95,11 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
               className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 resize-none h-24"
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Language</label>
-              <Select
-                value={language}
-                onValueChange={setLanguage}
-              >
+              <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -116,7 +114,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <label className="block text-sm text-gray-400 mb-1">Model</label>
               <Select
@@ -125,10 +123,12 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
                 disabled={isLoadingModels}
               >
                 <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                  <SelectValue placeholder={isLoadingModels ? "Loading models..." : "Select model"} />
+                  <SelectValue
+                    placeholder={isLoadingModels ? 'Loading models...' : 'Select model'}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableModels.map(model => (
+                  {availableModels.map((model) => (
                     <SelectItem key={model} value={model}>
                       {model}
                     </SelectItem>
@@ -137,7 +137,7 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
               </Select>
             </div>
           </div>
-          
+
           <Button
             onClick={handleGenerate}
             disabled={isGenerating || !task.trim() || !selectedModel}
@@ -155,13 +155,9 @@ const CodeGenerator: React.FC<CodeGeneratorProps> = ({
               </>
             )}
           </Button>
-          
-          {error && (
-            <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">
-              {error}
-            </div>
-          )}
-          
+
+          {error && <div className="bg-red-900/30 text-red-300 p-3 rounded text-sm">{error}</div>}
+
           {generatedCode && (
             <div className="mt-4">
               <div className="flex justify-between items-center mb-2">

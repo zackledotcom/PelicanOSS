@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { useWorkflowService } from '../../hooks/useAdditionalServices'
 import {
-  Workflow,
+  FlowArrow,
   Lightning,
   Plus,
   Play,
@@ -66,7 +66,9 @@ export const WorkflowPanel: React.FC = () => {
       setShowCreateForm(false)
       setNewWorkflow({ name: '', description: '', template: '' })
     } catch (error) {
-      alert(`Failed to create workflow: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to create workflow: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -81,17 +83,24 @@ export const WorkflowPanel: React.FC = () => {
         alert(`Workflow triggered! Execution ID: ${result.executionId}`)
       }
     } catch (error) {
-      alert(`Failed to trigger workflow: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to trigger workflow: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'running': return <ArrowsClockwise className="h-4 w-4 animate-spin text-blue-500" />
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'failed': return <XCircle className="h-4 w-4 text-red-500" />
-      case 'cancelled': return <Warning className="h-4 w-4 text-yellow-500" />
-      default: return <Clock className="h-4 w-4 text-gray-500" />
+      case 'running':
+        return <ArrowsClockwise className="h-4 w-4 animate-spin text-blue-500" />
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />
+      case 'cancelled':
+        return <Warning className="h-4 w-4 text-yellow-500" />
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />
     }
   }
 
@@ -101,7 +110,7 @@ export const WorkflowPanel: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Workflow className="h-5 w-5" />
+              <FlowArrow className="h-5 w-5" />
               Workflow Engine
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -164,7 +173,7 @@ export const WorkflowPanel: React.FC = () => {
           <CardContent className="space-y-4">
             <Select
               value={newWorkflow.template}
-              onValueChange={(value) => setNewWorkflow({...newWorkflow, template: value})}
+              onValueChange={(value) => setNewWorkflow({ ...newWorkflow, template: value })}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Custom Workflow" />
@@ -172,20 +181,22 @@ export const WorkflowPanel: React.FC = () => {
               <SelectContent>
                 <SelectItem value="">Custom Workflow</SelectItem>
                 {Object.entries(templates).map(([key, template]: [string, any]) => (
-                  <SelectItem key={key} value={key}>{template.name}</SelectItem>
+                  <SelectItem key={key} value={key}>
+                    {template.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Input
               value={newWorkflow.name}
-              onChange={(e) => setNewWorkflow({...newWorkflow, name: e.target.value})}
+              onChange={(e) => setNewWorkflow({ ...newWorkflow, name: e.target.value })}
               placeholder="Workflow name"
             />
 
             <Textarea
               value={newWorkflow.description}
-              onChange={(e) => setNewWorkflow({...newWorkflow, description: e.target.value})}
+              onChange={(e) => setNewWorkflow({ ...newWorkflow, description: e.target.value })}
               placeholder="Description"
               rows={2}
             />
@@ -209,12 +220,15 @@ export const WorkflowPanel: React.FC = () => {
         <CardContent>
           <div className="space-y-3">
             {workflows.map((workflow) => (
-              <div key={workflow.id} className="flex items-center justify-between p-3 border rounded">
+              <div
+                key={workflow.id}
+                className="flex items-center justify-between p-3 border rounded"
+              >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{workflow.name}</h4>
-                    <Badge variant={workflow.enabled ? "default" : "secondary"}>
-                      {workflow.enabled ? "Enabled" : "Disabled"}
+                    <Badge variant={workflow.enabled ? 'default' : 'secondary'}>
+                      {workflow.enabled ? 'Enabled' : 'Disabled'}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {workflow.steps?.length || 0} steps
@@ -246,10 +260,13 @@ export const WorkflowPanel: React.FC = () => {
           <ScrollArea className="h-48">
             <div className="space-y-2">
               {executions.map((execution) => {
-                const workflow = workflows.find(w => w.id === execution.workflowId)
+                const workflow = workflows.find((w) => w.id === execution.workflowId)
 
                 return (
-                  <div key={execution.id} className="flex items-center justify-between p-2 border rounded">
+                  <div
+                    key={execution.id}
+                    className="flex items-center justify-between p-2 border rounded"
+                  >
                     <div className="flex items-center gap-3">
                       {getStatusIcon(execution.status)}
                       <div>

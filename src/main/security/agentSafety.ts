@@ -1,9 +1,9 @@
 /**
  * Agent Security Layer - Prevents execution of dangerous system operations
- * 
+ *
  * This module implements a comprehensive security framework for agent operations,
  * preventing unauthorized system access while maintaining legitimate functionality.
- * 
+ *
  * @author PelicanOS Security Team
  * @version 1.0.0
  */
@@ -13,7 +13,7 @@ import { logger } from '../utils/logger'
 // Define threat categories for system operations
 export enum ThreatLevel {
   SAFE = 'safe',
-  ELEVATED = 'elevated', 
+  ELEVATED = 'elevated',
   DANGEROUS = 'dangerous',
   CRITICAL = 'critical'
 }
@@ -74,7 +74,7 @@ export class AgentSecurityValidator {
   private static instance: AgentSecurityValidator
   private auditLog: Array<{ action: AgentAction; result: SecurityResult; timestamp: Date }> = []
   private userApprovals = new Map<string, Set<string>>() // userId -> approved dangerous tools
-  
+
   static getInstance(): AgentSecurityValidator {
     if (!AgentSecurityValidator.instance) {
       AgentSecurityValidator.instance = new AgentSecurityValidator()
@@ -90,7 +90,7 @@ export class AgentSecurityValidator {
   async validateAction(action: AgentAction): Promise<SecurityResult> {
     const threatLevel = this.assessThreatLevel(action.tool)
     const result = await this.performSecurityCheck(action, threatLevel)
-    
+
     // Audit all actions for security monitoring
     this.auditLog.push({
       action,
@@ -125,7 +125,7 @@ export class AgentSecurityValidator {
     if (tool.includes('execute') || tool.includes('command') || tool.includes('shell')) {
       return ThreatLevel.CRITICAL
     }
-    
+
     if (tool.includes('delete') || tool.includes('remove') || tool.includes('destroy')) {
       return ThreatLevel.CRITICAL
     }
@@ -145,17 +145,20 @@ export class AgentSecurityValidator {
   /**
    * Performs comprehensive security check
    */
-  private async performSecurityCheck(action: AgentAction, threatLevel: ThreatLevel): Promise<SecurityResult> {
+  private async performSecurityCheck(
+    action: AgentAction,
+    threatLevel: ThreatLevel
+  ): Promise<SecurityResult> {
     switch (threatLevel) {
       case ThreatLevel.CRITICAL:
         return this.handleCriticalThreat(action)
-      
+
       case ThreatLevel.DANGEROUS:
         return this.handleDangerousThreat(action)
-      
+
       case ThreatLevel.ELEVATED:
         return this.handleElevatedThreat(action)
-      
+
       case ThreatLevel.SAFE:
         return {
           allowed: true,
@@ -168,7 +171,7 @@ export class AgentSecurityValidator {
 
   private handleCriticalThreat(action: AgentAction): SecurityResult {
     logger.warn(`🚨 CRITICAL THREAT BLOCKED: ${action.tool}`, action.args)
-    
+
     return {
       allowed: false,
       reason: `Critical security threat: ${action.tool} is blocked by security policy`,
@@ -185,7 +188,7 @@ export class AgentSecurityValidator {
   private handleDangerousThreat(action: AgentAction): SecurityResult {
     const userId = action.context.userId
     const approvedTools = this.userApprovals.get(userId) || new Set()
-    
+
     if (approvedTools.has(action.tool)) {
       logger.info(`⚠️ Dangerous tool approved by user: ${action.tool}`)
       return {
@@ -212,7 +215,7 @@ export class AgentSecurityValidator {
   private handleElevatedThreat(action: AgentAction): SecurityResult {
     // Log for monitoring but allow
     logger.info(`📊 Elevated operation logged: ${action.tool}`)
-    
+
     return {
       allowed: true,
       reason: 'Elevated operation - logged for security monitoring',
@@ -229,7 +232,7 @@ export class AgentSecurityValidator {
       this.userApprovals.set(userId, new Set())
     }
     this.userApprovals.get(userId)!.add(tool)
-    
+
     logger.info(`🔓 User ${userId} approved dangerous tool: ${tool}`)
   }
 
@@ -251,10 +254,16 @@ export class AgentSecurityValidator {
     elevatedOperations: number
   } {
     const total = this.auditLog.length
-    const blocked = this.auditLog.filter(entry => !entry.result.allowed).length
-    const critical = this.auditLog.filter(entry => entry.result.threatLevel === ThreatLevel.CRITICAL).length
-    const dangerous = this.auditLog.filter(entry => entry.result.threatLevel === ThreatLevel.DANGEROUS).length
-    const elevated = this.auditLog.filter(entry => entry.result.threatLevel === ThreatLevel.ELEVATED).length
+    const blocked = this.auditLog.filter((entry) => !entry.result.allowed).length
+    const critical = this.auditLog.filter(
+      (entry) => entry.result.threatLevel === ThreatLevel.CRITICAL
+    ).length
+    const dangerous = this.auditLog.filter(
+      (entry) => entry.result.threatLevel === ThreatLevel.DANGEROUS
+    ).length
+    const elevated = this.auditLog.filter(
+      (entry) => entry.result.threatLevel === ThreatLevel.ELEVATED
+    ).length
 
     return {
       totalActions: total,

@@ -1,5 +1,5 @@
-import React, { forwardRef, useRef } from "react"
-import { cn } from "@/lib/utils"
+import React, { forwardRef, useRef } from 'react'
+import { cn } from '@/lib/utils'
 
 export interface AnimatedBeamProps {
   className?: string
@@ -30,15 +30,15 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   reverse = false,
   duration = 3,
   delay = 0,
-  pathColor = "gray",
+  pathColor = 'gray',
   pathWidth = 2,
   pathOpacity = 0.2,
-  gradientStartColor = "#0ea5e9",
-  gradientStopColor = "#3b82f6",
+  gradientStartColor = '#0ea5e9',
+  gradientStopColor = '#3b82f6',
   startXOffset = 0,
   startYOffset = 0,
   endXOffset = 0,
-  endYOffset = 0,
+  endYOffset = 0
 }) => {
   const id = useRef(`animated-beam-${Math.random()}`)
 
@@ -48,10 +48,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
       width="100%"
       height="100%"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn(
-        "pointer-events-none absolute left-0 top-0 transform-gpu stroke-2",
-        className
-      )}
+      className={cn('pointer-events-none absolute left-0 top-0 transform-gpu stroke-2', className)}
       viewBox="0 0 100 100"
     >
       <defs>
@@ -84,9 +81,9 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
         strokeDasharray="20 20"
         strokeLinecap="round"
         style={{
-          animation: `${reverse ? "reverse" : "normal"} linear infinite ${
+          animation: `${reverse ? 'reverse' : 'normal'} linear infinite ${
             duration + delay
-          }s beam-animation`,
+          }s beam-animation`
         }}
       />
       <style jsx>{`

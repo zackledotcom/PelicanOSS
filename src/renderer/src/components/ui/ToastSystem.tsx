@@ -25,9 +25,5 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     console.log(`[${type.toUpperCase()}] ${message}`)
   }
 
-  return (
-    <ToastContext.Provider value={{ showToast }}>
-      {children}
-    </ToastContext.Provider>
-  )
+  return <ToastContext.Provider value={{ showToast }}>{children}</ToastContext.Provider>
 }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  X, 
-  Cpu, 
-  HardDrive, 
-  Activity, 
-  Warning, 
+import {
+  X,
+  Cpu,
+  HardDrive,
+  Activity,
+  Warning,
   CheckCircle,
   Thermometer,
   Lightning,
@@ -20,12 +20,10 @@ interface SystemStatusOverlayProps {
   onClose: () => void
 }
 
-
-
 const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) => {
   // Service integration - TODO: Implement real system metrics backend
   const services = useAllServices()
-  
+
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu: {
       usage: 23,
@@ -56,17 +54,19 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
     uptime: '2h 34m'
   })
 
-  const [alerts, setAlerts] = useState<Array<{
-    id: string
-    level: 'warning' | 'error' | 'info'
-    message: string
-    timestamp: Date
-  }>>([])
+  const [alerts, setAlerts] = useState<
+    Array<{
+      id: string
+      level: 'warning' | 'error' | 'info'
+      message: string
+      timestamp: Date
+    }>
+  >([])
 
   // Simulate real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setMetrics(prev => ({
+      setMetrics((prev) => ({
         ...prev,
         cpu: {
           ...prev.cpu,
@@ -146,7 +146,9 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
         <div className="flex items-center space-x-2">
           <Activity size={16} className="text-primary" />
           <span className="font-medium">System Status</span>
-          <Badge variant="outline" className="text-xs">Live</Badge>
+          <Badge variant="outline" className="text-xs">
+            Live
+          </Badge>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X size={16} />
@@ -178,14 +180,14 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
               {metrics.cpu.cores} cores @ {metrics.cpu.frequency}GHz
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Usage</span>
               <span>{metrics.cpu.usage.toFixed(0)}%</span>
             </div>
             <Progress value={metrics.cpu.usage} className="h-2" />
-            
+
             <div className="flex justify-between text-sm">
               <span>Temperature</span>
               <span className={getTemperatureColor(metrics.cpu.temperature)}>
@@ -206,7 +208,7 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
               {metrics.memory.used.toFixed(1)}GB / {metrics.memory.total}GB
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Usage</span>
@@ -227,7 +229,7 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
               {metrics.disk.used}GB / {metrics.disk.total}GB
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Usage</span>
@@ -249,14 +251,14 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
                 {metrics.gpu.memory.toFixed(1)}GB VRAM
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Usage</span>
                 <span>{metrics.gpu.usage.toFixed(0)}%</span>
               </div>
               <Progress value={metrics.gpu.usage} className="h-2" />
-              
+
               <div className="flex justify-between text-sm">
                 <span>Temperature</span>
                 <span className={getTemperatureColor(metrics.gpu.temperature)}>
@@ -283,12 +285,10 @@ const SystemStatusOverlay: React.FC<SystemStatusOverlayProps> = ({ onClose }) =>
               <div>↑ {metrics.network.tx} MB/s</div>
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Uptime</div>
-            <div className="text-xs text-muted-foreground">
-              {metrics.uptime}
-            </div>
+            <div className="text-xs text-muted-foreground">{metrics.uptime}</div>
           </div>
         </div>
 

@@ -6,15 +6,19 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { BlurIn } from '@/components/ui/blur-in'
 import { Ripple } from '@/components/ui/ripple'
 import { useAllServices } from '@/hooks/useServices'
 import { ModelSettings } from '../../../../types/settings'
-
-
 
 interface AgentPermissions {
   fileSystem: boolean
@@ -41,7 +45,7 @@ export default function SettingsModal({
     temperature: 0.7,
     maxTokens: 2048,
     topP: 0.9,
-    systemPrompt: "",
+    systemPrompt: '',
     streaming: true
   },
   agentPermissions = {
@@ -61,7 +65,7 @@ export default function SettingsModal({
 }: Partial<SettingsModalProps>) {
   // Service integration
   const services = useAllServices()
-  
+
   const [tempConfig, setTempConfig] = useState<ModelConfig>(modelConfig)
   const [tempPermissions, setTempPermissions] = useState<AgentPermissions>(agentPermissions)
   const [loading, setLoading] = useState(false)
@@ -80,7 +84,7 @@ export default function SettingsModal({
       // const currentSettings = await services.settings.loadSettings()
       // setTempConfig(currentSettings.modelConfig)
       // setTempPermissions(currentSettings.agentPermissions)
-      
+
       // For now, use the passed props as defaults
       setTempConfig(modelConfig)
       setTempPermissions(agentPermissions)
@@ -99,11 +103,11 @@ export default function SettingsModal({
       //   modelConfig: tempConfig,
       //   agentPermissions: tempPermissions
       // })
-      
+
       // For now, call the prop callbacks
       onModelConfigChange(tempConfig)
       onPermissionsChange(tempPermissions)
-      
+
       onClose?.()
     } catch (error) {
       console.error('Failed to save settings:', error)
@@ -145,7 +149,7 @@ export default function SettingsModal({
               <Slider
                 value={[tempConfig.temperature]}
                 onValueChange={([value]) =>
-                  setTempConfig(prev => ({ ...prev, temperature: value }))
+                  setTempConfig((prev) => ({ ...prev, temperature: value }))
                 }
                 min={0}
                 max={2}
@@ -166,15 +170,13 @@ export default function SettingsModal({
                 type="number"
                 value={tempConfig.maxTokens}
                 onChange={(e) =>
-                  setTempConfig(prev => ({ ...prev, maxTokens: parseInt(e.target.value) || 0 }))
+                  setTempConfig((prev) => ({ ...prev, maxTokens: parseInt(e.target.value) || 0 }))
                 }
                 min={1}
                 max={4096}
                 className="glass"
               />
-              <p className="text-xs text-muted-foreground">
-                Maximum length of model response
-              </p>
+              <p className="text-xs text-muted-foreground">Maximum length of model response</p>
             </div>
 
             <Separator className="opacity-20" />
@@ -184,9 +186,7 @@ export default function SettingsModal({
               <Label className="text-sm font-medium">Top P: {tempConfig.topP}</Label>
               <Slider
                 value={[tempConfig.topP]}
-                onValueChange={([value]) =>
-                  setTempConfig(prev => ({ ...prev, topP: value }))
-                }
+                onValueChange={([value]) => setTempConfig((prev) => ({ ...prev, topP: value }))}
                 min={0}
                 max={1}
                 step={0.05}
@@ -205,7 +205,7 @@ export default function SettingsModal({
               <Textarea
                 value={tempConfig.systemPrompt}
                 onChange={(e) =>
-                  setTempConfig(prev => ({ ...prev, systemPrompt: e.target.value }))
+                  setTempConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))
                 }
                 placeholder="Enter system prompt..."
                 rows={4}
@@ -229,7 +229,7 @@ export default function SettingsModal({
               <Switch
                 checked={tempConfig.streaming}
                 onCheckedChange={(checked) =>
-                  setTempConfig(prev => ({ ...prev, streaming: checked }))
+                  setTempConfig((prev) => ({ ...prev, streaming: checked }))
                 }
               />
             </div>
@@ -240,14 +240,12 @@ export default function SettingsModal({
             <div className="flex items-center justify-between p-4 glass-panel rounded-xl">
               <div>
                 <Label className="text-sm font-medium">File System Access</Label>
-                <p className="text-xs text-muted-foreground">
-                  Allow agent to read and write files
-                </p>
+                <p className="text-xs text-muted-foreground">Allow agent to read and write files</p>
               </div>
               <Switch
                 checked={tempPermissions.fileSystem}
                 onCheckedChange={(checked) =>
-                  setTempPermissions(prev => ({ ...prev, fileSystem: checked }))
+                  setTempPermissions((prev) => ({ ...prev, fileSystem: checked }))
                 }
               />
             </div>
@@ -256,14 +254,12 @@ export default function SettingsModal({
             <div className="flex items-center justify-between p-4 glass-panel rounded-xl">
               <div>
                 <Label className="text-sm font-medium">Network Access</Label>
-                <p className="text-xs text-muted-foreground">
-                  Allow agent to make HTTP requests
-                </p>
+                <p className="text-xs text-muted-foreground">Allow agent to make HTTP requests</p>
               </div>
               <Switch
                 checked={tempPermissions.network}
                 onCheckedChange={(checked) =>
-                  setTempPermissions(prev => ({ ...prev, network: checked }))
+                  setTempPermissions((prev) => ({ ...prev, network: checked }))
                 }
               />
             </div>
@@ -279,7 +275,7 @@ export default function SettingsModal({
               <Switch
                 checked={tempPermissions.systemCommands}
                 onCheckedChange={(checked) =>
-                  setTempPermissions(prev => ({ ...prev, systemCommands: checked }))
+                  setTempPermissions((prev) => ({ ...prev, systemCommands: checked }))
                 }
               />
             </div>
@@ -295,7 +291,7 @@ export default function SettingsModal({
               <Switch
                 checked={tempPermissions.memoryAccess}
                 onCheckedChange={(checked) =>
-                  setTempPermissions(prev => ({ ...prev, memoryAccess: checked }))
+                  setTempPermissions((prev) => ({ ...prev, memoryAccess: checked }))
                 }
               />
             </div>
@@ -304,17 +300,10 @@ export default function SettingsModal({
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
-          <Button
-            variant="ghost"
-            onClick={handleReset}
-            className="glass"
-          >
+          <Button variant="ghost" onClick={handleReset} className="glass">
             Reset
           </Button>
-          <Button
-            onClick={handleSave}
-            className="bg-white text-black hover:bg-gray-100"
-          >
+          <Button onClick={handleSave} className="bg-white text-black hover:bg-gray-100">
             Save Changes
           </Button>
         </div>

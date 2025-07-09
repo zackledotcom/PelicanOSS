@@ -1,7 +1,7 @@
 /**
  * Memory Monitoring System for PelicanOS
- * 
- * @author PelicanOS Engineering Team  
+ *
+ * @author PelicanOS Engineering Team
  * @version 1.0.0
  */
 
@@ -29,12 +29,16 @@ export class MemoryMonitor {
     if (this.isMonitoring) return
 
     this.isMonitoring = true
-    
+
     setInterval(() => {
       this.collectMetrics()
     }, intervalMs)
 
-    logger.success(`Memory monitoring started with ${intervalMs}ms interval`, undefined, 'memory-monitor')
+    logger.success(
+      `Memory monitoring started with ${intervalMs}ms interval`,
+      undefined,
+      'memory-monitor'
+    )
   }
 
   private collectMetrics(): void {
@@ -47,8 +51,12 @@ export class MemoryMonitor {
     }
 
     if (metrics.heapUsedPercent > 80) {
-      logger.warn(`High memory usage: ${metrics.heapUsedPercent.toFixed(1)}%`, metrics, 'memory-monitor')
-      
+      logger.warn(
+        `High memory usage: ${metrics.heapUsedPercent.toFixed(1)}%`,
+        metrics,
+        'memory-monitor'
+      )
+
       if (global.gc) {
         global.gc()
         logger.info('Forced garbage collection', undefined, 'memory-monitor')

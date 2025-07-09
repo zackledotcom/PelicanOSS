@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { ScrollArea } from '../ui/scroll-area'
 import { Badge } from '../ui/badge'
-import { 
-  Code, 
-  Stack, 
-  Clock, 
-  Hash, 
-  Tag, 
-  CaretDown, 
+import {
+  Code,
+  Stack,
+  Clock,
+  Hash,
+  Tag,
+  CaretDown,
   CaretRight,
   ArrowsClockwise,
   Copy
@@ -55,7 +55,7 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
   }, [])
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section]
     }))
@@ -72,12 +72,7 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
           <div className="flex items-center gap-2">
             <Code className="h-5 w-5 text-gray-500" />
             <CardTitle className="text-lg">Context Debug</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={loadContextInfo}
-              className="ml-auto"
-            >
+            <Button variant="ghost" size="sm" onClick={loadContextInfo} className="ml-auto">
               <ArrowsClockwise className="h-4 w-4" />
             </Button>
           </div>
@@ -97,18 +92,16 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
             <Code className="h-5 w-5 text-blue-500" />
             <CardTitle className="text-lg font-sans">Context Debug</CardTitle>
             {debugInfo.contextUsed && (
-              <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              <Badge
+                variant="default"
+                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              >
                 Active
               </Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRefresh?.()}
-              className="h-8 w-8 p-0"
-            >
+            <Button variant="ghost" size="sm" onClick={() => onRefresh?.()} className="h-8 w-8 p-0">
               <ArrowsClockwise className="h-4 w-4" />
             </Button>
             <Button
@@ -131,18 +124,22 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
               <Stack className="h-4 w-4 text-blue-600" />
               <div>
                 <div className="text-xs text-muted-foreground">Summaries</div>
-                <div className="font-semibold">{debugInfo.summariesUsed || debugInfo.totalSummaries || 0}</div>
+                <div className="font-semibold">
+                  {debugInfo.summariesUsed || debugInfo.totalSummaries || 0}
+                </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950 rounded">
               <Hash className="h-4 w-4 text-green-600" />
               <div>
                 <div className="text-xs text-muted-foreground">Key Facts</div>
-                <div className="font-semibold">{debugInfo.keyFactsUsed || debugInfo.totalKeyFacts || 0}</div>
+                <div className="font-semibold">
+                  {debugInfo.keyFactsUsed || debugInfo.totalKeyFacts || 0}
+                </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-950 rounded">
               <Tag className="h-4 w-4 text-purple-600" />
               <div>
@@ -150,7 +147,7 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
                 <div className="font-semibold">{debugInfo.totalTopics || 0}</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 p-2 bg-orange-50 dark:bg-orange-950 rounded">
               <Clock className="h-4 w-4 text-orange-600" />
               <div>
@@ -163,19 +160,28 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
           {/* Recent Summaries */}
           {debugInfo.recentSummaries && (
             <div className="space-y-2">
-              <div 
+              <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => toggleSection('summaries')}
               >
-                {expandedSections.summaries ? <CaretDown className="h-4 w-4" /> : <CaretRight className="h-4 w-4" />}
-                <span className="font-medium">Recent Summaries ({debugInfo.recentSummaries.length})</span>
+                {expandedSections.summaries ? (
+                  <CaretDown className="h-4 w-4" />
+                ) : (
+                  <CaretRight className="h-4 w-4" />
+                )}
+                <span className="font-medium">
+                  Recent Summaries ({debugInfo.recentSummaries.length})
+                </span>
               </div>
-              
+
               {expandedSections.summaries && (
                 <ScrollArea className="h-48 w-full border rounded p-2">
                   <div className="space-y-2">
                     {debugInfo.recentSummaries.map((summary: any, index: number) => (
-                      <div key={summary.id} className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                      <div
+                        key={summary.id}
+                        className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs"
+                      >
                         <div className="flex items-center justify-between mb-1">
                           <Badge variant="outline" className="text-xs">
                             {summary.messageCount} msgs
@@ -203,11 +209,15 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
           {/* Debug Output */}
           {debugInfo.debugInfo && (
             <div className="space-y-2">
-              <div 
+              <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => toggleSection('prompt')}
               >
-                {expandedSections.prompt ? <CaretDown className="h-4 w-4" /> : <CaretRight className="h-4 w-4" />}
+                {expandedSections.prompt ? (
+                  <CaretDown className="h-4 w-4" />
+                ) : (
+                  <CaretRight className="h-4 w-4" />
+                )}
                 <span className="font-medium">Enriched Prompt</span>
                 <Button
                   variant="ghost"
@@ -221,12 +231,10 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
-              
+
               {expandedSections.prompt && (
                 <ScrollArea className="h-32 w-full border rounded">
-                  <pre className="p-2 text-xs whitespace-pre-wrap">
-                    {debugInfo.debugInfo}
-                  </pre>
+                  <pre className="p-2 text-xs whitespace-pre-wrap">{debugInfo.debugInfo}</pre>
                 </ScrollArea>
               )}
             </div>
@@ -236,9 +244,9 @@ export const ContextDebugPanel: React.FC<ContextDebugPanelProps> = ({
           <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
             <div className="font-medium mb-1">Status:</div>
             <div className="text-muted-foreground">
-              {debugInfo.contextUsed 
+              {debugInfo.contextUsed
                 ? `Context actively injected (${debugInfo.contextLength} characters)`
-                : "No context injection"}
+                : 'No context injection'}
             </div>
           </div>
         </CardContent>

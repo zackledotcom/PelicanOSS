@@ -3,24 +3,30 @@
 ## Current Status ✅
 
 **System Health:** Ready for upgrade
+
 - ✅ Ollama 0.9.2 running with 4 models (8.1GB storage)
 - ✅ All models responding correctly (tested tinydolphin:latest)
-- ⚠️  ChromaDB offline (but data directory exists - 160K)
+- ⚠️ ChromaDB offline (but data directory exists - 160K)
 - ✅ Node.js v23.11.1 and NPM 10.9.2 installed
 
 ## Immediate Next Steps
 
 ### Option 1: Quick Status Check First
+
 ```bash
 ./check-status.sh
 ```
+
 This shows your real-time service status and recommendations.
 
 ### Option 2: Full Ollama v2 Upgrade (Recommended)
+
 ```bash
 ./upgrade-ollama-v2.sh
 ```
+
 This handles everything automatically:
+
 - Creates timestamped backups
 - Safely upgrades to Ollama v2
 - Tests all functionality
@@ -28,6 +34,7 @@ This handles everything automatically:
 - Enables easy rollback if needed
 
 ### Option 3: Start ChromaDB Only (if you want to use current setup first)
+
 ```bash
 cd chroma-data
 /Users/jibbr/.local/bin/chroma run --port 8000 &
@@ -53,8 +60,9 @@ cd chroma-data
 ## Why Upgrade Now?
 
 **Ollama v2 Benefits:**
+
 - ⚡ Faster model loading
-- 🧠 Better memory management  
+- 🧠 Better memory management
 - 🔄 Improved concurrent requests
 - 📈 Enhanced performance
 - 🛡️ Better stability

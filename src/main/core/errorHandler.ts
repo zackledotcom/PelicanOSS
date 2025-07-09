@@ -1,9 +1,9 @@
 /**
  * Enterprise Error Boundary and Recovery System for PelicanOS
- * 
+ *
  * Implements comprehensive error handling, automatic recovery mechanisms,
  * circuit breakers, and intelligent error classification for maximum stability.
- * 
+ *
  * @author PelicanOS Engineering Team
  * @version 2.0.0
  */
@@ -24,10 +24,10 @@ export enum ErrorCategory {
 }
 
 export enum ErrorSeverity {
-  LOW = 'low',           // Information/warning level
-  MEDIUM = 'medium',     // Handled error, functionality degraded  
-  HIGH = 'high',         // Service failure, manual intervention needed
-  CRITICAL = 'critical'  // System failure, requires immediate attention
+  LOW = 'low', // Information/warning level
+  MEDIUM = 'medium', // Handled error, functionality degraded
+  HIGH = 'high', // Service failure, manual intervention needed
+  CRITICAL = 'critical' // System failure, requires immediate attention
 }
 
 export interface ErrorContext {
@@ -73,12 +73,18 @@ export class ErrorClassifier {
         recoverable: true,
         userVisible: true,
         recoveryActions: [
-          { type: 'retry', description: 'Retry with exponential backoff', automated: true, maxAttempts: 3, delayMs: 1000 },
+          {
+            type: 'retry',
+            description: 'Retry with exponential backoff',
+            automated: true,
+            maxAttempts: 3,
+            delayMs: 1000
+          },
           { type: 'fallback', description: 'Switch to offline mode', automated: true }
         ]
       }
     },
-    
+
     // Validation errors
     {
       pattern: /validation|invalid|schema|zod/i,
@@ -103,7 +109,12 @@ export class ErrorClassifier {
         recoverable: true,
         userVisible: true,
         recoveryActions: [
-          { type: 'retry', description: 'Retry with different path', automated: true, maxAttempts: 2 },
+          {
+            type: 'retry',
+            description: 'Retry with different path',
+            automated: true,
+            maxAttempts: 2
+          },
           { type: 'fallback', description: 'Use temporary storage', automated: true }
         ]
       }
@@ -134,7 +145,12 @@ export class ErrorClassifier {
         recoverable: true,
         userVisible: true,
         recoveryActions: [
-          { type: 'retry', description: 'Retry with different model', automated: true, maxAttempts: 2 },
+          {
+            type: 'retry',
+            description: 'Retry with different model',
+            automated: true,
+            maxAttempts: 2
+          },
           { type: 'fallback', description: 'Use backup model', automated: true }
         ]
       }
@@ -163,9 +179,10 @@ export class ErrorClassifier {
 
     // Find matching pattern
     for (const { pattern, classification } of this.patterns) {
-      const matches = typeof pattern === 'string' 
-        ? combinedText.includes(pattern.toLowerCase())
-        : pattern.test(combinedText)
+      const matches =
+        typeof pattern === 'string'
+          ? combinedText.includes(pattern.toLowerCase())
+          : pattern.test(combinedText)
 
       if (matches) {
         return {
@@ -188,7 +205,13 @@ export class ErrorClassifier {
       userVisible: false,
       requiresNotification: true,
       recoveryActions: [
-        { type: 'retry', description: 'Generic retry', automated: true, maxAttempts: 1, delayMs: 1000 },
+        {
+          type: 'retry',
+          description: 'Generic retry',
+          automated: true,
+          maxAttempts: 1,
+          delayMs: 1000
+        },
         { type: 'escalate', description: 'Log for manual review', automated: true }
       ]
     }
@@ -221,12 +244,12 @@ export class CircuitBreaker {
 
     try {
       const result = await operation()
-      
+
       if (this.state === 'half-open') {
         this.reset()
         logger.success(`Circuit breaker ${this.name} recovered`)
       }
-      
+
       return result
     } catch (error) {
       this.recordFailure()
@@ -288,12 +311,7 @@ export class ErrorBoundary {
       fallback?: () => Promise<T>
     } = {}
   ): Promise<T> {
-    const {
-      enableCircuitBreaker = true,
-      maxRetries = 3,
-      retryDelay = 1000,
-      fallback
-    } = options
+    const { enableCircuitBreaker = true, maxRetries = 3, retryDelay = 1000, fallback } = options
 
     const operationKey = `${context.component}:${context.operation}`
     let lastError: Error
@@ -310,9 +328,7 @@ export class ErrorBoundary {
     // Retry loop with exponential backoff
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const result = circuitBreaker 
-          ? await circuitBreaker.execute(operation)
-          : await operation()
+        const result = circuitBreaker ? await circuitBreaker.execute(operation) : await operation()
 
         // Reset error count on success
         this.errorCounts.delete(operationKey)
@@ -323,13 +339,12 @@ export class ErrorBoundary {
         }
 
         return result
-
       } catch (error) {
         lastError = error as Error
-        
+
         // Classify the error
         const classification = ErrorClassifier.classify(lastError, context)
-        
+
         // Log the error with classification
         this.logError(lastError, context, classification, attempt)
 
@@ -343,8 +358,8 @@ export class ErrorBoundary {
 
         // Apply recovery actions
         const recovered = await this.applyRecoveryActions(
-          lastError, 
-          context, 
+          lastError,
+          context,
           classification,
           attempt
         )
@@ -357,8 +372,10 @@ export class ErrorBoundary {
         // Wait before retry with exponential backoff
         if (attempt < maxRetries) {
           const delay = retryDelay * Math.pow(2, attempt - 1)
-          logger.debug(`Retrying ${operationKey} in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
-          await new Promise(resolve => setTimeout(resolve, delay))
+          logger.debug(
+            `Retrying ${operationKey} in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`
+          )
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
     }
@@ -413,8 +430,10 @@ export class ErrorBoundary {
     }
 
     // Security-specific logging
-    if (classification.category === ErrorCategory.PERMISSION || 
-        classification.category === ErrorCategory.AGENT) {
+    if (
+      classification.category === ErrorCategory.PERMISSION ||
+      classification.category === ErrorCategory.AGENT
+    ) {
       logger.security(`Security-related error in ${context.operation}`, logData)
     }
   }
@@ -498,9 +517,10 @@ export class ErrorBoundary {
     classification: ErrorClassification
   ): Promise<void> {
     // Log to crash recovery system for critical/high severity errors
-    if (classification.severity === ErrorSeverity.CRITICAL || 
-        classification.severity === ErrorSeverity.HIGH) {
-      
+    if (
+      classification.severity === ErrorSeverity.CRITICAL ||
+      classification.severity === ErrorSeverity.HIGH
+    ) {
       await crashRecovery.logError(error, {
         component: context.component,
         operation: context.operation,
@@ -545,7 +565,7 @@ export class ErrorBoundary {
   } {
     const errorsByOperation = Object.fromEntries(this.errorCounts)
     const totalErrors = Array.from(this.errorCounts.values()).reduce((sum, count) => sum + count, 0)
-    
+
     const topErrors = Array.from(this.errorCounts.entries())
       .map(([operation, count]) => ({ operation, count }))
       .sort((a, b) => b.count - a.count)
@@ -591,15 +611,11 @@ export function withErrorBoundary<T extends any[], R>(
     }
 
     try {
-      return await errorBoundary.withErrorBoundary(
-        () => handler(...args),
-        context,
-        {
-          enableCircuitBreaker: true,
-          maxRetries: 2,
-          retryDelay: 1000
-        }
-      )
+      return await errorBoundary.withErrorBoundary(() => handler(...args), context, {
+        enableCircuitBreaker: true,
+        maxRetries: 2,
+        retryDelay: 1000
+      })
     } catch (error) {
       return {
         success: false,

@@ -5,7 +5,11 @@
 export { summarizeMessages, enrichPromptWithMemory } from './ollama'
 
 // From memoryEnrichment.ts
-export { withMemoryEnrichment, createContextDebugInfo, filterRelevantContext } from './memoryEnrichment'
+export {
+  withMemoryEnrichment,
+  createContextDebugInfo,
+  filterRelevantContext
+} from './memoryEnrichment'
 
 // From agents.ts
 export {

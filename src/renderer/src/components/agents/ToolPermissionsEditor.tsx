@@ -1,133 +1,240 @@
-import React, { useState } from 'react'
-import { 
-  ShieldCheck, 
-  Wrench, 
-  Lock, 
-  LockOpen, 
+import React, { useState, useEffect } from 'react'
+import {
+  ShieldCheck,
+  Wrench,
+  Lock,
+  LockOpen,
   Warning,
   CheckCircle,
-  Robot
+  Robot,
+  Info,
+  AlertTriangle,
+  Shield,
+  X
 } from 'phosphor-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useToast } from '@/components/ui/use-toast'
+import { useAgentService } from '../../hooks/useAgents'
 
 interface ToolPermissionsEditorProps {
   agentId?: string
   className?: string
+  onPermissionsChange?: (permissions: any) => void
 }
 
-/**
- * TODO: ToolPermissionsEditor - Scaffolded Component
- * 
- * This component is planned for Phase 2+ implementation.
- * Current state: UI shell with mock data and no live permissions
- * 
- * Planned Features:
- * - Per-agent tool permission matrix
- * - Granular permission levels (read/write/execute)
- * - Tool dependency validation
- * - Security policy enforcement
- * - Audit logging for permission changes
- * - Bulk permission operations
- */
-const ToolPermissionsEditor: React.FC<ToolPermissionsEditorProps> = ({ 
-  agentId, 
-  className 
+interface ToolSecurityInfo {
+  category: string
+  operations: string[]
+  riskLevel: 'safe' | 'moderate' | 'dangerous' | 'critical'
+  requiresConfirmation: boolean
+  description: string
+}
+
+interface SecurityConfig {
+  allowCriticalTools: boolean
+  allowDangerousTools: boolean
+  requireUserConfirmation: boolean
+  adminMode: boolean
+}
+
+const getRiskColor = (riskLevel: string) => {
+  switch (riskLevel) {
+    case 'safe':
+      return 'text-green-600 bg-green-50'
+    case 'moderate':
+      return 'text-yellow-600 bg-yellow-50'
+    case 'dangerous':
+      return 'text-orange-600 bg-orange-50'
+    case 'critical':
+      return 'text-red-600 bg-red-50'
+    default:
+      return 'text-gray-600 bg-gray-50'
+  }
+}
+
+const getRiskIcon = (riskLevel: string) => {
+  switch (riskLevel) {
+    case 'safe':
+      return <CheckCircle size={16} />
+    case 'moderate':
+      return <Info size={16} />
+    case 'dangerous':
+      return <AlertTriangle size={16} />
+    case 'critical':
+      return <X size={16} />
+    default:
+      return <Shield size={16} />
+  }
+}
+
+const ToolPermissionsEditor: React.FC<ToolPermissionsEditorProps> = ({
+  agentId,
+  className,
+  onPermissionsChange
 }) => {
-  const [selectedAgent, setSelectedAgent] = useState(agentId || 'agent-001')
+  const { toast } = useToast()
+  const { getAgentById, updateAgent } = useAgentService()
 
-  const mockToolCategories = [
-    {
-      name: 'File System',
-      tools: [
-        { name: 'file.read', description: 'Read files from disk', risk: 'low' },
-        { name: 'file.write', description: 'Write files to disk', risk: 'medium' },
-        { name: 'file.delete', description: 'Delete files', risk: 'high' },
-        { name: 'file.execute', description: 'Execute files', risk: 'high' }
-      ]
-    },
-    {
-      name: 'Database',
-      tools: [
-        { name: 'chroma.query', description: 'Query vector database', risk: 'low' },
-        { name: 'chroma.add', description: 'Add to vector database', risk: 'medium' },
-        { name: 'chroma.delete', description: 'Delete from database', risk: 'medium' }
-      ]
-    },
-    {
-      name: 'System',
-      tools: [
-        { name: 'system.execute', description: 'Execute system commands', risk: 'high' },
-        { name: 'system.processes', description: 'View running processes', risk: 'low' },
-        { name: 'system.kill', description: 'Terminate processes', risk: 'high' }
-      ]
-    },
-    {
-      name: 'Network',
-      tools: [
-        { name: 'network.http', description: 'Make HTTP requests', risk: 'medium' },
-        { name: 'network.websocket', description: 'WebSocket connections', risk: 'medium' },
-        { name: 'network.ping', description: 'Network ping utility', risk: 'low' }
-      ]
+  const [selectedAgent, setSelectedAgent] = useState(agentId || '')
+  const [allTools, setAllTools] = useState<Record<string, ToolSecurityInfo>>({})
+  const [securityConfig, setSecurityConfig] = useState<SecurityConfig | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const agent = selectedAgent ? getAgentById(selectedAgent) : null
+
+  // Load tools and security config
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        // Load all tools with security info
+        const toolsResult = await window.api.getAllToolsWithSecurity()
+        if (toolsResult.success) {
+          setAllTools(toolsResult.tools || {})
+        } else {
+          throw new Error(toolsResult.error || 'Failed to load tools')
+        }
+
+        // Load security config
+        const configResult = await window.api.getSecurityConfig()
+        if (configResult.success) {
+          setSecurityConfig(configResult.config || null)
+        } else {
+          throw new Error(configResult.error || 'Failed to load security config')
+        }
+      } catch (err: any) {
+        setError(err.message)
+        toast({
+          title: 'Error',
+          description: err.message,
+          variant: 'destructive'
+        })
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
 
-  const mockAgents = [
-    { id: 'agent-001', name: 'Research Assistant', type: 'research' },
-    { id: 'agent-002', name: 'Code Helper', type: 'coding' },
-    { id: 'agent-003', name: 'File Manager', type: 'utility' }
-  ]
+    loadData()
+  }, [toast])
 
-  const mockPermissions = {
-    'agent-001': {
-      'file.read': true,
-      'file.write': false,
-      'chroma.query': true,
-      'chroma.add': true,
-      'system.processes': true,
-      'network.http': true
-    },
-    'agent-002': {
-      'file.read': true,
-      'file.write': true,
-      'file.execute': false,
-      'system.execute': false,
-      'network.http': true
-    },
-    'agent-003': {
-      'file.read': true,
-      'file.write': true,
-      'file.delete': true,
-      'system.processes': true
+  // Group tools by category
+  const toolCategories = React.useMemo(() => {
+    const categories: Record<string, Array<{ key: string; info: ToolSecurityInfo }>> = {}
+
+    Object.entries(allTools).forEach(([key, info]) => {
+      if (!categories[info.category]) {
+        categories[info.category] = []
+      }
+      categories[info.category].push({ key, info })
+    })
+
+    return categories
+  }, [allTools])
+
+  const handleToolToggle = async (toolKey: string, enabled: boolean) => {
+    if (!agent) return
+
+    const currentTools = agent.tools || []
+    const updatedTools = enabled
+      ? [...currentTools, toolKey]
+      : currentTools.filter((t) => t !== toolKey)
+
+    try {
+      const result = await updateAgent(agent.id, { tools: updatedTools })
+      if (result.success) {
+        toast({
+          title: 'Success',
+          description: `Tool ${toolKey} ${enabled ? 'enabled' : 'disabled'} for ${agent.name}`
+        })
+        onPermissionsChange?.(updatedTools)
+      } else {
+        throw new Error(result.error || 'Failed to update agent')
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message,
+        variant: 'destructive'
+      })
     }
   }
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low': return 'text-green-600 bg-green-50'
-      case 'medium': return 'text-yellow-600 bg-yellow-50'
-      case 'high': return 'text-red-600 bg-red-50'
-      default: return 'text-gray-600 bg-gray-50'
+  const handleSecurityConfigUpdate = async (updates: Partial<SecurityConfig>) => {
+    if (!securityConfig) return
+
+    const updatedConfig = { ...securityConfig, ...updates }
+
+    try {
+      const result = await window.api.updateSecurityConfig(updatedConfig)
+      if (result.success) {
+        setSecurityConfig(updatedConfig)
+        toast({
+          title: 'Success',
+          description: 'Security configuration updated'
+        })
+      } else {
+        throw new Error(result.error || 'Failed to update security config')
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message,
+        variant: 'destructive'
+      })
     }
   }
 
-  const getRiskIcon = (risk: string) => {
-    switch (risk) {
-      case 'low': return <CheckCircle size={14} />
-      case 'medium': return <Warning size={14} />
-      case 'high': return <ShieldCheck size={14} />
-      default: return <Lock size={14} />
+  const isToolAllowed = (riskLevel: string) => {
+    if (!securityConfig) return false
+
+    switch (riskLevel) {
+      case 'critical':
+        return securityConfig.allowCriticalTools
+      case 'dangerous':
+        return securityConfig.allowDangerousTools
+      case 'moderate':
+      case 'safe':
+      default:
+        return true
     }
+  }
+
+  if (loading) {
+    return (
+      <div className={`${className} flex items-center justify-center h-64`}>
+        <div className="text-center">
+          <Shield size={48} className="mx-auto mb-4 text-blue-500 animate-pulse" />
+          <p>Loading security configuration...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={className}>
+        <Alert variant="destructive">
+          <AlertTriangle size={16} />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   return (
     <div className={className}>
-      <div className="p-6 bg-muted/30 rounded-lg border border-border">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <ShieldCheck size={20} className="text-blue-600" />
@@ -135,169 +242,243 @@ const ToolPermissionsEditor: React.FC<ToolPermissionsEditorProps> = ({
             <div>
               <h3 className="font-medium">Tool Permissions Editor</h3>
               <p className="text-sm text-muted-foreground">
-                Manage agent access to system tools and resources
+                Manage agent tool access and security settings
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Badge variant="outline" className="bg-blue-50 text-blue-700">
-              TODO: Planned Feature
+              Live Security Control
             </Badge>
-            <Badge variant="secondary">Phase 2+</Badge>
+            {securityConfig?.adminMode && (
+              <Badge variant="secondary" className="bg-red-50 text-red-700">
+                Admin Mode
+              </Badge>
+            )}
           </div>
         </div>
 
-        {/* Warning Banner */}
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-start space-x-3">
-            <Warning size={20} className="text-yellow-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-yellow-800">Development Preview</h4>
-              <p className="text-sm text-yellow-700 mt-1">
-                This component shows the planned UI for tool permissions. 
-                Security enforcement and live permission changes will be implemented in Phase 2+.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Agent Selection */}
+        {!agentId && (
+          <Card>
+            <CardContent className="p-4">
+              <Label htmlFor="agent-select">Select Agent</Label>
+              <select
+                id="agent-select"
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="w-full mt-1 p-2 border rounded-md"
+              >
+                <option value="">Choose an agent...</option>
+                {/* This would be populated from agent registry */}
+              </select>
+            </CardContent>
+          </Card>
+        )}
 
-        <Tabs defaultValue="permissions" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="permissions">Permissions Matrix</TabsTrigger>
-            <TabsTrigger value="policies">Security Policies</TabsTrigger>
-            <TabsTrigger value="audit">Audit Log</TabsTrigger>
-          </TabsList>
+        {/* Security Configuration Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Shield size={20} />
+              <span>Global Security Settings</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="dangerous-tools"
+                  checked={securityConfig?.allowDangerousTools || false}
+                  onCheckedChange={(checked) =>
+                    handleSecurityConfigUpdate({ allowDangerousTools: checked })
+                  }
+                />
+                <Label htmlFor="dangerous-tools">Allow Dangerous Tools</Label>
+              </div>
 
-          {/* Permissions Matrix */}
-          <TabsContent value="permissions" className="space-y-4">
-            {/* Agent Selector */}
-            <div className="flex items-center space-x-4">
-              <Label>Select Agent:</Label>
-              <div className="flex space-x-2">
-                {mockAgents.map((agent) => (
-                  <Button
-                    key={agent.id}
-                    variant={selectedAgent === agent.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedAgent(agent.id)}
-                    disabled
-                  >
-                    <Robot size={14} className="mr-1" />
-                    {agent.name}
-                  </Button>
-                ))}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="critical-tools"
+                  checked={securityConfig?.allowCriticalTools || false}
+                  onCheckedChange={(checked) =>
+                    handleSecurityConfigUpdate({ allowCriticalTools: checked })
+                  }
+                />
+                <Label htmlFor="critical-tools">Allow Critical Tools</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="user-confirmation"
+                  checked={securityConfig?.requireUserConfirmation || false}
+                  onCheckedChange={(checked) =>
+                    handleSecurityConfigUpdate({ requireUserConfirmation: checked })
+                  }
+                />
+                <Label htmlFor="user-confirmation">Require User Confirmation</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="admin-mode"
+                  checked={securityConfig?.adminMode || false}
+                  onCheckedChange={(checked) => handleSecurityConfigUpdate({ adminMode: checked })}
+                />
+                <Label htmlFor="admin-mode">Admin Mode</Label>
               </div>
             </div>
 
-            {/* Permissions Grid */}
-            <div className="space-y-6">
-              {mockToolCategories.map((category) => (
-                <div key={category.name} className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Wrench size={16} className="text-muted-foreground" />
-                    <h4 className="font-medium">{category.name}</h4>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {category.tools.map((tool) => {
-                      const hasPermission = mockPermissions[selectedAgent]?.[tool.name] || false
-                      
-                      return (
-                        <div 
-                          key={tool.name}
-                          className="flex items-center justify-between p-3 bg-background rounded border border-border"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                                {tool.name}
-                              </code>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${getRiskColor(tool.risk)}`}
-                              >
-                                {getRiskIcon(tool.risk)}
-                                <span className="ml-1">{tool.risk}</span>
-                              </Badge>
+            {/* Security Warnings */}
+            {securityConfig?.allowCriticalTools && (
+              <Alert variant="destructive">
+                <AlertTriangle size={16} />
+                <AlertDescription>
+                  Critical tools are enabled. These tools can execute system commands and may pose
+                  security risks.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {securityConfig?.adminMode && (
+              <Alert>
+                <Info size={16} />
+                <AlertDescription>
+                  Admin mode bypasses confirmation requirements. Use with caution.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tool Categories */}
+        {agent && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Robot size={20} />
+                <span>Tool Permissions for {agent.name}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue={Object.keys(toolCategories)[0]} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  {Object.keys(toolCategories).map((category) => (
+                    <TabsTrigger key={category} value={category} className="capitalize">
+                      {category}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {Object.entries(toolCategories).map(([category, tools]) => (
+                  <TabsContent key={category} value={category} className="space-y-4">
+                    <div className="space-y-3">
+                      {tools.map(({ key, info }) => {
+                        const isEnabled = agent.tools?.includes(key) || false
+                        const isBlocked = !isToolAllowed(info.riskLevel)
+
+                        return (
+                          <div
+                            key={key}
+                            className={`p-4 border rounded-lg ${
+                              isBlocked ? 'bg-gray-50 opacity-60' : 'bg-white'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3">
+                                  <div className="flex items-center space-x-2">
+                                    <Wrench size={16} className="text-gray-500" />
+                                    <span className="font-medium">{key}</span>
+                                  </div>
+
+                                  <Badge
+                                    variant="outline"
+                                    className={`${getRiskColor(info.riskLevel)} border-0`}
+                                  >
+                                    {getRiskIcon(info.riskLevel)}
+                                    <span className="ml-1 capitalize">{info.riskLevel}</span>
+                                  </Badge>
+
+                                  {info.requiresConfirmation && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <Lock size={12} className="mr-1" />
+                                      Confirmation Required
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <p className="text-sm text-gray-600 mt-1">{info.description}</p>
+
+                                {isBlocked && (
+                                  <p className="text-xs text-red-600 mt-1">
+                                    Blocked by security policy. Enable {info.riskLevel} tools in
+                                    security settings.
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={isEnabled && !isBlocked}
+                                  disabled={isBlocked}
+                                  onCheckedChange={(checked) => handleToolToggle(key, checked)}
+                                />
+                                {isEnabled && !isBlocked ? (
+                                  <LockOpen size={16} className="text-green-500" />
+                                ) : (
+                                  <Lock size={16} className="text-gray-400" />
+                                )}
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {tool.description}
-                            </p>
                           </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            {hasPermission ? (
-                              <LockOpen size={16} className="text-green-600" />
-                            ) : (
-                              <Lock size={16} className="text-red-600" />
-                            )}
-                            <Switch 
-                              checked={hasPermission}
-                              disabled
-                            />
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Summary */}
+        {agent && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Permission Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {agent.tools?.filter((t) => allTools[t]?.riskLevel === 'safe').length || 0}
                   </div>
+                  <div className="text-sm text-gray-600">Safe Tools</div>
                 </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Security Policies */}
-          <TabsContent value="policies" className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Planned Security Policies</h4>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li>• <strong>Principle of Least Privilege:</strong> Agents get minimal required permissions</li>
-                <li>• <strong>Risk-Based Access:</strong> High-risk tools require explicit approval</li>
-                <li>• <strong>Time-Limited Access:</strong> Permissions can have expiration dates</li>
-                <li>• <strong>Dependency Validation:</strong> Check tool requirements before granting access</li>
-                <li>• <strong>Audit Trail:</strong> All permission changes are logged</li>
-                <li>• <strong>Emergency Revocation:</strong> Instantly revoke all permissions if needed</li>
-              </ul>
-            </div>
-          </TabsContent>
-
-          {/* Audit Log */}
-          <TabsContent value="audit" className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Permission Audit Log (Mock)</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center p-2 bg-background rounded">
-                  <span>agent-001 granted file.read permission</span>
-                  <span className="text-muted-foreground">2 hours ago</span>
+                <div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {agent.tools?.filter((t) => allTools[t]?.riskLevel === 'moderate').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Moderate Tools</div>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-background rounded">
-                  <span>agent-002 denied system.execute permission</span>
-                  <span className="text-muted-foreground">1 day ago</span>
+                <div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {agent.tools?.filter((t) => allTools[t]?.riskLevel === 'dangerous').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Dangerous Tools</div>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-background rounded">
-                  <span>agent-003 permission expired: file.delete</span>
-                  <span className="text-muted-foreground">3 days ago</span>
+                <div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {agent.tools?.filter((t) => allTools[t]?.riskLevel === 'critical').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Critical Tools</div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
-          <Button variant="outline" disabled>
-            Reset to Defaults
-          </Button>
-          
-          <div className="flex space-x-2">
-            <Button variant="outline" disabled>
-              Export Policy
-            </Button>
-            <Button disabled>
-              Apply Changes
-            </Button>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

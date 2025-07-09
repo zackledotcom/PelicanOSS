@@ -1,20 +1,32 @@
 import React, { useState } from 'react'
-import { 
-  MagnifyingGlass, 
-  Funnel, 
-  Calendar, 
-  WarningCircle, 
-  CheckCircle, 
+import {
+  MagnifyingGlass,
+  Funnel,
+  Calendar,
+  WarningCircle,
+  CheckCircle,
   Info,
   Eye,
   Download
 } from 'phosphor-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 interface LogEntry {
@@ -32,11 +44,7 @@ interface LogsViewerProps {
   className?: string
 }
 
-export default function LogsViewer({
-  logs,
-  onExport,
-  className
-}: LogsViewerProps) {
+export default function LogsViewer({ logs, onExport, className }: LogsViewerProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [levelFilter, setLevelFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
@@ -44,42 +52,67 @@ export default function LogsViewer({
 
   const getLogIcon = (level: LogEntry['level']) => {
     switch (level) {
-      case 'error': return <WarningCircle className="w-4 h-4 text-red-500" />
-      case 'warning': return <WarningCircle className="w-4 h-4 text-yellow-500" />
-      case 'info': return <Info className="w-4 h-4 text-blue-500" />
-      case 'debug': return <CheckCircle className="w-4 h-4 text-gray-500" />
+      case 'error':
+        return <WarningCircle className="w-4 h-4 text-red-500" />
+      case 'warning':
+        return <WarningCircle className="w-4 h-4 text-yellow-500" />
+      case 'info':
+        return <Info className="w-4 h-4 text-blue-500" />
+      case 'debug':
+        return <CheckCircle className="w-4 h-4 text-gray-500" />
     }
   }
 
   const getLogBadge = (level: LogEntry['level']) => {
     switch (level) {
-      case 'error': return <Badge variant="destructive" className="text-xs">Error</Badge>
-      case 'warning': return <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Warning</Badge>
-      case 'info': return <Badge variant="default" className="text-xs">Info</Badge>
-      case 'debug': return <Badge variant="outline" className="text-xs">Debug</Badge>
+      case 'error':
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Error
+          </Badge>
+        )
+      case 'warning':
+        return (
+          <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+            Warning
+          </Badge>
+        )
+      case 'info':
+        return (
+          <Badge variant="default" className="text-xs">
+            Info
+          </Badge>
+        )
+      case 'debug':
+        return (
+          <Badge variant="outline" className="text-xs">
+            Debug
+          </Badge>
+        )
     }
   }
 
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = logs.filter((log) => {
+    const matchesSearch =
+      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.category.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesLevel = levelFilter === 'all' || log.level === levelFilter
     const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter
-    
+
     return matchesSearch && matchesLevel && matchesCategory
   })
 
-  const categories = Array.from(new Set(logs.map(log => log.category)))
+  const categories = Array.from(new Set(logs.map((log) => log.category)))
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className={cn("gap-2", className)}>
+        <Button variant="outline" className={cn('gap-2', className)}>
           <Eye className="w-4 h-4" />
           View Logs
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -88,12 +121,7 @@ export default function LogsViewer({
               System Logs & Audit Trail
             </DialogTitle>
             {onExport && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onExport}
-                className="gap-1"
-              >
+              <Button size="sm" variant="outline" onClick={onExport} className="gap-1">
                 <Download className="w-3 h-3" />
                 Export
               </Button>
@@ -115,7 +143,7 @@ export default function LogsViewer({
                   className="pl-8"
                 />
               </div>
-              
+
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -135,7 +163,7 @@ export default function LogsViewer({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
@@ -151,9 +179,9 @@ export default function LogsViewer({
                   <div
                     key={log.id}
                     className={cn(
-                      "p-3 rounded-md border cursor-pointer transition-colors",
-                      "hover:bg-muted/50",
-                      selectedLog?.id === log.id && "bg-muted border-primary"
+                      'p-3 rounded-md border cursor-pointer transition-colors',
+                      'hover:bg-muted/50',
+                      selectedLog?.id === log.id && 'bg-muted border-primary'
                     )}
                     onClick={() => setSelectedLog(log)}
                   >
@@ -206,18 +234,14 @@ export default function LogsViewer({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Time:</span>
-                      <span className="text-xs">
-                        {selectedLog.timestamp.toLocaleString()}
-                      </span>
+                      <span className="text-xs">{selectedLog.timestamp.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-medium mb-2">Message</h4>
-                  <div className="p-3 bg-muted/50 rounded text-sm">
-                    {selectedLog.message}
-                  </div>
+                  <div className="p-3 bg-muted/50 rounded text-sm">{selectedLog.message}</div>
                 </div>
 
                 {selectedLog.details && (

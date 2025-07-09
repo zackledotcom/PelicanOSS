@@ -1,9 +1,9 @@
 /**
  * Telemetry Utilities for PelicanOS
- * 
+ *
  * Provides centralized telemetry settings management to resolve
  * circular dependency issues in the codebase.
- * 
+ *
  * @author PelicanOS Engineering Team
  * @version 1.0.0
  */
@@ -23,7 +23,7 @@ export async function shouldCollectTelemetry(): Promise<boolean> {
   try {
     const { loadSettings } = require('../storage')
     const settings = await loadSettings()
-    
+
     return !!(settings?.telemetry?.enabled && settings?.telemetry?.collectUsageStats)
   } catch (error) {
     logger.warn('Failed to check telemetry settings, defaulting to disabled', error, 'telemetry')
@@ -37,17 +37,20 @@ export async function shouldCollectTelemetry(): Promise<boolean> {
 export async function trackPerformanceEvent(params: TelemetryEventParams): Promise<void> {
   try {
     const shouldCollect = await shouldCollectTelemetry()
-    
+
     if (!shouldCollect) {
       return
     }
 
-    logger.debug('Performance event tracked', {
-      duration: params.duration,
-      tokenCount: params.tokenCount,
-      success: params.success
-    }, 'telemetry')
-
+    logger.debug(
+      'Performance event tracked',
+      {
+        duration: params.duration,
+        tokenCount: params.tokenCount,
+        success: params.success
+      },
+      'telemetry'
+    )
   } catch (error) {
     logger.warn('Failed to track telemetry event', error, 'telemetry')
   }

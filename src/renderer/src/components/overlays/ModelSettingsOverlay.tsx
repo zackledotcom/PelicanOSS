@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from '../ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
@@ -72,12 +66,12 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
   const [downloading, setDownloading] = useState<string | null>(null)
 
   const updateParameter = (key: keyof ModelParameters, value: any) => {
-    setParameters(prev => ({ ...prev, [key]: value }))
+    setParameters((prev) => ({ ...prev, [key]: value }))
   }
 
   const handlePullModel = async () => {
     if (!newModelName.trim()) return
-    
+
     setDownloading(newModelName)
     try {
       await pullModel(newModelName)
@@ -134,13 +128,22 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
 
         <Tabs defaultValue="parameters" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white/60 backdrop-blur-sm">
-            <TabsTrigger value="parameters" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger
+              value="parameters"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+            >
               Parameters
             </TabsTrigger>
-            <TabsTrigger value="models" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger
+              value="models"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+            >
               Model Manager
             </TabsTrigger>
-            <TabsTrigger value="advanced" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger
+              value="advanced"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+            >
               Advanced
             </TabsTrigger>
           </TabsList>
@@ -224,8 +227,8 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
                     <Label className="text-sm font-medium">Context Length</Label>
                     <Badge variant="outline">{parameters.contextLength}</Badge>
                   </div>
-                  <Select 
-                    value={parameters.contextLength.toString()} 
+                  <Select
+                    value={parameters.contextLength.toString()}
                     onValueChange={(value) => updateParameter('contextLength', parseInt(value))}
                   >
                     <SelectTrigger className="bg-white/60">
@@ -272,9 +275,7 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
               <Button onClick={resetToDefaults} variant="outline" className="bg-white/60">
                 Reset to Defaults
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700 flex-1">
-                Apply Settings
-              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 flex-1">Apply Settings</Button>
             </div>
           </TabsContent>
 
@@ -320,10 +321,14 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${model === selectedModel ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                        <div
+                          className={`w-3 h-3 rounded-full ${model === selectedModel ? 'bg-blue-500' : 'bg-gray-300'}`}
+                        />
                         <span className="font-medium">{model}</span>
                         {model === selectedModel && (
-                          <Badge variant="default" className="bg-blue-500">Active</Badge>
+                          <Badge variant="default" className="bg-blue-500">
+                            Active
+                          </Badge>
                         )}
                       </div>
                       <div className="flex gap-2">
@@ -385,7 +390,7 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
                     )}
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {['llama2', 'codellama', 'mistral'].map((model) => (
                     <Button
@@ -428,8 +433,8 @@ const ModelSettingsOverlay: React.FC<ModelSettingsOverlayProps> = ({
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Keep Alive Duration</Label>
-                  <Select 
-                    value={parameters.keepAlive} 
+                  <Select
+                    value={parameters.keepAlive}
                     onValueChange={(value) => updateParameter('keepAlive', value)}
                   >
                     <SelectTrigger className="bg-white/60">

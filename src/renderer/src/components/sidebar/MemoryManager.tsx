@@ -1,12 +1,12 @@
 import React from 'react'
-import { 
-  Brain, 
-  Activity, 
-  WarningCircle, 
-  CheckCircle, 
-  Trash, 
+import {
+  Brain,
+  Activity,
+  WarningCircle,
+  CheckCircle,
+  Trash,
   ArrowsClockwise,
-  TrendUp as TrendingUp,  // Fixed: TrendingUp → TrendUp
+  TrendUp as TrendingUp, // Fixed: TrendingUp → TrendUp
   Database
 } from 'phosphor-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,20 +41,26 @@ export default function MemoryManager({
   className
 }: MemoryManagerProps) {
   const memoryPercentage = (totalMemoryUsed / maxMemory) * 100
-  
+
   const getHealthColor = (health: MemoryStore['health']) => {
     switch (health) {
-      case 'good': return 'text-green-500'
-      case 'degraded': return 'text-yellow-500'
-      case 'corrupted': return 'text-red-500'
+      case 'good':
+        return 'text-green-500'
+      case 'degraded':
+        return 'text-yellow-500'
+      case 'corrupted':
+        return 'text-red-500'
     }
   }
 
   const getHealthIcon = (health: MemoryStore['health']) => {
     switch (health) {
-      case 'good': return <CheckCircle className="w-4 h-4" />
-      case 'degraded': return <Activity className="w-4 h-4" />
-      case 'corrupted': return <WarningCircle className="w-4 h-4" />
+      case 'good':
+        return <CheckCircle className="w-4 h-4" />
+      case 'degraded':
+        return <Activity className="w-4 h-4" />
+      case 'corrupted':
+        return <WarningCircle className="w-4 h-4" />
     }
   }
 
@@ -67,36 +73,33 @@ export default function MemoryManager({
   }
 
   return (
-    <Card className={cn("w-80", className)}>
+    <Card className={cn('w-80', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Brain className="w-4 h-4" />
             Memory Manager
           </CardTitle>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onRefreshMemory}
-            className="h-6 w-6 p-0"
-          >
+          <Button size="sm" variant="ghost" onClick={onRefreshMemory} className="h-6 w-6 p-0">
             <ArrowsClockwise className="w-3 h-3" />
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Overall memory usage */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
             <span>Memory Usage</span>
-            <span>{formatBytes(totalMemoryUsed)} / {formatBytes(maxMemory)}</span>
+            <span>
+              {formatBytes(totalMemoryUsed)} / {formatBytes(maxMemory)}
+            </span>
           </div>
           <Progress value={memoryPercentage} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{memoryPercentage.toFixed(1)}% used</span>
-            <Badge 
-              variant={memoryPercentage > 80 ? "destructive" : "secondary"}
+            <Badge
+              variant={memoryPercentage > 80 ? 'destructive' : 'secondary'}
               className="text-xs"
             >
               {memoryPercentage > 80 ? 'High' : 'Normal'}
@@ -114,13 +117,14 @@ export default function MemoryManager({
                 className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className={cn("flex items-center", getHealthColor(store.health))}>
+                  <div className={cn('flex items-center', getHealthColor(store.health))}>
                     {getHealthIcon(store.health)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{store.type}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatBytes(store.size)} • {new Date(store.lastAccessed).toLocaleDateString()}
+                      {formatBytes(store.size)} •{' '}
+                      {new Date(store.lastAccessed).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -145,7 +149,7 @@ export default function MemoryManager({
           </div>
           <div className="text-center">
             <p className="text-lg font-semibold">
-              {memoryStores.filter(s => s.health === 'good').length}
+              {memoryStores.filter((s) => s.health === 'good').length}
             </p>
             <p className="text-xs text-muted-foreground">Healthy</p>
           </div>

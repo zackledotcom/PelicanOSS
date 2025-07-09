@@ -5,12 +5,12 @@ import { Badge } from './ui/badge'
 import { Switch } from './ui/switch'
 import { Separator } from './ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
-import { 
-  Brain, 
-  Clock, 
-  Trash, 
-  ArrowsClockwise, 
-  Warning, 
+import {
+  Brain,
+  Clock,
+  Trash,
+  ArrowsClockwise,
+  Warning,
   CheckCircle,
   Gear,
   Eye,
@@ -25,16 +25,21 @@ interface AdvancedMemoryPanelProps {
 
 const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClose }) => {
   const [showDetails, setShowDetails] = useState(false)
-  
+
   // Use centralized services
-  const { memoryStore, loading: memoryLoading, clearMemory, updateSettings: updateMemorySettings } = useMemoryService()
+  const {
+    memoryStore,
+    loading: memoryLoading,
+    clearMemory,
+    updateSettings: updateMemorySettings
+  } = useMemoryService()
   const { settings, loading: settingsLoading, saveSettings } = useSettingsService()
 
   const loading = memoryLoading || settingsLoading
 
   const handleMemoryToggle = async (enabled: boolean) => {
     if (!settings) return
-    
+
     const updatedSettings = {
       ...settings,
       memorySettings: {
@@ -42,7 +47,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
         enabled
       }
     }
-    
+
     await saveSettings(updatedSettings)
     await updateMemorySettings(enabled)
   }
@@ -55,7 +60,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
 
   const handleRetentionChange = async (retentionDays: number) => {
     if (!settings) return
-    
+
     const updatedSettings = {
       ...settings,
       memorySettings: {
@@ -63,7 +68,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
         retentionDays
       }
     }
-    
+
     await saveSettings(updatedSettings)
     await updateMemorySettings(settings.memorySettings.enabled, retentionDays)
   }
@@ -78,14 +83,14 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
 
   const getMemoryHealth = (): { status: string; color: string; icon: React.ReactNode } => {
     if (!memoryStore) return { status: 'Unknown', color: 'gray', icon: <Warning /> }
-    
+
     if (!memoryStore.settings.enabled) {
       return { status: 'Disabled', color: 'yellow', icon: <Warning /> }
     }
-    
+
     const summaryCount = memoryStore.summaries.length
     const maxSummaries = memoryStore.settings.maxSummaries
-    
+
     if (summaryCount < maxSummaries * 0.5) {
       return { status: 'Healthy', color: 'green', icon: <CheckCircle /> }
     } else if (summaryCount < maxSummaries * 0.8) {
@@ -179,7 +184,8 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                 <div>
                   <h3 className="font-medium">Auto-summarize Threshold</h3>
                   <p className="text-sm text-gray-600">
-                    Automatically summarize after {settings?.memory.autoSummarizeThreshold || 20} messages
+                    Automatically summarize after {settings?.memory.autoSummarizeThreshold || 20}{' '}
+                    messages
                   </p>
                 </div>
                 <Badge variant="outline">
@@ -196,7 +202,7 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                   {[7, 14, 30, 60, 90].map((days) => (
                     <Button
                       key={days}
-                      variant={settings?.memory.retentionDays === days ? "default" : "outline"}
+                      variant={settings?.memory.retentionDays === days ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => handleRetentionChange(days)}
                       disabled={loading}
@@ -255,57 +261,66 @@ const AdvancedMemoryPanel: React.FC<AdvancedMemoryPanelProps> = ({ isOpen, onClo
                 </div>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {memoryStore.summaries.slice(-10).reverse().map((summary, index) => (
-                    <div key={summary.id} className="p-3 bg-gray-50 rounded-lg border">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {summary.messageCount} messages
-                            </Badge>
-                            <span className="text-xs text-gray-500">
-                              {new Date(summary.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          
-                          {showDetails && (
-                            <>
-                              <p className="text-sm text-gray-700 mb-2">{summary.summary}</p>
-                              
-                              {summary.topics.length > 0 && (
-                                <div className="mb-2">
-                                  <span className="text-xs font-medium text-gray-600">Topics:</span>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {summary.topics.map((topic, i) => (
-                                      <Badge key={i} variant="outline" className="text-xs">
-                                        {topic}
-                                      </Badge>
-                                    ))}
+                  {memoryStore.summaries
+                    .slice(-10)
+                    .reverse()
+                    .map((summary, index) => (
+                      <div key={summary.id} className="p-3 bg-gray-50 rounded-lg border">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="secondary" className="text-xs">
+                                {summary.messageCount} messages
+                              </Badge>
+                              <span className="text-xs text-gray-500">
+                                {new Date(summary.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            {showDetails && (
+                              <>
+                                <p className="text-sm text-gray-700 mb-2">{summary.summary}</p>
+
+                                {summary.topics.length > 0 && (
+                                  <div className="mb-2">
+                                    <span className="text-xs font-medium text-gray-600">
+                                      Topics:
+                                    </span>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {summary.topics.map((topic, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs">
+                                          {topic}
+                                        </Badge>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                              
-                              {summary.keyFacts.length > 0 && (
-                                <div>
-                                  <span className="text-xs font-medium text-gray-600">Key Facts:</span>
-                                  <ul className="text-xs text-gray-600 mt-1 ml-4">
-                                    {summary.keyFacts.slice(0, 3).map((fact, i) => (
-                                      <li key={i} className="list-disc">{fact}</li>
-                                    ))}
-                                    {summary.keyFacts.length > 3 && (
-                                      <li className="list-disc text-gray-400">
-                                        +{summary.keyFacts.length - 3} more...
-                                      </li>
-                                    )}
-                                  </ul>
-                                </div>
-                              )}
-                            </>
-                          )}
+                                )}
+
+                                {summary.keyFacts.length > 0 && (
+                                  <div>
+                                    <span className="text-xs font-medium text-gray-600">
+                                      Key Facts:
+                                    </span>
+                                    <ul className="text-xs text-gray-600 mt-1 ml-4">
+                                      {summary.keyFacts.slice(0, 3).map((fact, i) => (
+                                        <li key={i} className="list-disc">
+                                          {fact}
+                                        </li>
+                                      ))}
+                                      {summary.keyFacts.length > 3 && (
+                                        <li className="list-disc text-gray-400">
+                                          +{summary.keyFacts.length - 3} more...
+                                        </li>
+                                      )}
+                                    </ul>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </CardContent>

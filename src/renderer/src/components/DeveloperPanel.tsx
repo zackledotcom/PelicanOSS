@@ -2,32 +2,61 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Input } from './ui/input'
-import { 
-  Terminal, 
-  FloppyDisk, 
-  Folder, 
-  File, 
-  Plus, 
-  X, 
-  Play, 
+import { TreeViewElement } from './ui/file-tree'
+import { FileTree } from './FileTree'
+import { convertFileSystemToTree, getFileIcon, getLanguageFromExtension, FileSystemItem } from '../utils/file-tree-utils'
+import {
+  Terminal,
+  FloppyDisk,
+  Folder,
+  File,
+  Plus,
+  X,
+  Play,
   FolderOpen,
   Trash,
   Copy,
-  ArrowClockwise
+  ArrowClockwise,
+  ChevronRight,
+  FileText
 } from 'phosphor-react'
 
 // Declare the window.api type
 declare global {
   interface Window {
     api: {
-      fsReadFile: (filePath: string) => Promise<{ success: boolean; content?: string; error?: string }>
-      fsWriteFile: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>
-      fsListDirectory: (dirPath: string) => Promise<{ success: boolean; files?: any[]; error?: string }>
-      fsCreateFile: (filePath: string, content?: string) => Promise<{ success: boolean; error?: string }>
+      fsReadFile: (
+        filePath: string
+      ) => Promise<{ success: boolean; content?: string; error?: string }>
+      fsWriteFile: (
+        filePath: string,
+        content: string
+      ) => Promise<{ success: boolean; error?: string }>
+      fsListDirectory: (
+        dirPath: string
+      ) => Promise<{ success: boolean; files?: any[]; error?: string }>
+      fsCreateFile: (
+        filePath: string,
+        content?: string
+      ) => Promise<{ success: boolean; error?: string }>
+      fsCreateDirectory: (
+        dirPath: string
+      ) => Promise<{ success: boolean; error?: string }>
       fsDeleteFile: (filePath: string) => Promise<{ success: boolean; error?: string }>
-      fsExecuteCommand: (command: string, cwd?: string) => Promise<{ success: boolean; stdout?: string; stderr?: string; error?: string }>
+      fsDeleteDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>
+      fsRenameFile: (
+        oldPath: string,
+        newPath: string
+      ) => Promise<{ success: boolean; error?: string }>
+      fsExecuteCommand: (
+        command: string,
+        cwd?: string
+      ) => Promise<{ success: boolean; stdout?: string; stderr?: string; error?: string }>
       fsOpenFileDialog: () => Promise<{ success: boolean; filePath?: string; error?: string }>
-      fsSaveFileDialog: (defaultName?: string, content?: string) => Promise<{ success: boolean; filePath?: string; error?: string }>
+      fsSaveFileDialog: (
+        defaultName?: string,
+        content?: string
+      ) => Promise<{ success: boolean; filePath?: string; error?: string }>
       fsGetFileInfo: (filePath: string) => Promise<{ success: boolean; info?: any; error?: string }>
     }
   }
@@ -62,6 +91,9 @@ const DeveloperPanel: React.FC = () => {
   const [tabs, setTabs] = useState<FileTab[]>([])
   const [currentDirectory, setCurrentDirectory] = useState<string>('')
   const [directoryContents, setDirectoryContents] = useState<FileItem[]>([])
+  const [treeElements, setTreeElements] = useState<TreeViewElement[]>([])
+  const [selectedFileId, setSelectedFileId] = useState<string>('')
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
   const [terminalHistory, setTerminalHistory] = useState<TerminalOutput[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -72,7 +104,9 @@ const DeveloperPanel: React.FC = () => {
     const initHomeDirectory = async () => {
       try {
         // Try to get user's home directory by executing pwd or echo %USERPROFILE%
-        const result = await window.api.fsExecuteCommand(process.platform === 'win32' ? 'echo %USERPROFILE%' : 'echo $HOME')
+        const result = await window.api.fsExecuteCommand(
+          process.platform === 'win32' ? 'echo %USERPROFILE%' : 'echo $HOME'
+        )
         if (result.success && result.stdout) {
           const homeDir = result.stdout.trim()
           setCurrentDirectory(homeDir)
@@ -109,6 +143,18 @@ const DeveloperPanel: React.FC = () => {
       if (result.success && result.files) {
         setDirectoryContents(result.files)
         setCurrentDirectory(dirPath)
+        
+        // Convert directory contents to tree elements
+        const fileSystemItems: FileSystemItem[] = result.files.map((file: any) => ({
+          name: file.name,
+          path: file.path,
+          isDirectory: file.isDirectory,
+          size: file.size,
+          lastModified: file.lastModified ? new Date(file.lastModified) : undefined
+        }))
+        
+        const treeElements = convertFileSystemToTree(fileSystemItems, dirPath)
+        setTreeElements(treeElements)
       } else {
         console.error('Failed to load directory:', result.error)
         addTerminalOutput(`Error loading directory: ${result.error}`, true)
@@ -127,9 +173,9 @@ const DeveloperPanel: React.FC = () => {
       if (result.success && result.content !== undefined) {
         const fileName = filePath.split(/[\\/]/).pop() || 'unknown'
         const fileExtension = fileName.split('.').pop()?.toLowerCase() || ''
-        
+
         // Check if file is already open
-        const existingTab = tabs.find(tab => tab.path === filePath)
+        const existingTab = tabs.find((tab) => tab.path === filePath)
         if (existingTab) {
           setActiveTab(existingTab.id)
           return
@@ -144,7 +190,7 @@ const DeveloperPanel: React.FC = () => {
           language: getLanguageFromExtension(fileExtension)
         }
 
-        setTabs(prev => [...prev, newTab])
+        setTabs((prev) => [...prev, newTab])
         setActiveTab(newTab.id)
         addTerminalOutput(`Opened file: ${filePath}`)
       } else {
@@ -158,15 +204,13 @@ const DeveloperPanel: React.FC = () => {
   }
 
   const saveFile = async (tabId: string) => {
-    const tab = tabs.find(t => t.id === tabId)
+    const tab = tabs.find((t) => t.id === tabId)
     if (!tab) return
 
     try {
       const result = await window.api.fsWriteFile(tab.path, tab.content)
       if (result.success) {
-        setTabs(prev => prev.map(t => 
-          t.id === tabId ? { ...t, isModified: false } : t
-        ))
+        setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, isModified: false } : t)))
         addTerminalOutput(`Saved file: ${tab.path}`)
       } else {
         console.error('Failed to save file:', result.error)
@@ -208,17 +252,15 @@ const DeveloperPanel: React.FC = () => {
   }
 
   const closeTab = (tabId: string) => {
-    setTabs(prev => prev.filter(t => t.id !== tabId))
+    setTabs((prev) => prev.filter((t) => t.id !== tabId))
     if (activeTab === tabId) {
-      const remainingTabs = tabs.filter(t => t.id !== tabId)
+      const remainingTabs = tabs.filter((t) => t.id !== tabId)
       setActiveTab(remainingTabs.length > 0 ? remainingTabs[remainingTabs.length - 1].id : null)
     }
   }
 
   const updateTabContent = (tabId: string, content: string) => {
-    setTabs(prev => prev.map(t => 
-      t.id === tabId ? { ...t, content, isModified: true } : t
-    ))
+    setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, content, isModified: true } : t)))
   }
 
   const executeCommand = async () => {
@@ -226,16 +268,16 @@ const DeveloperPanel: React.FC = () => {
 
     const command = currentCommand.trim()
     setCurrentCommand('')
-    
+
     addTerminalOutput(`$ ${command}`)
 
     try {
       const result = await window.api.fsExecuteCommand(command, currentDirectory)
-      
+
       if (result.success) {
         if (result.stdout) addTerminalOutput(result.stdout)
         if (result.stderr) addTerminalOutput(result.stderr, true)
-        
+
         // Check if command might have changed directory
         if (command.startsWith('cd ')) {
           // Refresh current directory listing
@@ -257,7 +299,7 @@ const DeveloperPanel: React.FC = () => {
       error: isError ? output : undefined,
       timestamp: new Date()
     }
-    setTerminalHistory(prev => [...prev, newOutput])
+    setTerminalHistory((prev) => [...prev, newOutput])
   }
 
   const clearTerminal = () => {
@@ -265,34 +307,118 @@ const DeveloperPanel: React.FC = () => {
   }
 
   const navigateToParentDirectory = async () => {
-    const parentDir = currentDirectory.split(/[\\/]/).slice(0, -1).join(process.platform === 'win32' ? '\\' : '/')
+    const parentDir = currentDirectory
+      .split(/[\\/]/)
+      .slice(0, -1)
+      .join(process.platform === 'win32' ? '\\' : '/')
     if (parentDir && parentDir !== currentDirectory) {
       await loadDirectory(parentDir || (process.platform === 'win32' ? 'C:\\' : '/'))
     }
   }
 
+  const handleTreeItemSelect = async (selectedId: string, isDirectory: boolean) => {
+    setSelectedFileId(selectedId)
+    
+    if (isDirectory) {
+      // Navigate to directory
+      await loadDirectory(selectedId)
+    } else {
+      // Open file
+      await openFile(selectedId)
+    }
+  }
+
+  const handleTreeExpand = async (expandedId: string) => {
+    // Toggle expanded state
+    setExpandedItems(prev => 
+      prev.includes(expandedId) 
+        ? prev.filter(id => id !== expandedId)
+        : [...prev, expandedId]
+    )
+  }
+
+  const handleRenameFile = async (oldPath: string, newName: string) => {
+    const newPath = oldPath.substring(0, oldPath.lastIndexOf('/') + 1) + newName;
+    try {
+      const result = await window.api.fsRenameFile(oldPath, newPath);
+      if (result.success) {
+        addTerminalOutput(`Renamed: ${oldPath} to ${newPath}`);
+        await loadDirectory(currentDirectory); // Refresh tree
+      } else {
+        addTerminalOutput(`Error renaming: ${result.error}`, true);
+      }
+    } catch (error) {
+      addTerminalOutput(`Error renaming file: ${error}`, true);
+    }
+  };
+
+  const handleDeleteFile = async (path: string, isDirectory: boolean) => {
+    try {
+      const result = isDirectory
+        ? await window.api.fsDeleteDirectory(path)
+        : await window.api.fsDeleteFile(path);
+      if (result.success) {
+        addTerminalOutput(`Deleted: ${path}`);
+        await loadDirectory(currentDirectory); // Refresh tree
+      } else {
+        addTerminalOutput(`Error deleting: ${result.error}`, true);
+      }
+    } catch (error) {
+      addTerminalOutput(`Error deleting: ${error}`, true);
+    }
+  };
+
+  const handleCreateFile = async (path: string) => {
+    try {
+      const result = await window.api.fsCreateFile(path, '');
+      if (result.success) {
+        addTerminalOutput(`Created file: ${path}`);
+        await loadDirectory(currentDirectory); // Refresh tree
+        await openFile(path);
+      } else {
+        addTerminalOutput(`Error creating file: ${result.error}`, true);
+      }
+    } catch (error) {
+      addTerminalOutput(`Error creating file: ${error}`, true);
+    }
+  };
+
+  const handleCreateFolder = async (path: string) => {
+    try {
+      const result = await window.api.fsCreateDirectory(path);
+      if (result.success) {
+        addTerminalOutput(`Created folder: ${path}`);
+        await loadDirectory(currentDirectory); // Refresh tree
+      } else {
+        addTerminalOutput(`Error creating folder: ${result.error}`, true);
+      }
+    } catch (error) {
+      addTerminalOutput(`Error creating folder: ${error}`, true);
+    }
+  };
+
   const getLanguageFromExtension = (extension: string): string => {
     const languageMap: { [key: string]: string } = {
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'py': 'python',
-      'html': 'html',
-      'css': 'css',
-      'json': 'json',
-      'md': 'markdown',
-      'txt': 'text',
-      'yaml': 'yaml',
-      'yml': 'yaml',
-      'xml': 'xml',
-      'sh': 'bash',
-      'bat': 'batch'
+      js: 'javascript',
+      jsx: 'javascript',
+      ts: 'typescript',
+      tsx: 'typescript',
+      py: 'python',
+      html: 'html',
+      css: 'css',
+      json: 'json',
+      md: 'markdown',
+      txt: 'text',
+      yaml: 'yaml',
+      yml: 'yaml',
+      xml: 'xml',
+      sh: 'bash',
+      bat: 'batch'
     }
     return languageMap[extension] || 'text'
   }
 
-  const currentTab = activeTab ? tabs.find(t => t.id === activeTab) : null
+  const currentTab = activeTab ? tabs.find((t) => t.id === activeTab) : null
 
   return (
     <div className="w-2/5 bg-gray-900 text-white flex flex-col h-full">
@@ -327,7 +453,7 @@ const DeveloperPanel: React.FC = () => {
       {/* File Tabs */}
       {tabs.length > 0 && (
         <div className="bg-gray-800 border-b border-gray-700 flex overflow-x-auto">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <div
               key={tab.id}
               className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-r border-gray-700 min-w-0 ${
@@ -355,7 +481,7 @@ const DeveloperPanel: React.FC = () => {
       )}
 
       <div className="flex-1 flex">
-        {/* File Explorer */}
+        {/* File Explorer with Magic UI File Tree */}
         <div className="w-1/3 bg-gray-850 border-r border-gray-700 flex flex-col">
           <div className="p-3 border-b border-gray-700">
             <div className="flex items-center gap-2 mb-2">
@@ -374,42 +500,37 @@ const DeveloperPanel: React.FC = () => {
                 onClick={navigateToParentDirectory}
                 size="sm"
                 className="bg-transparent hover:bg-gray-700 p-1"
-                disabled={!currentDirectory || currentDirectory === '/' || !currentDirectory.match(/^[A-Za-z]:\\?$/)}
+                disabled={
+                  !currentDirectory ||
+                  currentDirectory === '/' ||
+                  currentDirectory === 'C:\\'
+                }
               >
                 ↑
               </Button>
-              <div className="text-xs text-gray-400 truncate flex-1">
-                {currentDirectory}
-              </div>
+              <div className="text-xs text-gray-400 truncate flex-1">{currentDirectory}</div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="text-gray-400 text-sm">Loading...</div>
-            ) : (
-              <div className="space-y-1">
-                {directoryContents.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 p-2 rounded hover:bg-gray-700 cursor-pointer text-sm"
-                    onClick={() => {
-                      if (item.isDirectory) {
-                        loadDirectory(item.path)
-                      } else {
-                        openFile(item.path)
-                      }
-                    }}
-                  >
-                    {item.isDirectory ? (
-                      <Folder size={14} className="text-blue-400" />
-                    ) : (
-                      <File size={14} className="text-gray-400" />
-                    )}
-                    <span className="truncate">{item.name}</span>
-                  </div>
-                ))}
+              <div className="p-4 text-gray-400 text-sm">Loading...</div>
+            ) : treeElements.length > 0 ? (
+              <div className="p-2">
+                <FileTree
+                  elements={treeElements}
+                  onSelect={handleTreeItemSelect}
+                  onExpand={handleTreeExpand}
+                  onRename={handleRenameFile}
+                  onDelete={handleDeleteFile}
+                  onCreateFile={handleCreateFile}
+                  onCreateFolder={handleCreateFolder}
+                  selectedId={selectedFileId}
+                  className="text-sm"
+                />
               </div>
+            ) : (
+              <div className="p-4 text-gray-400 text-sm">No files in directory</div>
             )}
           </div>
         </div>
@@ -459,7 +580,10 @@ const DeveloperPanel: React.FC = () => {
 
             <div ref={terminalRef} className="flex-1 overflow-y-auto p-3 font-mono text-sm">
               {terminalHistory.map((output) => (
-                <div key={output.id} className={`mb-1 ${output.error ? 'text-red-400' : 'text-green-400'}`}>
+                <div
+                  key={output.id}
+                  className={`mb-1 ${output.error ? 'text-red-400' : 'text-green-400'}`}
+                >
                   {output.output}
                 </div>
               ))}

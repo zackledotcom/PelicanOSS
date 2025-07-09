@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Thermometer, 
-  Shuffle, 
-  ListNumbers, 
+import {
+  Thermometer,
+  Shuffle,
+  ListNumbers,
   Hash,
   ArrowsClockwise,
   FloppyDisk
@@ -54,12 +54,12 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
     }
 
     const defaults = modelDefaults[model] || {}
-    setConfig(prev => ({ ...prev, ...defaults }))
+    setConfig((prev) => ({ ...prev, ...defaults }))
     setHasChanges(false)
   }, [model])
 
   const updateConfig = (key: keyof ModelConfig, value: number | undefined) => {
-    setConfig(prev => ({ ...prev, [key]: value }))
+    setConfig((prev) => ({ ...prev, [key]: value }))
     setHasChanges(true)
   }
 
@@ -85,7 +85,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
     setIsLoading(true)
     try {
       // TODO: Save to backend via IPC
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate save
+      await new Promise((resolve) => setTimeout(resolve, 500)) // Simulate save
       setHasChanges(false)
     } catch (error) {
       console.error('Failed to save model settings:', error)
@@ -94,36 +94,30 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
   }
 
   const getTemperatureDescription = (temp: number) => {
-    if (temp < 0.3) return "Very focused, deterministic"
-    if (temp < 0.6) return "Focused, consistent"
-    if (temp < 0.8) return "Balanced creativity"
-    if (temp < 1.0) return "Creative, varied"
-    return "Very creative, unpredictable"
+    if (temp < 0.3) return 'Very focused, deterministic'
+    if (temp < 0.6) return 'Focused, consistent'
+    if (temp < 0.8) return 'Balanced creativity'
+    if (temp < 1.0) return 'Creative, varied'
+    return 'Very creative, unpredictable'
   }
 
   return (
-    <div className={cn("p-4 bg-muted/30 rounded-lg border border-border", className)}>
+    <div className={cn('p-4 bg-muted/30 rounded-lg border border-border', className)}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-medium">Model Settings</h3>
           <p className="text-sm text-muted-foreground">Configure {model} parameters</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          {hasChanges && (
-            <Badge variant="secondary">Unsaved changes</Badge>
-          )}
-          
+          {hasChanges && <Badge variant="secondary">Unsaved changes</Badge>}
+
           <Button variant="outline" size="sm" onClick={resetToDefaults}>
             <ArrowsClockwise size={14} className="mr-1" />
             Reset
           </Button>
-          
-          <Button 
-            size="sm" 
-            onClick={saveSettings}
-            disabled={!hasChanges || isLoading}
-          >
+
+          <Button size="sm" onClick={saveSettings} disabled={!hasChanges || isLoading}>
             <FloppyDisk size={14} className="mr-1" />
             {isLoading ? 'Saving...' : 'Save'}
           </Button>
@@ -142,9 +136,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Temperature</Label>
-              <span className="text-sm text-muted-foreground">
-                {config.temperature.toFixed(2)}
-              </span>
+              <span className="text-sm text-muted-foreground">{config.temperature.toFixed(2)}</span>
             </div>
             <Slider
               value={[config.temperature]}
@@ -163,9 +155,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Top P (Nucleus Sampling)</Label>
-              <span className="text-sm text-muted-foreground">
-                {config.top_p.toFixed(2)}
-              </span>
+              <span className="text-sm text-muted-foreground">{config.top_p.toFixed(2)}</span>
             </div>
             <Slider
               value={[config.top_p]}
@@ -175,9 +165,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
               step={0.01}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
-              Controls diversity via nucleus sampling
-            </p>
+            <p className="text-xs text-muted-foreground">Controls diversity via nucleus sampling</p>
           </div>
 
           {/* Top K */}
@@ -193,9 +181,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
                 max={100}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Limits vocab to top K tokens
-            </p>
+            <p className="text-xs text-muted-foreground">Limits vocab to top K tokens</p>
           </div>
         </div>
 
@@ -219,9 +205,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
                 max={8192}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Maximum response length
-            </p>
+            <p className="text-xs text-muted-foreground">Maximum response length</p>
           </div>
 
           {/* Context Length */}
@@ -237,9 +221,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
                 max={8192}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total context window size
-            </p>
+            <p className="text-xs text-muted-foreground">Total context window size</p>
           </div>
 
           {/* Repeat Penalty */}
@@ -258,9 +240,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
               step={0.01}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
-              Penalizes repetitive text
-            </p>
+            <p className="text-xs text-muted-foreground">Penalizes repetitive text</p>
           </div>
         </div>
       </div>
@@ -300,9 +280,26 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ model, className }) => {
       <div className="mt-4 p-3 bg-background rounded border border-border">
         <div className="text-sm font-medium mb-2">Performance Impact</div>
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-          <div>Estimated Speed: {config.max_tokens < 1000 ? 'Fast' : config.max_tokens < 2000 ? 'Medium' : 'Slow'}</div>
-          <div>Memory Usage: {config.context_length < 2000 ? 'Low' : config.context_length < 4000 ? 'Medium' : 'High'}</div>
-          <div>Quality: {config.temperature < 0.5 ? 'Consistent' : config.temperature < 0.8 ? 'Balanced' : 'Creative'}</div>
+          <div>
+            Estimated Speed:{' '}
+            {config.max_tokens < 1000 ? 'Fast' : config.max_tokens < 2000 ? 'Medium' : 'Slow'}
+          </div>
+          <div>
+            Memory Usage:{' '}
+            {config.context_length < 2000
+              ? 'Low'
+              : config.context_length < 4000
+                ? 'Medium'
+                : 'High'}
+          </div>
+          <div>
+            Quality:{' '}
+            {config.temperature < 0.5
+              ? 'Consistent'
+              : config.temperature < 0.8
+                ? 'Balanced'
+                : 'Creative'}
+          </div>
           <div>Context Window: {config.context_length} tokens</div>
         </div>
       </div>

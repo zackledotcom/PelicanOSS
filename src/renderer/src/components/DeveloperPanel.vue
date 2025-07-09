@@ -8,18 +8,18 @@
           <span class="badge-text">Developer Mode</span>
         </div>
       </div>
-      
+
       <div class="header-actions">
         <button @click="toggleTerminal" class="header-btn" :class="{ active: terminalVisible }">
           <span class="btn-icon">🖥️</span>
           <span class="btn-text">Terminal</span>
         </button>
-        
+
         <button @click="shareProject" class="header-btn">
           <span class="btn-icon">📤</span>
           <span class="btn-text">Share</span>
         </button>
-        
+
         <button @click="$emit('close')" class="header-btn close-btn">
           <span class="btn-icon">✕</span>
         </button>
@@ -29,8 +29,8 @@
     <!-- File Navigation -->
     <div class="file-nav">
       <div class="nav-tabs">
-        <button 
-          v-for="file in openFiles" 
+        <button
+          v-for="file in openFiles"
           :key="file.id"
           @click="setActiveFile(file.id)"
           :class="['file-tab', { active: activeFileId === file.id }]"
@@ -39,13 +39,13 @@
           <span class="file-name">{{ file.name }}</span>
           <button @click.stop="closeFile(file.id)" class="close-file">×</button>
         </button>
-        
+
         <button @click="openNewFile" class="file-tab new-file">
           <span class="file-icon">+</span>
           <span class="file-name">New File</span>
         </button>
       </div>
-      
+
       <div class="nav-actions">
         <button @click="saveCurrentFile" class="nav-btn" :disabled="!hasUnsavedChanges">
           <span class="btn-icon">💾</span>
@@ -64,7 +64,7 @@
             <span class="file-path">{{ activeFile.path || activeFile.name }}</span>
             <span v-if="activeFile.modified" class="modified-indicator">●</span>
           </div>
-          
+
           <textarea
             v-model="activeFile.content"
             @input="handleFileChange"
@@ -73,15 +73,13 @@
             spellcheck="false"
           ></textarea>
         </div>
-        
+
         <div v-else class="editor-placeholder">
           <div class="placeholder-content">
             <div class="placeholder-icon">📝</div>
             <h3>No file selected</h3>
             <p>Open a file or create a new one to start coding</p>
-            <button @click="openNewFile" class="create-file-btn">
-              Create New File
-            </button>
+            <button @click="openNewFile" class="create-file-btn">Create New File</button>
           </div>
         </div>
       </div>
@@ -98,10 +96,10 @@
             <button @click="toggleTerminal" class="terminal-btn">Hide</button>
           </div>
         </div>
-        
+
         <div class="terminal-content" ref="terminalContent">
-          <div 
-            v-for="(line, index) in terminalHistory" 
+          <div
+            v-for="(line, index) in terminalHistory"
             :key="index"
             class="terminal-line"
             :class="line.type"
@@ -110,7 +108,7 @@
             <span class="terminal-text">{{ line.text }}</span>
           </div>
         </div>
-        
+
         <div class="terminal-input">
           <span class="terminal-prompt">$</span>
           <input
@@ -163,11 +161,11 @@ const terminalInput = ref<HTMLInputElement>()
 // Computed
 const activeFile = computed(() => {
   if (!activeFileId.value) return null
-  return openFiles.value.find(f => f.id === activeFileId.value) || null
+  return openFiles.value.find((f) => f.id === activeFileId.value) || null
 })
 
 const hasUnsavedChanges = computed(() => {
-  return openFiles.value.some(f => f.modified)
+  return openFiles.value.some((f) => f.modified)
 })
 
 // Methods
@@ -176,9 +174,9 @@ const setActiveFile = (fileId: string) => {
 }
 
 const closeFile = (fileId: string) => {
-  const index = openFiles.value.findIndex(f => f.id === fileId)
+  const index = openFiles.value.findIndex((f) => f.id === fileId)
   if (index === -1) return
-  
+
   // If closing active file, switch to another file
   if (fileId === activeFileId.value) {
     if (openFiles.value.length > 1) {
@@ -188,7 +186,7 @@ const closeFile = (fileId: string) => {
       activeFileId.value = null
     }
   }
-  
+
   openFiles.value.splice(index, 1)
 }
 
@@ -201,7 +199,7 @@ const openNewFile = () => {
     language: 'javascript',
     modified: false
   }
-  
+
   openFiles.value.push(newFile)
   activeFileId.value = fileId
 }
@@ -213,7 +211,7 @@ const openFileDialog = async () => {
     if (result.success && result.filePath) {
       const content = await window.api.readFile(result.filePath)
       const fileName = result.filePath.split('/').pop() || 'unknown'
-      
+
       const fileId = `file_${Date.now()}`
       const newFile: FileTab = {
         id: fileId,
@@ -223,7 +221,7 @@ const openFileDialog = async () => {
         language: getLanguageFromExtension(fileName),
         modified: false
       }
-      
+
       openFiles.value.push(newFile)
       activeFileId.value = fileId
     }
@@ -235,7 +233,7 @@ const openFileDialog = async () => {
 
 const saveCurrentFile = async () => {
   if (!activeFile.value) return
-  
+
   try {
     if (activeFile.value.path) {
       // Save existing file
@@ -244,7 +242,10 @@ const saveCurrentFile = async () => {
       addTerminalLine('output', `Saved: ${activeFile.value.name}`)
     } else {
       // Save as new file
-      const result = await window.api.saveFileDialog(activeFile.value.name, activeFile.value.content)
+      const result = await window.api.saveFileDialog(
+        activeFile.value.name,
+        activeFile.value.content
+      )
       if (result.success && result.filePath) {
         activeFile.value.path = result.filePath
         activeFile.value.name = result.filePath.split('/').pop() || activeFile.value.name
@@ -267,15 +268,15 @@ const handleFileChange = () => {
 const getFileIcon = (fileName: string): string => {
   const ext = fileName.split('.').pop()?.toLowerCase()
   const icons: Record<string, string> = {
-    'js': '📄',
-    'ts': '📘',
-    'vue': '💚',
-    'html': '🌐',
-    'css': '🎨',
-    'json': '📋',
-    'md': '📝',
-    'py': '🐍',
-    'txt': '📄'
+    js: '📄',
+    ts: '📘',
+    vue: '💚',
+    html: '🌐',
+    css: '🎨',
+    json: '📋',
+    md: '📝',
+    py: '🐍',
+    txt: '📄'
   }
   return icons[ext || ''] || '📄'
 }
@@ -283,31 +284,31 @@ const getFileIcon = (fileName: string): string => {
 const getLanguageFromExtension = (fileName: string): string => {
   const ext = fileName.split('.').pop()?.toLowerCase()
   const languages: Record<string, string> = {
-    'js': 'javascript',
-    'ts': 'typescript',
-    'vue': 'vue',
-    'html': 'html',
-    'css': 'css',
-    'json': 'json',
-    'md': 'markdown',
-    'py': 'python'
+    js: 'javascript',
+    ts: 'typescript',
+    vue: 'vue',
+    html: 'html',
+    css: 'css',
+    json: 'json',
+    md: 'markdown',
+    py: 'python'
   }
   return languages[ext || ''] || 'text'
 }
 
 const getEditorPlaceholder = (): string => {
   if (!activeFile.value) return ''
-  
+
   const placeholders: Record<string, string> = {
-    'javascript': '// Start coding in JavaScript...',
-    'typescript': '// Start coding in TypeScript...',
-    'vue': '<template>\n  <!-- Your Vue component -->\n</template>',
-    'html': '<!DOCTYPE html>\n<html>\n  <!-- Your HTML content -->\n</html>',
-    'css': '/* Your CSS styles */',
-    'python': '# Start coding in Python...',
-    'json': '{\n  // Your JSON data\n}'
+    javascript: '// Start coding in JavaScript...',
+    typescript: '// Start coding in TypeScript...',
+    vue: '<template>\n  <!-- Your Vue component -->\n</template>',
+    html: '<!DOCTYPE html>\n<html>\n  <!-- Your HTML content -->\n</html>',
+    css: '/* Your CSS styles */',
+    python: '# Start coding in Python...',
+    json: '{\n  // Your JSON data\n}'
   }
-  
+
   return placeholders[activeFile.value.language || ''] || '// Start coding...'
 }
 
@@ -341,11 +342,11 @@ const handleTerminalInput = async (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
     const command = currentCommand.value.trim()
     if (!command) return
-    
+
     // Add command to history
     addTerminalLine('command', command)
     currentCommand.value = ''
-    
+
     // Process command
     await executeCommand(command)
   }
@@ -353,7 +354,7 @@ const handleTerminalInput = async (event: KeyboardEvent) => {
 
 const executeCommand = async (command: string) => {
   const [cmd, ...args] = command.split(' ')
-  
+
   try {
     switch (cmd.toLowerCase()) {
       case 'help':
@@ -364,25 +365,25 @@ const executeCommand = async (command: string) => {
         addTerminalLine('output', '  pwd - Print working directory')
         addTerminalLine('output', '  echo <text> - Echo text')
         break
-        
+
       case 'clear':
         clearTerminal()
         break
-        
+
       case 'ls':
-        openFiles.value.forEach(file => {
+        openFiles.value.forEach((file) => {
           addTerminalLine('output', `  ${file.name}${file.modified ? ' *' : ''}`)
         })
         break
-        
+
       case 'pwd':
         addTerminalLine('output', '/developer/workspace')
         break
-        
+
       case 'echo':
         addTerminalLine('output', args.join(' '))
         break
-        
+
       default:
         // Try to execute as system command via IPC
         try {

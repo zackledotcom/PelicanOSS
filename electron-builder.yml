@@ -1,7 +1,11 @@
-appId: com.electron.app
-productName: electron-app
+appId: com.pelicanos.ai.assistant
+productName: PelicanOS
+copyright: Copyright © 2025 PelicanOS Team
+
 directories:
   buildResources: build
+  output: dist
+
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -9,37 +13,99 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - resources/**
+  - '!{logs/*,chroma-data/*,backups/*,gemini-tasks/*,claude\ tasks/*}'
+  - '!{*.sh,*.md,security_audit_report.md}'
+  - '!{out/main/geminiMemory-*.js,out/main/agents-*.js}'
+
+extraResources:
+  - from: "resources/"
+    to: "resources/"
+    filter: ["**/*"]
+
+# Windows Configuration
 win:
-  executableName: electron-app
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
-mac:
-  entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
-linux:
+  icon: resources/icon.ico
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
+    - target: nsis
+      arch: [x64]
+  executableName: PelicanOS
+  artifactName: PelicanOS-${version}-win-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
+  shortcutName: PelicanOS
+  uninstallDisplayName: PelicanOS - Privacy-First AI Assistant
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  runAfterFinish: true
+
+# macOS Configuration  
+mac:
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  artifactName: PelicanOS-${version}-mac-${arch}.${ext}
+  entitlementsInherit: build/entitlements.mac.plist
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  notarize: false
+
+dmg:
+  title: PelicanOS ${version}
+  icon: resources/icon.icns
+  iconSize: 80
+  contents:
+    - x: 410
+      y: 150
+      type: link
+      path: /Applications
+    - x: 130
+      y: 150
+      type: file
+
+# Linux Configuration
+linux:
+  icon: resources/icon.png
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  maintainer: PelicanOS Team
+  category: Office
+  desktop:
+    Name: PelicanOS
+    Comment: Privacy-first AI assistant
+    Keywords: AI;Assistant;Privacy;Local;Ollama
+    StartupWMClass: PelicanOS
+
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: PelicanOS-${version}-linux-${arch}.${ext}
+
+deb:
+  packageName: pelicanos
+  depends: ["gconf2", "gconf-service", "libgtk-3-0", "libx11-xcb1", "libxss1", "libasound2"]
+
+# Build Options
+compression: maximum
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+buildDependenciesFromSource: false
+nodeGypRebuild: false
+
+# Security Settings
+asar: true
+asarUnpack:
+  - "**/*.{node,dll,dylib,so}"
+  - resources/**
+
+# Auto-updater (disabled for initial release)
+publish: null
+
 electronDownload:
-  mirror: https://npmmirror.com/mirrors/electron/
+  cache: ".electron-cache"

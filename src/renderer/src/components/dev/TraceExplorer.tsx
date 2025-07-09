@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { 
-  MagnifyingGlass, 
-  GitBranch, 
-  Clock, 
-  User, 
-  Download, 
+import {
+  MagnifyingGlass,
+  GitBranch,
+  Clock,
+  User,
+  Download,
   Funnel,
   ArrowsDownUp,
   Eye
@@ -14,7 +14,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 interface TraceEvent {
@@ -35,11 +41,7 @@ interface TraceExplorerProps {
   className?: string
 }
 
-export default function TraceExplorer({
-  traces,
-  onExport,
-  className
-}: TraceExplorerProps) {
+export default function TraceExplorer({ traces, onExport, className }: TraceExplorerProps) {
   const [selectedTrace, setSelectedTrace] = useState<TraceEvent | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -47,23 +49,38 @@ export default function TraceExplorer({
 
   const getTypeIcon = (type: TraceEvent['type']) => {
     switch (type) {
-      case 'function_call': return <GitBranch className="w-4 h-4" />
-      case 'api_request': return <Search className="w-4 h-4" />
-      case 'user_action': return <User className="w-4 h-4" />
-      case 'system_event': return <Clock className="w-4 h-4" />
+      case 'function_call':
+        return <GitBranch className="w-4 h-4" />
+      case 'api_request':
+        return <Search className="w-4 h-4" />
+      case 'user_action':
+        return <User className="w-4 h-4" />
+      case 'system_event':
+        return <Clock className="w-4 h-4" />
     }
   }
 
   const getStatusBadge = (status: TraceEvent['status']) => {
     switch (status) {
-      case 'success': return <Badge className="text-xs">Success</Badge>
-      case 'error': return <Badge variant="destructive" className="text-xs">Error</Badge>
-      case 'pending': return <Badge variant="secondary" className="text-xs">Pending</Badge>
+      case 'success':
+        return <Badge className="text-xs">Success</Badge>
+      case 'error':
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Error
+          </Badge>
+        )
+      case 'pending':
+        return (
+          <Badge variant="secondary" className="text-xs">
+            Pending
+          </Badge>
+        )
     }
   }
 
   const filteredTraces = traces
-    .filter(trace => {
+    .filter((trace) => {
       const matchesSearch = trace.source.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = typeFilter === 'all' || trace.type === typeFilter
       return matchesSearch && matchesType
@@ -77,24 +94,19 @@ export default function TraceExplorer({
     })
 
   return (
-    <Card className={cn("h-96", className)}>
+    <Card className={cn('h-96', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Eye className="w-4 h-4" />
             Trace Explorer
           </CardTitle>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onExport}
-            className="gap-1"
-          >
+          <Button size="sm" variant="outline" onClick={onExport} className="gap-1">
             <Download className="w-3 h-3" />
             Export
           </Button>
         </div>
-        
+
         {/* Controls */}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -106,7 +118,7 @@ export default function TraceExplorer({
               className="pl-7 h-7 text-xs"
             />
           </div>
-          
+
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-32 h-7">
               <SelectValue />
@@ -130,7 +142,7 @@ export default function TraceExplorer({
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0 flex h-80">
         {/* Trace list */}
         <div className="flex-1 border-r">
@@ -140,9 +152,9 @@ export default function TraceExplorer({
                 <div
                   key={trace.id}
                   className={cn(
-                    "p-2 rounded-md cursor-pointer transition-colors",
-                    "hover:bg-muted/50",
-                    selectedTrace?.id === trace.id && "bg-muted"
+                    'p-2 rounded-md cursor-pointer transition-colors',
+                    'hover:bg-muted/50',
+                    selectedTrace?.id === trace.id && 'bg-muted'
                   )}
                   onClick={() => setSelectedTrace(trace)}
                 >
@@ -156,9 +168,7 @@ export default function TraceExplorer({
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {trace.timestamp.toLocaleTimeString()}
-                          {trace.duration && (
-                            <span className="ml-2">{trace.duration}ms</span>
-                          )}
+                          {trace.duration && <span className="ml-2">{trace.duration}ms</span>}
                         </div>
                       </div>
                     </div>
@@ -187,9 +197,7 @@ export default function TraceExplorer({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Timestamp:</span>
-                  <span className="text-xs">
-                    {selectedTrace.timestamp.toLocaleString()}
-                  </span>
+                  <span className="text-xs">{selectedTrace.timestamp.toLocaleString()}</span>
                 </div>
                 {selectedTrace.duration && (
                   <div className="flex justify-between">
@@ -223,11 +231,13 @@ export default function TraceExplorer({
                 <h4 className="font-medium mb-2">Child Events</h4>
                 <div className="space-y-1">
                   {selectedTrace.children.map((childId) => {
-                    const child = traces.find(t => t.id === childId)
-                    return child && (
-                      <div key={childId} className="text-xs p-1 bg-muted/30 rounded">
-                        {child.source}
-                      </div>
+                    const child = traces.find((t) => t.id === childId)
+                    return (
+                      child && (
+                        <div key={childId} className="text-xs p-1 bg-muted/30 rounded">
+                          {child.source}
+                        </div>
+                      )
                     )
                   })}
                 </div>

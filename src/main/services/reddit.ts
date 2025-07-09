@@ -41,7 +41,7 @@ class RedditService {
 
       // Test authentication
       await this.client.getMe()
-      
+
       this.credentials = credentials
       this.isAuthenticated = true
 
@@ -55,7 +55,7 @@ class RedditService {
       return true
     } catch (error) {
       this.isAuthenticated = false
-      
+
       await crashRecovery.logError(error as Error, {
         operation: 'reddit_authenticate',
         component: 'service',
@@ -75,7 +75,7 @@ class RedditService {
 
     try {
       const messages = await this.client.getInbox({ limit })
-      
+
       const dms: RedditDM[] = messages
         .filter((msg: any) => msg.was_comment === false) // Only DMs, not comment replies
         .map((msg: any) => ({
@@ -115,7 +115,7 @@ class RedditService {
 
     try {
       const message = await this.client.getMessage(messageId)
-      
+
       const dm: RedditDM = {
         id: message.id,
         author: message.author.name,
@@ -166,10 +166,10 @@ class RedditService {
         type: 'operation',
         category: 'reddit_service',
         action: 'send_dm',
-        metadata: { 
-          recipient, 
+        metadata: {
+          recipient,
           subject,
-          messageLength: message.length 
+          messageLength: message.length
         }
       })
 
@@ -206,13 +206,13 @@ class RedditService {
 
   async getUnreadDMs(): Promise<RedditDMResponse> {
     const response = await this.listDMs(100) // Get more messages to check for unread
-    
+
     if (!response.success) {
       return response
     }
 
     const unreadDMs = response.data.filter((dm: RedditDM) => dm.isUnread)
-    
+
     return { success: true, data: unreadDMs }
   }
 
@@ -223,7 +223,7 @@ class RedditService {
 
     try {
       const originalMessage = await this.client.getMessage(originalMessageId)
-      
+
       // Reply to the original message
       await originalMessage.reply(replyText)
 
@@ -231,10 +231,10 @@ class RedditService {
         type: 'operation',
         category: 'reddit_service',
         action: 'reply_to_dm',
-        metadata: { 
+        metadata: {
           originalMessageId,
           author: originalMessage.author.name,
-          replyLength: replyText.length 
+          replyLength: replyText.length
         }
       })
 
@@ -265,7 +265,7 @@ class RedditService {
     this.client = null
     this.credentials = null
     this.isAuthenticated = false
-    
+
     telemetry.trackEvent({
       type: 'system_event',
       category: 'reddit_service',

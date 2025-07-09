@@ -1,7 +1,12 @@
 import React, { useState, useRef } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { Upload, Trash, User } from 'phosphor-react'
 import { cn } from '@/lib/utils'
 
@@ -19,11 +24,11 @@ interface ModelAvatarData {
   uploadedAt?: Date
 }
 
-const ModelAvatar: React.FC<ModelAvatarProps> = ({ 
-  modelName, 
-  size = 'md', 
+const ModelAvatar: React.FC<ModelAvatarProps> = ({
+  modelName,
+  size = 'md',
   editable = false,
-  className 
+  className
 }) => {
   const [avatarData, setAvatarData] = useState<ModelAvatarData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -50,7 +55,7 @@ const ModelAvatar: React.FC<ModelAvatarProps> = ({
 
   const generateInitials = (name: string): string => {
     const cleanName = name.replace(':latest', '').toLowerCase()
-    
+
     if (cleanName.includes('tinydolphin') || cleanName.includes('tiny-dolphin')) return 'TD'
     if (cleanName.includes('deepseek')) return 'DS'
     if (cleanName.includes('openchat')) return 'OC'
@@ -66,14 +71,14 @@ const ModelAvatar: React.FC<ModelAvatarProps> = ({
     if (cleanName.includes('wizard')) return 'WZ'
     if (cleanName.includes('orca')) return 'OR'
     if (cleanName.includes('vicuna')) return 'VC'
-    
-    const words = cleanName.split(/[-_\s]+/).filter(word => word.length > 0)
+
+    const words = cleanName.split(/[-_\s]+/).filter((word) => word.length > 0)
     if (words.length >= 2) {
       return (words[0][0] + words[1][0]).toUpperCase()
     } else if (words.length === 1 && words[0].length >= 2) {
       return words[0].substring(0, 2).toUpperCase()
     }
-    
+
     return 'AI'
   }
 
@@ -85,10 +90,9 @@ const ModelAvatar: React.FC<ModelAvatarProps> = ({
     try {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = new Uint8Array(arrayBuffer)
-      
+
       await window.api.uploadModelAvatar(modelName, buffer, file.name)
       await loadAvatarData() // Reload to get new avatar
-      
     } catch (error) {
       console.error('Failed to upload avatar:', error)
     } finally {
@@ -122,17 +126,13 @@ const ModelAvatar: React.FC<ModelAvatarProps> = ({
 
   const sizeClasses = {
     sm: 'h-6 w-6 text-xs',
-    md: 'h-8 w-8 text-sm', 
+    md: 'h-8 w-8 text-sm',
     lg: 'h-10 w-10 text-base'
   }
 
   const AvatarComponent = (
     <Avatar className={cn(sizeClasses[size], className)}>
-      <AvatarImage 
-        src={getAvatarSrc()} 
-        alt={`${modelName} avatar`}
-        className="object-cover"
-      />
+      <AvatarImage src={getAvatarSrc()} alt={`${modelName} avatar`} className="object-cover" />
       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
         {avatarData?.initials || generateInitials(modelName)}
       </AvatarFallback>
@@ -147,8 +147,8 @@ const ModelAvatar: React.FC<ModelAvatarProps> = ({
     <div className="relative">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="h-auto w-auto p-0 hover:bg-transparent"
             disabled={isLoading}
           >

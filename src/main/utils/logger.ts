@@ -1,9 +1,9 @@
 /**
  * Enterprise Logging System for PelicanOS
- * 
+ *
  * Implements structured, performance-optimized logging with multiple levels,
  * automatic rotation, and security event tracking.
- * 
+ *
  * @author PelicanOS Engineering Team
  * @version 2.0.0
  */
@@ -56,7 +56,7 @@ class PelicanOSLogger {
   private logBuffer: LogEntry[] = []
   private flushInterval: NodeJS.Timeout | null = null
   private sessionId: string
-  
+
   constructor(config: Partial<LoggerConfig> = {}) {
     this.config = {
       minLevel: LogLevel.INFO,
@@ -68,7 +68,7 @@ class PelicanOSLogger {
       enablePerformanceLogging: true,
       ...config
     }
-    
+
     this.sessionId = this.generateSessionId()
     this.initializeLogging()
   }
@@ -136,7 +136,7 @@ class PelicanOSLogger {
     if (typeof data === 'object' && data !== null) {
       const sanitized = { ...data }
       const sensitiveFields = ['password', 'token', 'secret', 'key', 'credential']
-      
+
       for (const field of sensitiveFields) {
         if (field in sanitized) {
           sanitized[field] = '[REDACTED]'
@@ -158,29 +158,29 @@ class PelicanOSLogger {
   private outputToConsole(entry: LogEntry): void {
     const timestamp = format(new Date(entry.timestamp), 'HH:mm:ss.SSS')
     const levelColors = {
-      [LogLevel.DEBUG]: '\x1b[36m',     // Cyan
-      [LogLevel.INFO]: '\x1b[32m',      // Green  
-      [LogLevel.WARN]: '\x1b[33m',      // Yellow
-      [LogLevel.ERROR]: '\x1b[31m',     // Red
-      [LogLevel.CRITICAL]: '\x1b[35m',  // Magenta
-      [LogLevel.SECURITY]: '\x1b[41m',  // Red background
+      [LogLevel.DEBUG]: '\x1b[36m', // Cyan
+      [LogLevel.INFO]: '\x1b[32m', // Green
+      [LogLevel.WARN]: '\x1b[33m', // Yellow
+      [LogLevel.ERROR]: '\x1b[31m', // Red
+      [LogLevel.CRITICAL]: '\x1b[35m', // Magenta
+      [LogLevel.SECURITY]: '\x1b[41m' // Red background
     }
-    
+
     const levelIcons = {
       [LogLevel.DEBUG]: '🔍',
       [LogLevel.INFO]: 'ℹ️',
       [LogLevel.WARN]: '⚠️',
       [LogLevel.ERROR]: '❌',
       [LogLevel.CRITICAL]: '🚨',
-      [LogLevel.SECURITY]: '🛡️',
+      [LogLevel.SECURITY]: '🛡️'
     }
 
     const color = levelColors[entry.level] || '\x1b[0m'
     const icon = levelIcons[entry.level] || '•'
     const reset = '\x1b[0m'
-    
+
     const formatted = `${color}${icon} [${timestamp}] ${entry.category}${reset} ${entry.message}`
-    
+
     if (entry.data) {
       console.log(formatted, entry.data)
     } else {
@@ -195,10 +195,10 @@ class PelicanOSLogger {
     this.logBuffer = []
 
     try {
-      const logContent = logsToFlush.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+      const logContent = logsToFlush.map((entry) => JSON.stringify(entry)).join('\n') + '\n'
       const filename = `pelicanos_${format(new Date(), 'yyyy-MM-dd')}.log`
       const filepath = join(this.config.logDirectory, filename)
-      
+
       await writeFile(filepath, logContent, { flag: 'a' })
     } catch (error) {
       console.error('Failed to write logs to file:', error)
@@ -221,22 +221,28 @@ class PelicanOSLogger {
   }
 
   error(message: string, error?: Error | any, component?: string): void {
-    const errorData = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : error
-    
+    const errorData =
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          }
+        : error
+
     this.log(LogLevel.ERROR, 'ERROR', message, errorData, component)
   }
 
   critical(message: string, error?: Error | any, component?: string): void {
-    const errorData = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : error
-    
+    const errorData =
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          }
+        : error
+
     this.log(LogLevel.CRITICAL, 'CRITICAL', message, errorData, component)
   }
 
@@ -246,31 +252,49 @@ class PelicanOSLogger {
 
   // Performance-specific logging
   performance(operation: string, duration: number, data?: any, component?: string): void {
-    this.log(LogLevel.INFO, 'PERFORMANCE', `${operation} completed in ${duration}ms`, {
-      ...data,
-      operation,
-      duration
-    }, component)
+    this.log(
+      LogLevel.INFO,
+      'PERFORMANCE',
+      `${operation} completed in ${duration}ms`,
+      {
+        ...data,
+        operation,
+        duration
+      },
+      component
+    )
   }
 
   // Network operation logging
   network(method: string, url: string, status: number, duration: number, component?: string): void {
-    this.log(LogLevel.INFO, 'NETWORK', `${method} ${url} → ${status}`, {
-      method,
-      url,
-      status,
-      duration
-    }, component)
+    this.log(
+      LogLevel.INFO,
+      'NETWORK',
+      `${method} ${url} → ${status}`,
+      {
+        method,
+        url,
+        status,
+        duration
+      },
+      component
+    )
   }
 
   // Agent operation logging
   agent(agentId: string, action: string, result: string, data?: any): void {
-    this.log(LogLevel.INFO, 'AGENT', `Agent ${agentId}: ${action} → ${result}`, {
-      agentId,
-      action,
-      result,
-      ...data
-    }, 'agent')
+    this.log(
+      LogLevel.INFO,
+      'AGENT',
+      `Agent ${agentId}: ${action} → ${result}`,
+      {
+        agentId,
+        action,
+        result,
+        ...data
+      },
+      'agent'
+    )
   }
 
   // Memory operation logging
